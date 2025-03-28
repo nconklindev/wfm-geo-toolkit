@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             ->for($john)
             ->create();
 
-        KnownPlace::factory(100)
+        KnownPlace::factory(50)
             ->for($manager)
             ->create();
     }
