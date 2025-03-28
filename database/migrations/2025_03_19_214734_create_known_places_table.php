@@ -12,13 +12,14 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('latitude', 10, 2);
-            $table->decimal('longitude', 10, 2);
+            $table->decimal('latitude', 10, 7);
+            $table->decimal('longitude', 11, 7);
             $table->integer('radius');
-            $table->string('location_path')->nullable();
-            $table->integer('gps_accuracy_threshold');
+            $table->boolean('is_active')->default(true);
+            $table->json('locations')->nullable();
+            $table->integer('accuracy');
             $table->json('validation_order');
-            $table->foreignIdFor(User::class)->constrained('users');
+            $table->foreignIdFor(User::class)->constrained('users')->cascadeOnDelete();
             $table->timestamps();
 
             // Allow for different users to have the same Known Place names
