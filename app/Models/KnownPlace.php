@@ -11,13 +11,13 @@ class KnownPlace extends Model
     use HasFactory;
 
     protected $guarded = [];
+    protected $casts = [
+        'validation_order' => 'array',
+        'locations' => 'array',
+    ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
-
-    protected $casts = [
-        'validation_order' => 'array',
-    ];
 }
