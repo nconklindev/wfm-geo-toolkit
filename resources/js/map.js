@@ -39,26 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const places = JSON.parse(placesJson);
 
-            if (Array.isArray(places)) {
-                places.forEach((place) => {
-                    if (place && place.id && place.latitude && place.longitude && place.radius) {
-                        placesById[place.id] = place;
+            // Convert single object to array if needed
+            // For example -- if on the show page
+            const placesToProcess = Array.isArray(places) ? places : [places];
 
-                        // Store the circle in markers
-                        window.leafletMarkers[place.id] = L.circle([place.latitude, place.longitude], {
-                            color: '#4f46e5',
-                            fillColor: '#818cf8',
-                            fillOpacity: 0.5,
-                            radius: place.radius,
-                        })
-                            .addTo(window.map)
-                            .bindPopup(`<strong>${place.name}</strong><br>${place.description || ''}`);
+            placesToProcess.forEach((place) => {
+                if (place && place.id && place.latitude && place.longitude && place.radius) {
+                    placesById[place.id] = place;
 
-                        bounds.push([place.latitude, place.longitude]);
-                    }
-                });
+                    // Store the circle in markers
+                    window.leafletMarkers[place.id] = L.circle([place.latitude, place.longitude], {
+                        color: '#4f46e5',
+                        fillColor: '#818cf8',
+                        fillOpacity: 0.5,
+                        radius: place.radius,
+                    })
+                        .addTo(window.map)
+                        .bindPopup(`<strong>${place.name}</strong><br>${place.description || ''}`);
+
+                    bounds.push([place.latitude, place.longitude]);
+                }
+            });
+
+            // After processing all places, fit the map to the bounds if any exist
+            if (bounds.length > 0) {
+                window.map.fitBounds(bounds);
             } else {
-                console.error('Places data is not an array:', places);
+                // Set a default view if no bounds were set
+                window.map.setView([40.7128, -74.006], 13);
             }
         } catch (e) {
             console.error('Error parsing places data:', e);
