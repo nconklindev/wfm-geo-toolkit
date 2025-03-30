@@ -114,10 +114,19 @@
                                 </div>
                             </div>
 
+                            <!-- Include Timestamps -->
+                            <flux:radio.group
+                                wire:model="includeTimestamps"
+                                id="include_timestamps"
+                                label="Include Timestamps"
+                            >
+                                <flux:radio wire:model="includeTimestamps" value="1" label="Yes" />
+                                <flux:radio wire:model="includeTimestamps" value="0" label="No" />
+                            </flux:radio.group>
+
                             <!-- Transform Data -->
                             <flux:field wire:show="fileFormat === 'csv'" wire:cloak>
                                 <flux:radio.group
-                                    name="transform_data"
                                     wire:model="transformData"
                                     id="transform_data"
                                     label="Transform Data"

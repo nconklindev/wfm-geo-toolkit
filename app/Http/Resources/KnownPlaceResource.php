@@ -22,8 +22,8 @@ class KnownPlaceResource extends JsonResource
             'locations' => $this->locations,
             'accuracy' => $this->accuracy,
             'validation_order' => $this->validation_order,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->when($request->boolean('include_timestamps'), $this->created_at),
+            'updated_at' => $this->when($request->boolean('include_timestamps'), $this->updated_at),
         ];
     }
 }

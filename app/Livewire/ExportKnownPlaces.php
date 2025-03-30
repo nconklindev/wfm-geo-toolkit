@@ -16,12 +16,19 @@ class ExportKnownPlaces extends Component
 
     #[Validate(['in:csv,json'])]
     public string $fileFormat = 'json';
+
     #[Validate(['in:all,recent,custom'])]
     public string $placesFilter = 'all';
+
     #[Validate(['array', 'sometimes', 'required_if:placesFilter, custom'])]
     public array $selectedPlaces = [];
+
     #[Validate(['boolean'])]
     public bool $transformData = false;
+
+    #[Validate(['boolean'])]
+    public bool $includeTimestamps = false;
+
     protected KnownPlaceService $knownPlaceService;
 
     public function boot(KnownPlaceService $knownPlaceService): void
@@ -32,6 +39,7 @@ class ExportKnownPlaces extends Component
     public function mount(): void
     {
         $this->transformData = false;
+        $this->includeTimestamps = false;
     }
 
     public function export(Request $request): ?StreamedResponse
@@ -41,6 +49,10 @@ class ExportKnownPlaces extends Component
 
         // Validate the inputs
         $this->validate();
+
+        // Merge the includeTimestamps property into the include_timestamps request header
+        // which will be automatically passed into the KnownPlaceResource where we're conditionally including timestamps or not
+        $request->merge(['include_timestamps' => $this->includeTimestamps]);
 
         // Get the user's Known Places
         $query = $user->knownPlaces();

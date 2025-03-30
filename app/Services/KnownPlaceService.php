@@ -122,6 +122,8 @@ class KnownPlaceService
     /**
      * Find duplicate known place based on match criteria
      *
+     * Used in exporting data out of Geo Toolkit
+     *
      * @param  array  $apiData  API data to check against
      * @param  User  $user  The user who owns the known places
      * @param  string  $matchBy  How to match duplicates: 'name', 'coordinates', or 'both'
@@ -148,6 +150,8 @@ class KnownPlaceService
 
     /**
      * Map API data to the KnownPlace model structure
+     *
+     * Used in importing Known Places into Geo Toolkit
      *
      * @param  array  $sourceData  Data from external API
      * @return array Mapped data for KnownPlace model
