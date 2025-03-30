@@ -229,11 +229,7 @@
                                             @endforeach
                                         </td>
                                         <td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                                            <x-table-actions
-                                                :model="$place"
-                                                resource-name="known-places"
-                                                :show-view="false"
-                                            />
+                                            <x-table-actions :model="$place" resource-name="known-places" />
                                         </td>
                                     </tr>
                                 @endforeach
