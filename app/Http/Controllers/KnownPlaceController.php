@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreKnownPlaceRequest;
+use App\Http\Requests\UpdateKnownPlaceRequest;
 use App\Models\KnownPlace;
 use App\Services\KnownPlaceService;
 use Illuminate\Contracts\View\Factory;
@@ -10,7 +12,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Validation\Rule;
 
 class KnownPlaceController extends Controller
 {
@@ -27,32 +28,18 @@ class KnownPlaceController extends Controller
         return view('known-places.index', compact('knownPlaces'));
     }
 
+    public function show(KnownPlace $knownPlace)
+    {
+        return view('known-places.show', compact('knownPlace'));
+    }
+
     /**
      * @param  Request  $request
      * @return RedirectResponse
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreKnownPlaceRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('known_places')->where('user_id', auth()->id())
-            ],
-            'description' => 'nullable|string|max:255',
-            'latitude' => 'required|decimal:2,10|max:90',
-            'longitude' => 'required|decimal:2,10|max:180',
-            'radius' => 'required|integer',
-            'accuracy' => 'required|integer|max:5000',
-            // TODO: Add validation against added/imported Locations?
-            'locations' => ['nullable', 'string'],
-            'locations.*' => ['regex:/^[A-Za-z0-9 ]+(?:\/[A-Za-z0-9 ]+)*$/'],
-            'validation_order' => 'required|array',
-            'validation_order.*' => [
-                Rule::in(['gps', 'wifi']),
-            ],
-        ]);
+        $validated = $request->validated();
 
         // Create through the relationship
         $knownPlace = auth()->user()->knownPlaces()->create($validated);
@@ -65,7 +52,6 @@ class KnownPlaceController extends Controller
 
         // Store back in session
         session(['session_known_places' => $sessionPlaces]);
-
 
         flash()
             ->option('position', 'bottom-right')
@@ -127,44 +113,13 @@ class KnownPlaceController extends Controller
     }
 
     /**
-     * @param  Request  $request
+     * @param  UpdateKnownPlaceRequest  $request
      * @param  KnownPlace  $knownPlace
      * @return RedirectResponse
      */
-    public function update(Request $request, KnownPlace $knownPlace): RedirectResponse
+    public function update(UpdateKnownPlaceRequest $request, KnownPlace $knownPlace): RedirectResponse
     {
-        // Authorization
-        if ($knownPlace->user_id !== auth()->id()) {
-            flash()
-                ->option('position', 'bottom-right')
-                ->option('timeout', 5000)
-                ->error('You do not have permission to update this known place.');
-
-            return redirect()->intended(route('home'));
-        }
-
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('known_places')
-                    ->where('user_id', auth()->id())
-                    ->ignore($knownPlace->id),
-            ],
-            'description' => 'nullable|string|max:255',
-            'latitude' => 'required|decimal:2,10|max:90|min:-90',
-            'longitude' => 'required|decimal:2,10|max:180|min:-180',
-            'radius' => 'required|integer|max:2147483647',
-            'accuracy' => 'required|integer|max:5000',
-            // TODO: Add validation against added/imported Locations?
-            'locations' => ['nullable', 'string'],
-            'locations.*' => ['regex:/^[A-Za-z0-9 ]+(?:\/[A-Za-z0-9 ]+)*$/'],
-            'validation_order' => 'required|array',
-            'validation_order.*' => [
-                Rule::in(['gps', 'wifi']),
-            ],
-        ]);
+        $validated = $request->validated();
 
         $knownPlace->update($validated);
 
