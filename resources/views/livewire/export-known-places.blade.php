@@ -12,12 +12,13 @@
                     <flux:callout.text>
                         <strong>Note:</strong>
                         Please also see the API
-                        <flux:link
+                        <flux:callout.link
+                            target="_blank"
                             href="https://developer.ukg.com/wfm/reference/retrieve-all-known-places-or-by-specification"
                             class="inline cursor-pointer"
                         >
                             documentation
-                        </flux:link>
+                        </flux:callout.link>
                         for how to use the public API to export the same information.
                     </flux:callout.text>
                 </flux:callout>

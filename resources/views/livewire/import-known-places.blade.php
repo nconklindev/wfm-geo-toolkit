@@ -6,16 +6,17 @@
                 <flux:heading size="xl" level="1">Import Known Places</flux:heading>
                 <flux:text variant="subtle">Import Known Places from a JSON file.</flux:text>
                 <flux:callout color="blue" class="mt-6" icon="information-circle">
-                    <flux:text>
-                        This tool will only work with exported JSON data from the Pro WFM API. See the
-                        <flux:link
+                    <flux:callout.text>
+                        This tool will only work with exported JSON data from the Pro WFM API. See the API
+                        <flux:callout.link
+                            target="_blank"
                             href="https://developer.ukg.com/wfm/reference/retrieve-all-known-places-or-by-specification"
                             class="cursor-pointer"
                         >
-                            API documentation
-                        </flux:link>
+                            documentation
+                        </flux:callout.link>
                         for more details
-                    </flux:text>
+                    </flux:callout.text>
                 </flux:callout>
             </div>
 
