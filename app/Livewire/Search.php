@@ -17,8 +17,13 @@ class Search extends Component
     public function updatedSearchQuery(): void
     {
         $this->validate();
-        
+
         $this->results = KnownPlace::search($this->searchQuery)->where('user_id', auth()->id())->get();
+    }
+
+    public function openPlace(KnownPlace $knownPlace)
+    {
+        $this->redirectRoute('known-places.show', $knownPlace->id);
     }
 
     public function render()

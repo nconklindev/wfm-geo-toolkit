@@ -20,6 +20,7 @@
                 @foreach ($results as $place)
                     <div
                         class="cursor-pointer border-b px-4 py-2 text-xs last:border-0 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                        wire:click="openPlace({{ $place['id'] }})"
                     >
                         <div class="font-medium">{{ $place['name'] }}</div>
                         @if (! empty($place['description']))
