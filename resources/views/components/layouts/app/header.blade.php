@@ -37,6 +37,18 @@
                         </flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
+                <flux:dropdown>
+                    <flux:navbar.item icon-trailing="chevron-down" icon="building-office">Locations</flux:navbar.item>
+
+                    <flux:navmenu>
+                        <flux:navmenu.item href="{{ route('locations.index') }}">View All</flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('locations.create') }}" icon="plus">
+                            Create
+                        </flux:navmenu.item>
+                        <flux:navmenu.item href="#" icon="arrow-down-tray">Import</flux:navmenu.item>
+                        <flux:navmenu.item href="#" icon="arrow-up-tray">Export</flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
                 <flux:navbar.item
                     icon="magnifying-glass-plus"
                     :href="route('dashboard')"
