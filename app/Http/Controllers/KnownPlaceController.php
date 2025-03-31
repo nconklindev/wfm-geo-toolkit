@@ -100,7 +100,7 @@ class KnownPlaceController extends Controller
             ->option('timeout', 5000)
             ->success('Known place deleted successfully.');
 
-        return redirect()->back(fallback: route('known-places.index'));
+        return redirect()->intended(route('known-places.index'));
     }
 
     /**
