@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->integer('radius');
             $table->boolean('is_active')->default(true);
             $table->json('locations')->nullable();
+            $table->json('wifi_networks')->nullable();
             $table->integer('accuracy');
             $table->json('validation_order');
             $table->foreignIdFor(User::class)->constrained('users')->cascadeOnDelete();
