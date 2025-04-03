@@ -12,275 +12,174 @@ use Illuminate\Support\Facades\Log;
 
 class BusinessStructureNodeSeeder extends Seeder
 {
+    // Constants for controlling distribution
+    const TOTAL_NODES = 10000;
+
+    // Distribution percentages (must sum to 100)
+    const DISTRIBUTION = [
+        'Company' => 0.5,      // 0.5% = ~50 companies
+        'Region' => 1.5,       // 1.5% = ~150 regions
+        'State' => 3,          // 3% = ~300 states
+        'Location' => 5,       // 5% = ~500 locations
+        'Store' => 10,         // 10% = ~1,000 stores
+        'Department' => 30,    // 30% = ~3,000 departments
+        'Job' => 50,           // 50% = ~5,000 jobs
+    ];
+
+    // Track created nodes
+    private $nodesByType = [];
+    private $totalCreated = 0;
+    private $targetCounts = [];
+
     public function run(): void
     {
+        // Calculate target counts for each type
+        foreach (self::DISTRIBUTION as $type => $percentage) {
+            $this->targetCounts[$type] = (int) ceil((self::TOTAL_NODES * $percentage) / 100);
+            $this->nodesByType[$type] = [];
+        }
+
         // Disable Scout indexing during seeding
         BusinessStructureNode::withoutSyncingToSearch(function () {
             $this->command->info('Starting business structure node seeding without search sync...');
+            $this->command->info('Target: '.self::TOTAL_NODES.' total nodes');
+
+            foreach ($this->targetCounts as $type => $count) {
+                $this->command->info("Target for {$type}: {$count} nodes");
+            }
 
             DB::beginTransaction();
 
             try {
                 $faker = Factory::create();
 
-                // Get types ordered by hierarchy level (ascending)
+                // Get types ordered by hierarchy level
                 $types = BusinessStructureType::orderBy('hierarchy_order')->get();
-                $this->command->info("Found ".$types->count()." business structure types");
-
-                // Get all the types we'll need and verify they exist
-                $typeNames = ['Company', 'Region', 'State', 'Location', 'Store', 'Department', 'Job'];
                 $typeMap = [];
 
+                // Validate types exist
+                $typeNames = array_keys(self::DISTRIBUTION);
                 foreach ($typeNames as $typeName) {
                     $type = $types->where('name', $typeName)->first();
                     if (!$type) {
-                        $this->command->error("Business structure type '{$typeName}' not found! Please ensure all required types exist.");
+                        $this->command->error("Business structure type '{$typeName}' not found!");
                         return;
                     }
                     $typeMap[$typeName] = $type;
-                    $this->command->info("Found type: {$typeName} with ID: {$type->id}");
                 }
 
-                $this->command->info('Creating nodes according to proper hierarchy...');
+                $this->command->info('Creating nodes according to hierarchy...');
 
-                // Level 1: Companies (top level nodes)
-                $this->command->info("Creating Company nodes...");
-                $companies = [];
-                $companyType = $typeMap['Company'];
+                // Level 1: Companies (top level)
+                $this->createCompanies($faker, $typeMap['Company']);
 
-                for ($i = 0; $i < 3; $i++) { // Reduced to 3 companies for testing
-                    $companyName = $faker->company;
-                    $company = BusinessStructureNode::create([
-                        'name' => $companyName,
-                        'description' => "{$companyName} - Top level organization",
-                        'business_structure_type_id' => $companyType->id,
-                        'parent_id' => null, // No parent for top level
-                        'structure_hash' => md5($companyName.$companyType->id.now()->timestamp),
-                        'path' => null,
-                        'path_hierarchy' => [],
-                        'start_date' => now(),
-                        'end_date' => now()->addYears(5),
-                    ]);
-                    $companies[] = $company;
-                }
-                $this->command->info("Created ".count($companies)." company nodes");
+                // Level 2: Regions
+                $this->createRegions($faker, $typeMap['Region']);
 
-                // Level 2: Regions under companies
-                $this->command->info("Creating Region nodes...");
-                $regions = [];
-                $regionType = $typeMap['Region'];
+                // Level 3: States
+                $this->createStates($faker, $typeMap['State']);
 
-                foreach ($companies as $company) {
-                    // Create 2-3 regions per company
-                    $regionsPerCompany = rand(2, 3);
-                    for ($i = 0; $i < $regionsPerCompany; $i++) {
-                        $regionName = $this->getRegionName($faker);
-                        $region = BusinessStructureNode::create([
-                            'name' => $regionName,
-                            'description' => "{$regionName} - Regional division",
-                            'business_structure_type_id' => $regionType->id,
-                            'parent_id' => $company->id,
-                            'structure_hash' => md5($regionName.$company->id.$regionType->id.now()->timestamp),
-                            'path' => (string) $company->id,
-                            'path_hierarchy' => [$company->name],
-                            'start_date' => now(),
-                            'end_date' => now()->addYears(5),
-                        ]);
-                        if (!$region) {
-                            $this->command->error("Failed to create region node");
-                            continue;
-                        }
-                        $regions[] = $region;
-                    }
-                }
-                $this->command->info("Created ".count($regions)." region nodes");
+                // Level 4: Locations
+                $this->createLocations($faker, $typeMap['Location']);
 
-                // Level 3: States under regions
-                $this->command->info("Creating State nodes...");
-                $states = [];
-                $stateType = $typeMap['State'];
+                // Level 5: Stores
+                $this->createStores($faker, $typeMap['Store']);
 
-                foreach ($regions as $region) {
-                    // Create 2-3 states per region (reduced for testing)
-                    $statesPerRegion = rand(2, 3);
-                    for ($i = 0; $i < $statesPerRegion; $i++) {
-                        $stateName = $faker->state;
-                        $state = BusinessStructureNode::create([
-                            'name' => $stateName,
-                            'description' => "{$stateName} - State division",
-                            'business_structure_type_id' => $stateType->id,
-                            'parent_id' => $region->id,
-                            'structure_hash' => md5($stateName.$region->id.$stateType->id.now()->timestamp),
-                            'path' => $region->path.'.'.$region->id,
-                            'path_hierarchy' => array_merge($region->path_hierarchy, [$region->name]),
-                            'start_date' => now(),
-                            'end_date' => now()->addYears(5),
-                        ]);
-                        if (!$state) {
-                            $this->command->error("Failed to create state node");
-                            continue;
-                        }
-                        $states[] = $state;
-                    }
-                }
-                $this->command->info("Created ".count($states)." state nodes");
+                // Level 6: Departments
+                $this->createDepartments($faker, $typeMap['Department']);
 
-                // Level 4: Locations under states
-                $this->command->info("Creating Location nodes...");
-                $locations = [];
-                $locationType = $typeMap['Location'];
-
-                foreach ($states as $state) {
-                    // Create 1-2 locations per state (reduced for testing)
-                    $locationsPerState = rand(1, 2);
-                    for ($i = 0; $i < $locationsPerState; $i++) {
-                        $locationName = $faker->city." Location";
-                        $location = BusinessStructureNode::create([
-                            'name' => $locationName,
-                            'description' => "{$locationName} - Location division",
-                            'business_structure_type_id' => $locationType->id,
-                            'parent_id' => $state->id,
-                            'structure_hash' => md5($locationName.$state->id.$locationType->id.now()->timestamp),
-                            'path' => $state->path.'.'.$state->id,
-                            'path_hierarchy' => array_merge($state->path_hierarchy, [$state->name]),
-                            'start_date' => now(),
-                            'end_date' => now()->addYears(5),
-                        ]);
-                        if (!$location) {
-                            $this->command->error("Failed to create location node");
-                            continue;
-                        }
-                        $locations[] = $location;
-                    }
-                }
-                $this->command->info("Created ".count($locations)." location nodes");
-
-                // Level 5: Stores under locations
-                $this->command->info("Creating Store nodes...");
-                $stores = [];
-                $storeType = $typeMap['Store'];
-
-                foreach ($locations as $location) {
-                    // Create 1-2 stores per location (reduced for testing)
-                    $storesPerLocation = rand(1, 2);
-                    for ($i = 0; $i < $storesPerLocation; $i++) {
-                        $storeName = $faker->company." Store";
-                        $store = BusinessStructureNode::create([
-                            'name' => $storeName,
-                            'description' => "{$storeName} - Retail store",
-                            'business_structure_type_id' => $storeType->id,
-                            'parent_id' => $location->id,
-                            'structure_hash' => md5($storeName.$location->id.$storeType->id.now()->timestamp),
-                            'path' => $location->path.'.'.$location->id,
-                            'path_hierarchy' => array_merge($location->path_hierarchy, [$location->name]),
-                            'start_date' => now(),
-                            'end_date' => now()->addYears(5),
-                        ]);
-                        if (!$store) {
-                            $this->command->error("Failed to create store node");
-                            continue;
-                        }
-                        $stores[] = $store;
-                        $this->command->info("Created store: ".$storeName." with ID: ".$store->id);
-                    }
-                }
-                $this->command->info("Created ".count($stores)." store nodes");
-
-                // Level 6: Departments under stores
-                $this->command->info("Creating Department nodes...");
-                $departments = [];
-                $departmentType = $typeMap['Department'];
-
-                foreach ($stores as $store) {
-                    $this->command->info("Creating departments for store ID: ".$store->id);
-
-                    // Create 1-2 departments per store (reduced for testing)
-                    $departmentsPerStore = rand(1, 2);
-                    for ($i = 0; $i < $departmentsPerStore; $i++) {
-                        $departmentName = $this->getDepartmentName($faker);
-
-                        try {
-                            $department = new BusinessStructureNode([
-                                'name' => $departmentName,
-                                'description' => "{$departmentName} - Store department",
-                                'business_structure_type_id' => $departmentType->id,
-                                'parent_id' => $store->id,
-                                'structure_hash' => md5($departmentName.$store->id.$departmentType->id.now()->timestamp),
-                                'path' => $store->path.'.'.$store->id,
-                                'path_hierarchy' => array_merge($store->path_hierarchy, [$store->name]),
-                                'start_date' => now(),
-                                'end_date' => now()->addYears(5),
-                            ]);
-
-                            $success = $department->save();
-
-                            if (!$success) {
-                                $this->command->error("Failed to save department: ".$departmentName);
-                                continue;
-                            }
-
-                            $departments[] = $department;
-                            $this->command->info("Created department: ".$departmentName." with ID: ".$department->id);
-                        } catch (Exception $e) {
-                            $this->command->error("Exception creating department: ".$e->getMessage());
-                            Log::error("Error creating department: ".$e->getMessage());
-                        }
-                    }
-                }
-                $this->command->info("Created ".count($departments)." department nodes");
-
-                // Level 7: Jobs under departments
-                $this->command->info("Creating Job nodes...");
-                $jobCount = 0;
-                $jobType = $typeMap['Job'];
-
-                foreach ($departments as $department) {
-                    $this->command->info("Creating jobs for department ID: ".$department->id);
-
-                    // Create 1-2 jobs per department (reduced for testing)
-                    $jobsPerDepartment = rand(1, 2);
-                    for ($i = 0; $i < $jobsPerDepartment; $i++) {
-                        $jobName = $this->getJobName($faker, $department->name);
-
-                        try {
-                            $job = new BusinessStructureNode([
-                                'name' => $jobName,
-                                'description' => "{$jobName} - Position in {$department->name}",
-                                'business_structure_type_id' => $jobType->id,
-                                'parent_id' => $department->id,
-                                'structure_hash' => md5($jobName.$department->id.$jobType->id.now()->timestamp),
-                                'path' => $department->path.'.'.$department->id,
-                                'path_hierarchy' => array_merge($department->path_hierarchy, [$department->name]),
-                                'start_date' => now(),
-                                'end_date' => now()->addYears(5),
-                            ]);
-
-                            $success = $job->save();
-
-                            if (!$success) {
-                                $this->command->error("Failed to save job: ".$jobName);
-                                continue;
-                            }
-
-                            $jobCount++;
-                            $this->command->info("Created job: ".$jobName." with ID: ".$job->id);
-                        } catch (Exception $e) {
-                            $this->command->error("Exception creating job: ".$e->getMessage());
-                            Log::error("Error creating job: ".$e->getMessage());
-                        }
-                    }
-                }
-                $this->command->info("Created ".$jobCount." job nodes");
+                // Level 7: Jobs
+                $this->createJobs($faker, $typeMap['Job']);
 
                 DB::commit();
-                $this->command->info('Business structure hierarchy created successfully with all 7 levels!');
+
+                // Final report
+                $this->command->info('Business structure hierarchy created successfully!');
+                $this->command->info("Total nodes created: {$this->totalCreated}");
+                foreach ($this->nodesByType as $type => $nodes) {
+                    $count = count($nodes);
+                    $this->command->info("{$type} nodes: {$count}");
+                }
 
             } catch (Exception $e) {
                 DB::rollBack();
-                $this->command->error("Failed to seed business structure nodes: ".$e->getMessage());
-                Log::error("Failed to seed business structure nodes: ".$e->getMessage());
+                $this->command->error("Failed to seed: ".$e->getMessage());
+                Log::error("Failed to seed: ".$e->getMessage()."\n".$e->getTraceAsString());
             }
         });
+    }
+
+    private function createCompanies($faker, $companyType)
+    {
+        $target = $this->targetCounts['Company'];
+        $this->command->info("Creating {$target} Company nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        for ($i = 0; $i < $target; $i++) {
+            $companyName = $faker->unique()->company;
+            $company = BusinessStructureNode::create([
+                'name' => $companyName,
+                'description' => "{$companyName} - Top level organization",
+                'business_structure_type_id' => $companyType->id,
+                'parent_id' => null,
+                'structure_hash' => md5($companyName.$companyType->id.now()->timestamp.$i),
+                'path' => null,
+                'path_hierarchy' => [],
+                'start_date' => now(),
+                'end_date' => now()->addYears(rand(3, 7)),
+            ]);
+
+            $this->nodesByType['Company'][] = $company;
+            $this->totalCreated++;
+            $progressBar->advance();
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated ".count($this->nodesByType['Company'])." company nodes");
+    }
+
+    private function createRegions($faker, $regionType)
+    {
+        $target = $this->targetCounts['Region'];
+        $this->command->info("Creating {$target} Region nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        $companies = $this->nodesByType['Company'];
+        $regionsCreated = 0;
+
+        while ($regionsCreated < $target) {
+            // Distribute regions evenly across companies
+            foreach ($companies as $company) {
+                if ($regionsCreated >= $target) {
+                    break;
+                }
+
+                $regionName = $this->getRegionName($faker);
+                $region = BusinessStructureNode::create([
+                    'name' => $regionName,
+                    'description' => "{$regionName} - Regional division",
+                    'business_structure_type_id' => $regionType->id,
+                    'parent_id' => $company->id,
+                    'structure_hash' => md5($regionName.$company->id.$regionType->id.now()->timestamp.$regionsCreated),
+                    'path' => (string) $company->id,
+                    'path_hierarchy' => [$company->name],
+                    'start_date' => now(),
+                    'end_date' => now()->addYears(rand(3, 7)),
+                ]);
+
+                $this->nodesByType['Region'][] = $region;
+                $regionsCreated++;
+                $this->totalCreated++;
+                $progressBar->advance();
+            }
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated ".count($this->nodesByType['Region'])." region nodes");
     }
 
     private function getRegionName($faker): string
@@ -313,7 +212,179 @@ class BusinessStructureNodeSeeder extends Seeder
             'Caucasus'
         ];
 
-        return $faker->randomElement($regions);
+        return $faker->randomElement($regions).' '.$faker->randomNumber(2, true);
+    }
+
+    private function createStates($faker, $stateType)
+    {
+        $target = $this->targetCounts['State'];
+        $this->command->info("Creating {$target} State nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        $regions = $this->nodesByType['Region'];
+        $statesCreated = 0;
+
+        while ($statesCreated < $target) {
+            // Distribute states across regions
+            foreach ($regions as $region) {
+                if ($statesCreated >= $target) {
+                    break;
+                }
+
+                $stateName = $faker->state;
+                $state = BusinessStructureNode::create([
+                    'name' => $stateName,
+                    'description' => "{$stateName} - State division",
+                    'business_structure_type_id' => $stateType->id,
+                    'parent_id' => $region->id,
+                    'structure_hash' => md5($stateName.$region->id.$stateType->id.now()->timestamp.$statesCreated),
+                    'path' => $region->path.'.'.$region->id,
+                    'path_hierarchy' => array_merge($region->path_hierarchy, [$region->name]),
+                    'start_date' => now(),
+                    'end_date' => now()->addYears(rand(3, 7)),
+                ]);
+
+                $this->nodesByType['State'][] = $state;
+                $statesCreated++;
+                $this->totalCreated++;
+                $progressBar->advance();
+            }
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated ".count($this->nodesByType['State'])." state nodes");
+    }
+
+    private function createLocations($faker, $locationType)
+    {
+        $target = $this->targetCounts['Location'];
+        $this->command->info("Creating {$target} Location nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        $states = $this->nodesByType['State'];
+        $locationsCreated = 0;
+
+        while ($locationsCreated < $target) {
+            // Distribute locations across states
+            foreach ($states as $state) {
+                if ($locationsCreated >= $target) {
+                    break;
+                }
+
+                $locationName = $faker->city." Location";
+                $location = BusinessStructureNode::create([
+                    'name' => $locationName,
+                    'description' => "{$locationName} - Location division",
+                    'business_structure_type_id' => $locationType->id,
+                    'parent_id' => $state->id,
+                    'structure_hash' => md5($locationName.$state->id.$locationType->id.now()->timestamp.$locationsCreated),
+                    'path' => $state->path.'.'.$state->id,
+                    'path_hierarchy' => array_merge($state->path_hierarchy, [$state->name]),
+                    'start_date' => now(),
+                    'end_date' => now()->addYears(rand(3, 7)),
+                ]);
+
+                $this->nodesByType['Location'][] = $location;
+                $locationsCreated++;
+                $this->totalCreated++;
+                $progressBar->advance();
+            }
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated ".count($this->nodesByType['Location'])." location nodes");
+    }
+
+    private function createStores($faker, $storeType)
+    {
+        $target = $this->targetCounts['Store'];
+        $this->command->info("Creating {$target} Store nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        $locations = $this->nodesByType['Location'];
+        $storesCreated = 0;
+
+        while ($storesCreated < $target) {
+            // Distribute stores across locations
+            foreach ($locations as $location) {
+                if ($storesCreated >= $target) {
+                    break;
+                }
+
+                $storeName = $faker->company." Store";
+                $store = BusinessStructureNode::create([
+                    'name' => $storeName,
+                    'description' => "{$storeName} - Retail store",
+                    'business_structure_type_id' => $storeType->id,
+                    'parent_id' => $location->id,
+                    'structure_hash' => md5($storeName.$location->id.$storeType->id.now()->timestamp.$storesCreated),
+                    'path' => $location->path.'.'.$location->id,
+                    'path_hierarchy' => array_merge($location->path_hierarchy, [$location->name]),
+                    'start_date' => now(),
+                    'end_date' => now()->addYears(rand(3, 7)),
+                ]);
+
+                $this->nodesByType['Store'][] = $store;
+                $storesCreated++;
+                $this->totalCreated++;
+                $progressBar->advance();
+            }
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated ".count($this->nodesByType['Store'])." store nodes");
+    }
+
+    private function createDepartments($faker, $departmentType)
+    {
+        $target = $this->targetCounts['Department'];
+        $this->command->info("Creating {$target} Department nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        $stores = $this->nodesByType['Store'];
+        $departmentsCreated = 0;
+        $batchSize = 100;
+        $departments = [];
+
+        while ($departmentsCreated < $target) {
+            // Distribute departments across stores
+            foreach ($stores as $store) {
+                if ($departmentsCreated >= $target) {
+                    break;
+                }
+
+                $departmentName = $this->getDepartmentName($faker);
+
+                // Create the department directly for better handling of path_hierarchy
+                $department = BusinessStructureNode::create([
+                    'name' => $departmentName,
+                    'description' => "{$departmentName} - Store department",
+                    'business_structure_type_id' => $departmentType->id,
+                    'parent_id' => $store->id,
+                    'structure_hash' => md5($departmentName.$store->id.$departmentType->id.now()->timestamp.$departmentsCreated),
+                    'path' => $store->path.'.'.$store->id,
+                    'path_hierarchy' => array_merge($store->path_hierarchy, [$store->name]),
+                    'start_date' => now(),
+                    'end_date' => now()->addYears(rand(3, 7)),
+                ]);
+
+                $this->nodesByType['Department'][] = $department;
+                $departmentsCreated++;
+                $this->totalCreated++;
+                $progressBar->advance();
+            }
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated {$departmentsCreated} department nodes");
     }
 
     private function getDepartmentName($faker): string
@@ -346,7 +417,49 @@ class BusinessStructureNodeSeeder extends Seeder
             'Security'
         ];
 
-        return $faker->randomElement($departments);
+        return $faker->randomElement($departments).' '.$faker->randomNumber(3, true);
+    }
+
+    private function createJobs($faker, $jobType)
+    {
+        $target = $this->targetCounts['Job'];
+        $this->command->info("Creating {$target} Job nodes...");
+
+        $progressBar = $this->command->getOutput()->createProgressBar($target);
+        $progressBar->start();
+
+        $departments = $this->nodesByType['Department'];
+        $jobsCreated = 0;
+
+        while ($jobsCreated < $target) {
+            // Distribute jobs across departments
+            foreach ($departments as $department) {
+                if ($jobsCreated >= $target) {
+                    break;
+                }
+
+                $jobName = $this->getJobName($faker, $department->name);
+
+                $job = BusinessStructureNode::create([
+                    'name' => $jobName,
+                    'description' => "{$jobName} - Position in {$department->name}",
+                    'business_structure_type_id' => $jobType->id,
+                    'parent_id' => $department->id,
+                    'structure_hash' => md5($jobName.$department->id.$jobType->id.now()->timestamp.$jobsCreated),
+                    'path' => $department->path.'.'.$department->id,
+                    'path_hierarchy' => array_merge($department->path_hierarchy, [$department->name]),
+                    'start_date' => now(),
+                    'end_date' => now()->addYears(rand(3, 7)),
+                ]);
+
+                $jobsCreated++;
+                $this->totalCreated++;
+                $progressBar->advance();
+            }
+        }
+
+        $progressBar->finish();
+        $this->command->info("\nCreated {$jobsCreated} job nodes");
     }
 
     private function getJobName($faker, $departmentName): string
