@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "algolia/algoliasearch-client-php": "^4.18",
+        "kalnoy/nestedset": "^6.0",
         "laravel/framework": "^12.0",
         "laravel/scout": "^10.14",
         "laravel/tinker": "^2.10.1",

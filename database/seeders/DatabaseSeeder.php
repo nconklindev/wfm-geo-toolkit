@@ -15,16 +15,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         $john = User::factory()->create([
             'name' => 'John Wick',
+            'username' => 'johnwick',
             'email' => 'john.wick@example.com',
         ]);
 
         $manager = User::factory()->create([
             'name' => 'Mr Manager',
+            'username' => 'mrmanager',
             'email' => 'manager@continental.com',
+        ]);
+
+        $concierge = User::factory()->create([
+            'name' => 'The Concierge',
+            'username' => 'concierge',
+            'email' => 'concierge@example.com',
         ]);
 
         KnownPlace::factory(20)
@@ -34,5 +40,13 @@ class DatabaseSeeder extends Seeder
         KnownPlace::factory(50)
             ->for($manager)
             ->create();
+
+        // Add some known places for the test user too
+        KnownPlace::factory(30)
+            ->for($concierge)
+            ->create();
+
+
+        $this->call([BusinessStructureTypeSeeder::class, BusinessStructureNodeSeeder::class]);
     }
 }

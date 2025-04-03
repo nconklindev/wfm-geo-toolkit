@@ -179,6 +179,12 @@
                                         scope="col"
                                         class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
                                     >
+                                        {{ __('Active') }}
+                                    </th>
+                                    <th
+                                        scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                                    >
                                         {{ __('Validation') }}
                                     </th>
                                     <th
@@ -217,6 +223,13 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                                             {{ $place->accuracy }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
+                                            @if ($place->is_active)
+                                                <flux:icon.check class="h-5 w-5 text-green-500" />
+                                            @else
+                                                <flux:icon.x-mark class="h-5 w-5 text-red-500" />
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                                             @foreach ($place->validation_order as $method)

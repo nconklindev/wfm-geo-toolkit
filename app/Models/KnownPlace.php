@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Scout\Searchable;
 
 class KnownPlace extends Model
@@ -12,7 +13,7 @@ class KnownPlace extends Model
     use HasFactory;
     use Searchable;
 
-    protected $guarded = [];
+    protected $guarded = []; // TODO: We need to guard the user_id eventually
     protected $casts = [
         'validation_order' => 'array',
         'locations' => 'array',
@@ -21,6 +22,11 @@ class KnownPlace extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function businessNodes(): BelongsToMany
+    {
+        return $this->belongsToMany(BusinessStructureNode::class)->withTimestamps();
     }
 
     /**

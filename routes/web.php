@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\BusinessStructureNode;
+use App\Http\Controllers\BusinessStructureNodeController;
+use App\Http\Controllers\BusinessStructureTypeController;
 use App\Http\Controllers\KnownPlaceController;
-use App\Http\Controllers\LocationController;
+use App\Http\Controllers\TestController;
 use App\Livewire\ExportKnownPlaces;
 use App\Livewire\ImportKnownPlaces;
 use App\Livewire\Settings\Appearance;
@@ -46,12 +49,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('downloads/sample-known-places',
     [KnownPlaceController::class, 'downloadSample'])->middleware([
-    'auth', 'verified'
+    'auth',
+    'verified'
 ])->name('downloads.sample-known-places');
 
 // Locations
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('locations', LocationController::class);
+    Route::prefix('business-structure')->name('business-structure.')->group(function () {
+        // Business Node Types
+        Route::get('/types', [BusinessStructureTypeController::class, 'index'])->name('types.index');
+        Route::get('/types/import', [BusinessStructureTypeController::class, 'import'])->name('types.import');
+
+        // Locations
+        Route::get('/locations', [BusinessStructureNodeController::class, 'index'])->name('locations.index');
+        Route::get('/locations/import', [BusinessStructureNodeController::class, 'import'])->name('locations.import');
+    });
 });
 
 // User Settings
@@ -61,6 +73,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/profile', Profile::class)->name('settings.profile');
     Route::get('settings/password', Password::class)->name('settings.password');
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('test', [TestController::class, 'index'])->name('test');
 });
 
 require __DIR__.'/auth.php';
