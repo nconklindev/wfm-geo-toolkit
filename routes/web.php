@@ -6,6 +6,7 @@ use App\Http\Controllers\BusinessStructureTypeController;
 use App\Http\Controllers\KnownPlaceController;
 use App\Http\Controllers\TestController;
 use App\Livewire\ExportKnownPlaces;
+use App\Livewire\ImportBusinessStructure;
 use App\Livewire\ImportKnownPlaces;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
@@ -38,13 +39,27 @@ Route::get('known-places/export', ExportKnownPlaces::class)
 
 // Known Places Resources
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('known-places', KnownPlaceController::class)->except(['destroy', 'edit']);
+    // Index
+    Route::get('known-places', [KnownPlaceController::class, 'index'])->name('known-places.index');
 
+    // Create
+    Route::get('known-places/create', [KnownPlaceController::class, 'create'])->name('known-places.create');
+    Route::post('known-places', [KnownPlaceController::class, 'store'])->name('known-places.store');
+
+    // Read
+    Route::get('known-places/{knownPlace}', [KnownPlaceController::class, 'show'])->can('view',
+        ['knownPlace', auth()->user()])->name('known-places.show');
+
+    // Update
     Route::get('known-places/{knownPlace}/edit',
-        [KnownPlaceController::class, 'edit'])->name('known-places.edit')->can('update', ['knownPlace', 'user']);
+        [KnownPlaceController::class, 'edit'])->name('known-places.edit')->can('update',
+        ['knownPlace', auth()->user()]);
+    Route::patch('known-places/{knownPlace}',
+        [KnownPlaceController::class, 'update'])->name('known-places.update')->middleware('can:update,knownPlace');
 
+    // Delete
     Route::delete('known-places/{knownPlace}',
-        [KnownPlaceController::class, 'destroy'])->name('known-places.destroy')->can('delete', ['knownPlace', 'user']);
+        [KnownPlaceController::class, 'destroy'])->name('known-places.destroy')->middleware('can:delete,knownPlace');
 });
 
 Route::get('downloads/sample-known-places',
@@ -58,11 +73,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('business-structure')->name('business-structure.')->group(function () {
         // Business Node Types
         Route::get('/types', [BusinessStructureTypeController::class, 'index'])->name('types.index');
-        Route::get('/types/import', [BusinessStructureTypeController::class, 'import'])->name('types.import');
+        Route::get('/types/create', [BusinessStructureTypeController::class, 'create'])->name('types.create');
+        Route::post('/types', [BusinessStructureTypeController::class, 'store'])->name('types.store');
 
         // Locations
         Route::get('/locations', [BusinessStructureNodeController::class, 'index'])->name('locations.index');
-        Route::get('/locations/import', [BusinessStructureNodeController::class, 'import'])->name('locations.import');
     });
 });
 

@@ -151,6 +151,10 @@ class KnownPlaceController extends Controller
      */
     public function update(UpdateKnownPlaceRequest $request, KnownPlace $knownPlace): RedirectResponse
     {
+        if ($request->user()->cannot('update', $knownPlace)) {
+            abort(403);
+        }
+        
         $validated = $request->validated();
 
         $knownPlace->update($validated);
