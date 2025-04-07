@@ -89,6 +89,8 @@
     /* Additional customization */
     --minimal-blur: 8px; /* Backdrop blur amount */
     --minimal-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Shadow */
+
+    font-size: 16px;
 }
 
 [data-flux-field] {

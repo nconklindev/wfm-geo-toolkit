@@ -1,4 +1,4 @@
-<footer class="mx-auto mt-auto w-full max-w-6xl border-t border-zinc-200 px-6 py-12 lg:px-8 dark:border-zinc-700">
+<footer class="mx-auto mt-auto w-full max-w-7xl border-t border-zinc-200 px-6 py-12 lg:px-8 dark:border-zinc-700">
     <div class="flex flex-col items-center justify-between md:flex-row">
         <div class="mb-6 md:mb-0">
             <div class="flex items-center">

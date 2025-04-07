@@ -23,10 +23,12 @@
         <section class="mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-24">
             <div class="flex flex-col items-center lg:flex-row">
                 <div class="mb-10 lg:mb-0 lg:w-1/2">
-                    <h1 class="mb-6 text-4xl leading-tight font-bold lg:text-5xl">
+                    <h1
+                        class="mb-6 text-4xl leading-tight font-bold text-shadow-lg/30 text-shadow-zinc-700 lg:text-5xl"
+                    >
                         Known Place Geofence Plotting for Workforce Management
                     </h1>
-                    <p class="mb-8 text-lg text-muted">
+                    <p class="mb-8 text-lg text-muted text-shadow-md">
                         Track, monitor, and optimize your workforce with our advanced geofencing technology. Real-time
                         location tracking with customizable boundaries.
                     </p>
@@ -105,9 +107,9 @@
             id="features"
             class="mx-auto w-full max-w-7xl rounded-lg bg-white px-6 py-16 shadow-sm lg:px-8 dark:bg-zinc-800 dark:shadow-[0px_4px_16px_rgba(255,255,255,0.05)]"
         >
-            <div class="mb-16 text-center">
-                <h2 class="mb-4 text-3xl font-bold">Key Features</h2>
-                <p class="mx-auto max-w-3xl text-lg text-muted">
+            <div class="no- mb-16 text-center">
+                <h2 class="mb-4 text-3xl font-bold text-shadow-lg">Key Features</h2>
+                <p class="mx-auto max-w-3xl text-lg text-muted text-shadow-md">
                     Our geofencing solution provides powerful tools to manage your workforce effectively and
                     efficiently.
                 </p>
@@ -121,25 +123,12 @@
                     <div
                         class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
                     >
-                        <svg
-                            class="h-6 w-6 text-accent"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                            />
-                        </svg>
+                        <flux:icon.map class="h-6 w-6 text-accent" />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">Plot Known Places & Punches</h3>
-                    <p class="text-muted">
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Plotting</flux:heading>
+                    <flux:text variant="subtle">
                         Plot areas based on configured Known Places and geolocation coordinates from employee punches.
-                    </p>
+                    </flux:text>
                 </div>
 
                 <!-- Feature 2 -->
@@ -149,26 +138,13 @@
                     <div
                         class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
                     >
-                        <svg
-                            class="h-6 w-6 text-accent"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
-                            />
-                        </svg>
+                        <flux:icon.magnifying-glass-plus class="h-6 w-6 text-accent" />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">Punch Troubleshooter</h3>
-                    <p class="text-muted">
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Punch Troubleshooter</flux:heading>
+                    <flux:text variant="subtle">
                         Create individual test scenarios to diagnose why specific employees are experiencing geolocation
                         punch problems at certain locations.
-                    </p>
+                    </flux:text>
                 </div>
 
                 <!-- Feature 3 -->
@@ -178,26 +154,13 @@
                     <div
                         class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
                     >
-                        <svg
-                            class="h-6 w-6 text-accent"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                            />
-                        </svg>
+                        <flux:icon.chart-bar-square class="h-6 w-6 text-accent" />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">Advanced Reporting</h3>
-                    <p class="text-muted">
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Advanced Reporting</flux:heading>
+                    <flux:text variant="subtle">
                         Create comprehensive analyses of punch location data versus Known Places to optimize geofence
                         configurations and improve location validation.
-                    </p>
+                    </flux:text>
                 </div>
 
                 <!-- Feature 4 -->
@@ -207,26 +170,13 @@
                     <div
                         class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
                     >
-                        <svg
-                            class="h-6 w-6 text-accent"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                            />
-                        </svg>
+                        <flux:icon.bell-alert class="h-6 w-6 text-accent" />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">Automated Alerts</h3>
-                    <p class="text-muted">
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Automated Alerts</flux:heading>
+                    <flux:text variant="subtle">
                         Set up customizable notifications for geofence events, including entry, exit, and dwell time
                         violations.
-                    </p>
+                    </flux:text>
                 </div>
 
                 <!-- Feature 5 -->
@@ -236,26 +186,13 @@
                     <div
                         class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
                     >
-                        <svg
-                            class="h-6 w-6 text-accent"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                            />
-                        </svg>
+                        <flux:icon.lock-closed class="h-6 w-6 text-accent" />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">Privacy Controls</h3>
-                    <p class="text-muted">
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Privacy Controls</flux:heading>
+                    <flux:text variant="subtle">
                         Robust privacy settings allowing you to track only during work hours and in designated areas,
                         respecting employee privacy.
-                    </p>
+                    </flux:text>
                 </div>
 
                 <!-- Feature 6 -->
@@ -265,26 +202,13 @@
                     <div
                         class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
                     >
-                        <svg
-                            class="h-6 w-6 text-accent"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-                            />
-                        </svg>
+                        <flux:icon.circle-stack class="h-6 w-6 text-accent" />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">Import Known Places</h3>
-                    <p class="text-muted">
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Import Known Places</flux:heading>
+                    <flux:text variant="subtle">
                         Easily import configured Known Places using the existing Pro WFM API to quickly set up or update
                         your location database.
-                    </p>
+                    </flux:text>
                 </div>
             </div>
         </section>
