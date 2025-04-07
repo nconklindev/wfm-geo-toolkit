@@ -2,9 +2,10 @@
 
 use App\Livewire\Auth\Login;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
@@ -13,11 +14,14 @@ test('login screen can be rendered', function () {
 });
 
 test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+    $password = Faker\Factory::create()->password(10);
+    $user = User::factory()->create(
+        ['password' => bcrypt($password)]
+    );
 
     $response = Livewire::test(Login::class)
-        ->set('email', $user->email)
-        ->set('password', 'password')
+        ->set('identifier', $user->email)
+        ->set('password', $password)
         ->call('login');
 
     $response
