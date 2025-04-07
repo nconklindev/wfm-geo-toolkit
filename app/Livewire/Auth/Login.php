@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Rules\EmailOrUsernameRule;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -15,8 +16,9 @@ use Livewire\Component;
 #[Layout('components.layouts.auth')]
 class Login extends Component
 {
-    #[Validate('required|string|email')]
-    public string $email = '';
+    // Validated in rules
+    #[Validate(new EmailOrUsernameRule())]
+    public string $identifier = '';
 
     #[Validate('required|string')]
     public string $password = '';
@@ -32,11 +34,20 @@ class Login extends Component
 
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+        // Determine if the identifier is an email or username
+        $loginField = filter_var($this->identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        // Create credentials array with the appropriate field
+        $credentials = [
+            $loginField => $this->identifier,
+            'password' => $this->password
+        ];
+
+        if (!Auth::attempt($credentials, $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'identifier' => __('auth.failed'),
             ]);
         }
 
@@ -51,7 +62,7 @@ class Login extends Component
      */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -72,6 +83,6 @@ class Login extends Component
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->identifier).'|'.request()->ip());
     }
 }

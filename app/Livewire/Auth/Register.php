@@ -6,14 +6,14 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('components.layouts.auth')]
 class Register extends Component
 {
-    public string $name = '';
+    public string $username = '';
 
     public string $email = '';
 
@@ -27,13 +27,13 @@ class Register extends Component
     public function register(): void
     {
         $validated = $this->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:25', 'unique:'.User::class, 'alpha_dash'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => [
                 'required',
                 'string',
                 'confirmed',
-                Rules\Password::defaults()->symbols()->mixedCase()->numbers()->uncompromised()->min(10)
+                Password::min(10)->mixedCase()->numbers()->uncompromised(3)->symbols(),
             ],
         ]);
 
