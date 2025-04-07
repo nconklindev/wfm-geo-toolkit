@@ -16,19 +16,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $john = User::factory()->create([
-            'name' => 'John Wick',
             'username' => 'johnwick',
             'email' => 'john.wick@example.com',
         ]);
 
         $manager = User::factory()->create([
-            'name' => 'Mr Manager',
             'username' => 'mrmanager',
             'email' => 'manager@continental.com',
         ]);
 
         $concierge = User::factory()->create([
-            'name' => 'The Concierge',
             'username' => 'concierge',
             'email' => 'concierge@example.com',
         ]);
@@ -47,6 +44,6 @@ class DatabaseSeeder extends Seeder
             ->create();
 
 
-        $this->call([BusinessStructureTypeSeeder::class, BusinessStructureNodeSeeder::class]);
+//        $this->call([BusinessStructureTypeSeeder::class]);
     }
 }
