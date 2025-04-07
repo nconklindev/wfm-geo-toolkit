@@ -12,6 +12,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class KnownPlaceController extends Controller
 {
@@ -20,6 +22,64 @@ class KnownPlaceController extends Controller
     function __construct(KnownPlaceService $knownPlaceService)
     {
         $this->knownPlaceService = $knownPlaceService;
+    }
+
+    /**
+     * @param  KnownPlace  $knownPlace
+     * @return RedirectResponse
+     */
+    public function destroy(Request $request, KnownPlace $knownPlace): RedirectResponse
+    {
+        try {
+            $knownPlace->deleteOrFail();
+
+            // Authorize the action via the User Model
+            // https://laravel.com/docs/12.x/authorization#via-the-user-model
+            if ($request->user()->cannot('delete', $knownPlace)) {
+                abort(403);
+            }
+        } catch (Throwable $e) {
+            Log::error($e); // Log the error
+
+            // Flash the error letting the user know something happened
+            flash()
+                ->use('theme.minimal')
+                ->option('position', 'bottom-right')
+                ->option('timeout', 5000)
+                ->error("$knownPlace->name could not be deleted. Please try again.");
+
+            // Redirect back with errors
+            return back()->withErrors(['message' => 'Unable to delete known place.']);
+        }
+
+        // Flash the success
+        flash()
+            ->use('theme.minimal')
+            ->option('position', 'bottom-right')
+            ->option('timeout', 5000)
+            ->success("$knownPlace->name deleted successfully.");
+
+        // Redirect intended route
+        // This will usually be the index route
+        return redirect()->intended(route('known-places.index'));
+    }
+
+    public function downloadSample()
+    {
+        $path = storage_path('app/public/samples/test.json');
+        // TODO: Need to get a proper sample from a CFN or something
+        return response()->download($path, 'sample_known_places_response.json', [
+            'Content-Type' => 'application/json'
+        ]);
+    }
+
+    /**
+     * @param  KnownPlace  $knownPlace
+     * @return Factory|View|Application|\Illuminate\View\View|object
+     */
+    public function edit(KnownPlace $knownPlace)
+    {
+        return view('known-places.edit', compact('knownPlace'));
     }
 
     public function index()
@@ -34,7 +94,7 @@ class KnownPlaceController extends Controller
     }
 
     /**
-     * @param  Request  $request
+     * @param  StoreKnownPlaceRequest  $request
      * @return RedirectResponse
      */
     public function store(StoreKnownPlaceRequest $request): RedirectResponse
@@ -85,34 +145,6 @@ class KnownPlaceController extends Controller
     }
 
     /**
-     * @param  KnownPlace  $knownPlace
-     * @return RedirectResponse
-     */
-    public function destroy(KnownPlace $knownPlace)
-    {
-        // Check if the current user owns this place
-        abort_if(auth()->user()->id !== $knownPlace->user_id, 403);
-
-        $knownPlace->delete();
-
-        flash()
-            ->option('position', 'bottom-right')
-            ->option('timeout', 5000)
-            ->success('Known place deleted successfully.');
-
-        return redirect()->intended(route('known-places.index'));
-    }
-
-    /**
-     * @param  KnownPlace  $knownPlace
-     * @return Factory|View|Application|\Illuminate\View\View|object
-     */
-    public function edit(KnownPlace $knownPlace)
-    {
-        return view('known-places.edit', compact('knownPlace'));
-    }
-
-    /**
      * @param  UpdateKnownPlaceRequest  $request
      * @param  KnownPlace  $knownPlace
      * @return RedirectResponse
@@ -129,14 +161,5 @@ class KnownPlaceController extends Controller
             ->success('Known place updated successfully.');
 
         return redirect()->intended(route('known-places.index'));
-    }
-
-    public function downloadSample()
-    {
-        $path = storage_path('app/public/samples/test.json');
-        // TODO: Need to get a proper sample from a CFN or something
-        return response()->download($path, 'sample_known_places_response.json', [
-            'Content-Type' => 'application/json'
-        ]);
     }
 }
