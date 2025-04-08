@@ -60,15 +60,20 @@ class User extends Authenticatable
      */
     public function initials(): string
     {
-        return Str::of($this->name)
+        return Str::of($this->username)
             ->explode(' ')
-            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn(string $username) => Str::of($username)->substr(0, 1)->upper())
             ->implode('');
     }
 
     public function knownPlaces(): HasMany
     {
         return $this->hasMany(KnownPlace::class, 'user_id');
+    }
+
+    public function types(): BelongsToMany
+    {
+        return $this->belongsToMany(BusinessStructureType::class, 'business_structure_type_user')->withTimestamps();
     }
 
     /**

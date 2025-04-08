@@ -10,11 +10,7 @@ return new class extends Migration {
         Schema::create('business_structure_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('description')->nullable();
-            $table->string('hex_color')->nullable()->default('#193cb8');
             $table->integer('hierarchy_order'); // Maps to hierarchyOrder
-            $table->date('start_date')->default('1970-01-01');
-            $table->date('end_date')->default('9999-12-31');
             $table->timestamps();
         });
     }

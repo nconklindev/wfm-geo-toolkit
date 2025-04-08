@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 
@@ -14,12 +14,13 @@ class BusinessStructureType extends Model
 
     protected $fillable = [
         'name',
-        'description',
         'hierarchy_order',
-        'hex_color',
-        'start_date',
-        'end_date',
     ];
+
+    public function businessStructureNodes(): HasMany
+    {
+        return $this->hasMany(BusinessStructureNode::class, 'business_structure_type_id');
+    }
 
     public function toSearchableArray(): array
     {
@@ -29,15 +30,8 @@ class BusinessStructureType extends Model
         ];
     }
 
-    public function businessStructureNodes(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(BusinessStructureNode::class, 'business_structure_type_id');
-    }
-
-    protected function hexColor(): Attribute
-    {
-        return Attribute::make(
-            set: fn(string $value) => str_starts_with($value, '#') ? $value : '#'.$value
-        );
+        return $this->belongsToMany(User::class)->withTimestamps();
     }
 }
