@@ -116,7 +116,51 @@ select:focus[data-flux-control] {
     z-index: 9999 !important;
 }
 
+/* Target the Coloris field wrapper */
+.clr-field {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
 
-/* \[:where(&)\]:size-4 {
-    @apply size-4;
-} */
+/* Position the button inside the input */
+.clr-field [aria-labelledby="clr-open-label"] {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 4px;
+    z-index: 2;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+/* Style the color preview (::after element) */
+.clr-field [aria-labelledby="clr-open-label"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+    background-color: currentColor;
+}
+
+/* Add focus state */
+.clr-field [aria-labelledby="clr-open-label"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* Make space for the color button inside the input */
+.clr-field input[data-flux-control] {
+    padding-right: 42px !important; /* Create space for the color button */
+}
+
+/* For dark mode */
+.dark .clr-field [aria-labelledby="clr-open-label"] {
+    border-color: var(--color-gray-600);
+}
