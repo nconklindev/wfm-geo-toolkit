@@ -129,6 +129,7 @@ class KnownPlaceController extends Controller
     public function create()
     {
         $sessionPlaceIds = session('session_known_places', []);
+        $typesForUser = auth()->user()->types()->get();
 
         // Start with an empty query result if there are no session places
         if (empty($sessionPlaceIds)) {
@@ -141,7 +142,7 @@ class KnownPlaceController extends Controller
                 ->simplePaginate(10);
         }
 
-        return view('known-places.create', compact('sessionKnownPlaces'));
+        return view('known-places.create', compact('sessionKnownPlaces', 'typesForUser'));
     }
 
     /**
@@ -154,7 +155,7 @@ class KnownPlaceController extends Controller
         if ($request->user()->cannot('update', $knownPlace)) {
             abort(403);
         }
-        
+
         $validated = $request->validated();
 
         $knownPlace->update($validated);
