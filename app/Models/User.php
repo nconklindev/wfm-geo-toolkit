@@ -73,7 +73,8 @@ class User extends Authenticatable
 
     public function types(): BelongsToMany
     {
-        return $this->belongsToMany(BusinessStructureType::class, 'business_structure_type_user')->withTimestamps();
+        return $this->belongsToMany(BusinessStructureType::class,
+            'business_structure_type_user')->withPivot('description', 'hex_color')->withTimestamps();
     }
 
     /**
