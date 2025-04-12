@@ -13,11 +13,11 @@
         "algolia/algoliasearch-client-php": "^4.18",
         "kalnoy/nestedset": "^6.0",
         "laravel/framework": "^12.0",
+        "laravel/pulse": "^1.4",
         "laravel/scout": "^10.14",
         "laravel/tinker": "^2.10.1",
         "livewire/flux": "^2.0",
         "php-flasher/flasher-laravel": "^2.1",
-        "spatie/color": "^1.8",
         "spatie/geocoder": "^3.16"
     },
     "require-dev": {
