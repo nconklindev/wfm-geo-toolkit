@@ -13,7 +13,19 @@ class KnownPlace extends Model
     use HasFactory;
     use Searchable;
 
-    protected $guarded = []; // TODO: We need to guard the user_id eventually
+    protected $fillable = [
+        'name',
+        'description',
+        'latitude',
+        'longitude',
+        'radius',
+        'is_active',
+        'locations',
+        'wifi_networks',
+        'accuracy',
+        'validation_order',
+    ];
+
     protected $casts = [
         'validation_order' => 'array',
         'locations' => 'array',
@@ -24,7 +36,7 @@ class KnownPlace extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function businessNodes(): BelongsToMany
+    public function nodes(): BelongsToMany
     {
         return $this->belongsToMany(BusinessStructureNode::class)->withTimestamps();
     }
