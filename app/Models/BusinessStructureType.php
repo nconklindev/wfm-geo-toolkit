@@ -32,6 +32,6 @@ class BusinessStructureType extends Model
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsToMany(User::class, 'business_structure_type_user')->withTimestamps();
     }
 }
