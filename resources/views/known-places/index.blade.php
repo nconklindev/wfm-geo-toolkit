@@ -3,12 +3,12 @@
         <!-- Header with Actions -->
         <div class="mb-6 flex flex-col items-start justify-between sm:flex-row sm:items-center">
             <div>
-                <h1 class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+                <flux:heading level="1" size="xl">
                     {{ __('My Known Places') }}
-                </h1>
-                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                </flux:heading>
+                <flux:text>
                     {{ __('Manage your saved locations and geographical points of interest') }}
-                </p>
+                </flux:text>
             </div>
 
             <div class="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row">
@@ -258,39 +258,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Ensure this function is defined before Alpine initializes or tries to use it.
-        // It relies on 'map' being globally available (window.map) when a row is clicked.
-        function zoomToPlaceOnMap(lat, lon) {
-            const parsedLat = parseFloat(lat);
-            const parsedLon = parseFloat(lon);
-
-            // Check if map exists AND coordinates are valid numbers
-            if (typeof window.map !== 'undefined' && window.map && !isNaN(parsedLat) && !isNaN(parsedLon)) {
-                console.log('Zooming map to:', parsedLat, parsedLon);
-                window.map.setView([parsedLat, parsedLon], 15); // Adjust zoom level 15 as needed
-            } else {
-                console.error('Cannot zoom: Leaflet map instance "window.map" not found or coordinates invalid.', {
-                    mapExists: typeof window.map !== 'undefined',
-                    lat: lat, // Log original values too
-                    lon: lon,
-                    parsedLat: parsedLat,
-                    parsedLon: parsedLon,
-                });
-            }
-        }
-
-        // Optional: Add a check to see if map exists shortly after page load
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                // Give map init a little time just in case
-                if (typeof window.map === 'undefined') {
-                    console.warn('Map check after load: window.map is still undefined.');
-                } else {
-                    console.log('Map check after load: window.map seems available.');
-                }
-            }, 500); // Wait 500ms
-        });
-    </script>
 </x-layouts.app>
