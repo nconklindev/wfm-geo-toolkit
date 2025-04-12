@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class BusinessStructureNodeSeeder extends Seeder
 {
     // Constants for controlling distribution
-    const TOTAL_NODES = 1000;
+    const TOTAL_NODES = 100;
 
     // Distribution percentages (must sum to 100)
     const DISTRIBUTION = [
