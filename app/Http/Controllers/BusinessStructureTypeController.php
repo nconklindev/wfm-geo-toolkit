@@ -9,7 +9,10 @@ class BusinessStructureTypeController extends Controller
 {
     public function index()
     {
-        return view('business-structure.types.index');
+        $user = auth()->user();
+        $types = $user->types()->paginate(10);
+
+        return view('business-structure.types.index', compact('types'));
     }
 
     public function store(Request $request)
@@ -41,6 +44,7 @@ class BusinessStructureTypeController extends Controller
                 $user->types()->attach($exists->id, [
                     'description' => $validated['description'],
                     'hex_color' => $validated['color']
+                    //TODO: Need to use Spatie/Color to handle the color and convert it to Hex
                 ]);
 
                 flash()
