@@ -22,8 +22,8 @@ class StoreKnownPlaceRequest extends FormRequest
             'radius' => 'required|integer',
             'accuracy' => 'required|integer|max:5000',
             // TODO: Add validation against added/imported Locations?
-            'locations' => ['nullable', 'string'],
-            'locations.*' => ['regex:/^[A-Za-z0-9 ]+(?:\/[A-Za-z0-9 ]+)*$/'],
+            'savedLocations' => ['nullable', 'array'],
+            'savedLocations.*' => ['string', 'regex:/^[A-Za-z0-9 ]+(?:\/[A-Za-z0-9 ]+)*$/'],
             'validation_order' => 'required|array',
             'validation_order.*' => [
                 Rule::in(['gps', 'wifi']),
