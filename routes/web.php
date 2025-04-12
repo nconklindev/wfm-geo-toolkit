@@ -3,6 +3,7 @@
 use App\Http\Controllers\BusinessStructureNode;
 use App\Http\Controllers\BusinessStructureNodeController;
 use App\Http\Controllers\BusinessStructureTypeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KnownPlaceController;
 use App\Http\Controllers\TestController;
 use App\Livewire\ExportKnownPlaces;
@@ -24,9 +25,7 @@ Route::get('/about', function () {
 })->name('about');
 
 // Dashboard
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Known Places Import & Export
 Route::get('known-places/import', ImportKnownPlaces::class)
@@ -72,9 +71,21 @@ Route::get('downloads/sample-known-places',
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('business-structure')->name('business-structure.')->group(function () {
         // Business Node Types
+        Route::get('/types/import', [BusinessStructureTypeController::class, 'import'])->name('types.import');
+
+        // Index
         Route::get('/types', [BusinessStructureTypeController::class, 'index'])->name('types.index');
+
+        // Create
         Route::get('/types/create', [BusinessStructureTypeController::class, 'create'])->name('types.create');
         Route::post('/types', [BusinessStructureTypeController::class, 'store'])->name('types.store');
+
+        // Update
+        Route::get('/types/{type}/edit', [BusinessStructureTypeController::class, 'edit'])->name('types.edit');
+        Route::patch('/types/{type}', [BusinessStructureTypeController::class, 'update'])->name('types.update');
+
+        // Delete
+        Route::delete('/types/{type}', [BusinessStructureTypeController::class, 'destroy'])->name('types.destroy');
 
         // Locations
         Route::get('/locations', [BusinessStructureNodeController::class, 'index'])->name('locations.index');
