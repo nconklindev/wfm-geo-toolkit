@@ -101,6 +101,64 @@ class KnownPlaceController extends Controller
     {
         $validated = $request->validated();
 
+        // TODO: We need to create the Business Structure and nodes based on the locations that are entered in the form
+        // Get the Business Structure Types for the user
+        $types = auth()->user()->types()->orderBy('hierarchy_order')->get();
+
+        // Check if the user has at least 1 type created
+        if ($types->count() <= 1) {
+            flash()
+                ->option('position', 'bottom-right')
+                ->option('timeout', 5000)
+                ->error('You must create at least 1 Business Structure Type before creating a Known Place.');
+            return redirect()->route('known-places.create');
+        }
+
+        // Transform the saved locations from the validated data
+        // - Trim whitespace around each location
+        // - Capitalize the first letter of each location
+        $transformedLocations = array_map(function ($item) {
+            return ucfirst(trim($item));
+        }, $validated['savedLocations']);
+
+        // Create the full path
+        $path = implode('/', $transformedLocations);
+
+        // Create the Business Structure for the user
+        // We have to create multiple nodes so this needs to be in a loop
+        $parentId = null;
+        $pathHierarchy = []; // Initialize empty array for path hierarchy
+        $pathSegments = []; // Initialize empty array for building incremental paths
+        foreach ($types as $index => $type) {
+            if (isset($transformedLocations[$index])) {
+                // Add current location in loop to path segments array
+                $pathSegments[] = $transformedLocations[$index];
+
+                // Create the current node's path (just up to this level)
+                $currentPath = implode('/', $pathSegments);
+
+                // Add current location to path hierarchy array
+                $pathHierarchy[] = [
+                    'type' => $type->name,
+                    'name' => $transformedLocations[$index],
+                    'level' => $index + 1,
+                ];
+
+                // Create the node
+                $node = auth()->user()->nodes()->create([
+                    'business_structure_type_id' => $type->id,
+                    'name' => $transformedLocations[$index],
+                    'path' => $currentPath,
+                    'parent_id' => $parentId,
+//                    'path_hierarchy' => json_encode($pathHierarchy),
+                ]);
+                // Update the Parent ID for the next iteration
+                $parentId = $node->id;
+
+                dump($node);
+            }
+        }
+
         // Create through the relationship
         $knownPlace = auth()->user()->knownPlaces()->create($validated);
 

@@ -1,6 +1,5 @@
 @php
-    //    dd($node);
-    $beginningOfTime = $node->start_date->year() === 1900 ?? 'Beginning of Time';
+    //    dd($nodes);
 @endphp
 
 <tr
@@ -9,7 +8,6 @@
     data-parent-id="{{ $node->parent_id }}"
     data-node-type-id="{{ $node->business_structure_type_id }}"
     data-node-name="{{ $node->name }}"
-    data-node-description="{{ $node->description }}"
 >
     <td class="px-1.5 py-1.5 text-sm whitespace-nowrap text-zinc-900 dark:text-zinc-100">
         <div class="flex items-center">
@@ -46,16 +44,6 @@
         <x-color-badge :color="$node->type->hex_color">
             {{ $node->type->name }}
         </x-color-badge>
-    </td>
-    <!-- Node description -->
-    <td class="px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-        {{ Str::limit($node->description) }}
-    </td>
-    <td class="px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-        {{ $node->start_date->year === 1970 ? 'Beginning of Time' : $node->start_date->format('m/d/Y') }}
-    </td>
-    <td class="px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-        {{ $node->end_date->year === 9999 ? 'Forever' : $node->end_date->format('m/d/Y') }}
     </td>
 </tr>
 

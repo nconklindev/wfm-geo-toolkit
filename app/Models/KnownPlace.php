@@ -38,7 +38,8 @@ class KnownPlace extends Model
 
     public function nodes(): BelongsToMany
     {
-        return $this->belongsToMany(BusinessStructureNode::class)->withTimestamps();
+        return $this->belongsToMany(BusinessStructureNode::class)->with('full_path',
+            'path_hierarchy')->withTimestamps();
     }
 
     /**

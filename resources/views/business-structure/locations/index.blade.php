@@ -54,7 +54,7 @@
                             <tr>
                                 <th
                                     scope="col"
-                                    class="w-1/2 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                                    class="w-1/3 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
                                 >
                                     {{ __('Node Name') }}
                                 </th>
@@ -64,30 +64,12 @@
                                 >
                                     {{ __('Type') }}
                                 </th>
-                                <th
-                                    scope="col"
-                                    class="w-1/4 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
-                                >
-                                    {{ __('Description') }}
-                                </th>
-                                <th
-                                    scope="col"
-                                    class="w-1/4 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
-                                >
-                                    {{ __('Start Date') }}
-                                </th>
-                                <th
-                                    scope="col"
-                                    class="w-1/4 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
-                                >
-                                    {{ __('End Date') }}
-                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-800">
                             @if (! $nodes->isEmpty())
                                 @foreach ($nodes as $node)
-                                    @include('partials.node-row', ['node' => $node, 'level' => 0])
+                                    @include('partials.node-row', ['node' => $node, 'level' => 0, 'types' => $types])
                                 @endforeach
                             @else
                                 <tr class="w-full items-center justify-center text-center">

@@ -50,9 +50,9 @@ class User extends Authenticatable
         });
     }
 
-    public function businessStructureNodes(): BelongsToMany
+    public function nodes(): HasMany
     {
-        return $this->belongsToMany(BusinessStructureNode::class, 'business_structure_node_user')->withTimestamps();
+        return $this->hasMany(BusinessStructureNode::class, 'user_id');
     }
 
     /**
