@@ -60,16 +60,4 @@
             </form>
         </div>
     </div>
-
-    {{-- Custom styling to match Flux inputs until checkbox is fixed --}}
-    <style>
-        #validation_order {
-            background-color: color-mix(in oklab, var(--color-white) 10%, transparent) !important;
-        }
-
-        /* Making sure that the address search field is the proper color regardless of the appearance settings */
-        .dark #address_search {
-            background-color: color-mix(in srgb, #27272a 100%, var(--color-white) 10%) !important;
-        }
-    </style>
 </x-layouts.app>
