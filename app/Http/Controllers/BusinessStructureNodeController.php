@@ -13,12 +13,10 @@ class BusinessStructureNodeController extends Controller
         $types = BusinessStructureType::all();
         // Get the entire tree with a single query, ordered hierarchically
         $nodes = BusinessStructureNode::with('type')->withDepth()->defaultOrder()->get()->toTree();
-//        dd($nodes);
 
         return view('business-structure.locations.index', [
             'nodes' => $nodes,
             'types' => $types,
         ]);
-
     }
 }
