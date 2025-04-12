@@ -29,17 +29,7 @@
             {{ $knownPlace->description ?? old('description') }}
         </flux:textarea>
 
-        <flux:input
-            name="locations"
-            badge="Optional"
-            label="Locations"
-            type="text"
-            :value="isset($knownPlace) && is_array($knownPlace->locations)
-        ? implode(', ', $knownPlace->locations)
-        : (isset($knownPlace) ? $knownPlace->locations : old('locations'))"
-            placeholder="Acme Inc/Acme/Charlotte/Manufacturing Plant"
-            tabindex="0"
-        />
+        <livewire:location-input :types="$typesForUser" />
 
         <!-- Coordinates -->
         <div class="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-4">
@@ -131,7 +121,7 @@
         <div class="flex items-center justify-end space-x-3 pt-4">
             <flux:button type="button" variant="filled" class="cursor-pointer">Clear</flux:button>
             <flux:button type="submit" variant="primary" class="cursor-pointer">
-                {{ Route::is('known-places.create') ? 'Submit' : 'Update' }}
+                {{ Route::is('known-places.create') ? 'Create' : 'Update' }}
             </flux:button>
         </div>
     </div>
