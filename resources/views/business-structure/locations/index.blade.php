@@ -1,14 +1,16 @@
 <x-layouts.app :title="__('Business Structure')">
     <div class="mx-auto max-w-7xl pb-12" x-data="{}">
-        <h2 class="text-xl leading-tight font-semibold text-zinc-800 dark:text-zinc-200">
+        <flux:heading level="2" size="xl">
             {{ __('Business Structure') }}
-        </h2>
+        </flux:heading>
+        <flux:text variant="subtle">
+            Review your Business Structure hierarchy below. The tree that is generated is based on the locations you
+            have entered for all of your
+            <flux:link href="{{ route('known-places.index') }}">{{ __('known places') }}</flux:link>
+        </flux:text>
         <flux:navbar name="header">
             <div class="flex items-center justify-between">
                 <div class="flex space-x-4">
-                    <flux:navbar.item href="{{ route('business-structure.locations.import') }}">
-                        {{ __('Add Node') }}
-                    </flux:navbar.item>
                     <flux:navbar.item href="{{ route('business-structure.types.index') }}">
                         {{ __('Manage Node Types') }}
                     </flux:navbar.item>
