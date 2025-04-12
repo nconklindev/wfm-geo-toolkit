@@ -1,8 +1,40 @@
 import L from 'leaflet';
 
-document.addEventListener('DOMContentLoaded', () => {
+// Keep track of map initialization state
+let mapInitialized = false;
+
+export function initializeMap() {
     const mapElement = document.getElementById('map');
     if (!mapElement) return;
+
+    // Check if map already exists in this container
+    if (mapElement._leaflet_id) {
+        console.log('Map container already has a map instance, removing...');
+        try {
+            if (window.map) {
+                window.map.remove();
+                window.map = null;
+                mapInitialized = false;
+
+                // Give the DOM a moment to clean up
+                setTimeout(() => {
+                    initializeMap();
+                }, 50);
+                return;
+            }
+        } catch (e) {
+            console.error('Error removing existing map:', e);
+        }
+    }
+
+    // Prevent double initialization
+    if (mapInitialized && window.map) {
+        console.log('Map already initialized, refreshing view...');
+        window.map.invalidateSize();
+        return;
+    }
+
+    console.log('Creating new map instance');
 
     // Get form inputs (if they exist)
     const latitudeInput = document.getElementById('latitude');
@@ -163,4 +195,17 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         window.map.setView([0, 0], 2); // Default world view
     }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initializeMap, 500);
 });
+// Because we use wire:navigate in some places, we need to check for some Livewire events
+// Since wire:navigate acts as DOM replacement and does not fully reload the page, the DOMContentLoaded event
+// is not fired with wire:navigate
+document.addEventListener('livewire:navigated', () => {
+    setTimeout(initializeMap, 500);
+});
+// document.addEventListener('livewire:load', initializeMap);
+
+window.initializeMap = initializeMap;
