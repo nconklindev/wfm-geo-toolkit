@@ -9,18 +9,17 @@
                 <flux:callout color="blue" class="mt-6">
                     <flux:callout.heading icon="information-circle">Note</flux:callout.heading>
                     <flux:callout.text>
-                        The places created and displayed in the table below will remain during the logged in session.
-                        Once you log out, the places in the table will be deleted. You can view all of your created
-                        places by visiting your
+                        To make it easier to see the
                         <flux:callout.link href="{{ route('known-places.index') }}">known places</flux:callout.link>
-                        page.
+                        you create, during your active session, they will be displayed in the table below. In this
+                        table, you can also edit and delete the places you have created.
                     </flux:callout.text>
                 </flux:callout>
             </div>
 
             <form method="POST" action="{{ route('known-places.store') }}" class="space-y-6">
                 @csrf
-                @include('partials.known-place-form', ['knownPlace' => null])
+                @include('partials.known-place-form', ['knownPlace' => null, 'types' => $typesForUser])
             </form>
         </div>
         <!-- Known Places Table -->
@@ -91,7 +90,7 @@
                                     {{ $knownPlace->name }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-muted dark:text-zinc-400">
-                                    {{ Str::limit($knownPlace->description, 30) }}
+                                    {{ Str::limit($knownPlace->description, 30) ?? 'N/A' }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-muted dark:text-zinc-400">
                                     @if (is_array($knownPlace->locations) && count($knownPlace->locations) > 0)
