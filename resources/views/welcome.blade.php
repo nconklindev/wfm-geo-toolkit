@@ -140,7 +140,7 @@
                     >
                         <flux:icon.magnifying-glass-plus class="h-6 w-6 text-accent" />
                     </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Punch Troubleshooter</flux:heading>
+                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Punch Analysis</flux:heading>
                     <flux:text variant="subtle">
                         Create individual test scenarios to diagnose why specific employees are experiencing geolocation
                         punch problems at certain locations.
