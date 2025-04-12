@@ -118,7 +118,7 @@ class KnownPlaceController extends Controller
             ->option('timeout', 5000)
             ->success('Known place created successfully.');
 
-        return redirect()->route('known-places.create', compact('sessionPlaces'));
+        return redirect()->route('known-places.create');
     }
 
     /**
