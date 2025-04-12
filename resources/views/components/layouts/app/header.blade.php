@@ -25,14 +25,22 @@
                     <flux:navbar.item icon-trailing="chevron-down" icon="map">Known Places</flux:navbar.item>
 
                     <flux:navmenu>
-                        <flux:navmenu.item href="{{ route('known-places.index') }}">View All</flux:navmenu.item>
-                        <flux:navmenu.item href="{{ route('known-places.create') }}" icon="plus">
+                        <flux:navmenu.item href="{{ route('known-places.index') }}">Manage</flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('known-places.create') }}" icon="plus" wire:navigate>
                             Create
                         </flux:navmenu.item>
-                        <flux:navmenu.item href="{{ route('known-places.import') }}" icon="arrow-down-tray">
+                        <flux:navmenu.item
+                            href="{{ route('known-places.import') }}"
+                            icon="arrow-down-tray"
+                            wire:navigate
+                        >
                             Import
                         </flux:navmenu.item>
-                        <flux:navmenu.item href="{{ route('known-places.export') }}" icon="arrow-up-tray">
+                        <flux:navmenu.item
+                            href="{{ route('known-places.export') }}"
+                            icon="arrow-up-tray"
+                            wire:navigate
+                        >
                             Export
                         </flux:navmenu.item>
                     </flux:navmenu>
@@ -42,27 +50,34 @@
 
                     <flux:navmenu>
                         <flux:navmenu.item href="{{ route('business-structure.locations.index') }}">
-                            View All
+                            Manage
                         </flux:navmenu.item>
                         <flux:navmenu.item href="#" icon="arrow-down-tray">Import</flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
-                <flux:navbar.item
-                    icon="magnifying-glass-plus"
-                    :href="route('dashboard')"
-                    :current="request()->routeIs('dashboard')"
-                    wire:navigate
-                >
-                    {{ __('Scenarios') }}
-                </flux:navbar.item>
-                <flux:navbar.item
-                    icon="document-chart-bar"
-                    :href="route('dashboard')"
-                    :current="request()->routeIs('dashboard')"
-                    wire:navigate
-                >
-                    {{ __('Reports') }}
-                </flux:navbar.item>
+                <flux:dropdown>
+                    <flux:navbar.item icon-trailing="chevron-down" icon="tag">Types</flux:navbar.item>
+
+                    <flux:navmenu>
+                        <flux:navmenu.item href="{{ route('business-structure.types.index') }}" wire:navigate>
+                            Manage
+                        </flux:navmenu.item>
+                        <flux:navmenu.item
+                            href="{{ route('business-structure.types.create') }}"
+                            icon="plus"
+                            wire:navigate
+                        >
+                            Create
+                        </flux:navmenu.item>
+                        <flux:navmenu.item
+                            href="{{ route('business-structure.types.import') }}"
+                            icon="arrow-up-tray"
+                            wire:navigate
+                        >
+                            Import
+                        </flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
             </flux:navbar>
 
             <flux:spacer />
