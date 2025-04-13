@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->foreignIdFor(\App\Models\User::class)->constrained('users')->cascadeOnDelete();
             $table->foreignIdFor(BusinessStructureType::class)->constrained('business_structure_types')->restrictOnDelete();
             $table->string('path')->index()->nullable();
+            $table->json('path_hierarchy');
             $table->nestedSet();
             $table->timestamps();
 
