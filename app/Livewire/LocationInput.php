@@ -26,7 +26,6 @@ class LocationInput extends Component
 
             // Add the array of nodes to savedLocations
             $this->savedLocations[] = array_values($nodes);
-
             $this->reset('currentLocation');
         }
     }
