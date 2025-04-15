@@ -1,7 +1,8 @@
 <flux:button
     href="{{ back() }}"
     icon="arrow-left"
-    {{ $attributes->class('font-medium tracking-wider uppercase transition') }}
+    size="sm"
+    {{ $attributes->class('font-medium transition') }}
 >
     Back
 </flux:button>
