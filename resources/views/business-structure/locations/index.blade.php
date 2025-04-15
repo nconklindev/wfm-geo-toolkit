@@ -60,6 +60,12 @@
                                 </th>
                                 <th
                                     scope="col"
+                                    class="w-1/3 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                                >
+                                    {{ __('Known Places Assigned') }}
+                                </th>
+                                <th
+                                    scope="col"
                                     class="w-1/4 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
                                 >
                                     {{ __('Type') }}
@@ -69,7 +75,7 @@
                         <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-800">
                             @if (! $nodes->isEmpty())
                                 @foreach ($nodes as $node)
-                                    @include('partials.node-row', ['node' => $node, 'level' => 0, 'types' => $types])
+                                    @include('partials.node-row', ['node' => $node, 'level' => 0, 'types' => $types, 'leafNodes' => $leafNodes])
                                 @endforeach
                             @else
                                 <tr class="w-full items-center justify-center text-center">
