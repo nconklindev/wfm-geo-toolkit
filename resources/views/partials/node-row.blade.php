@@ -10,6 +10,7 @@
     data-node-name="{{ $node->name }}"
 >
     <td class="px-1.5 py-1.5 text-sm whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+        <!-- Node Name -->
         <div class="flex items-center">
             @for ($i = 0; $i < $node->depth; $i++)
                 <div class="mr-1.5 h-6 w-5 flex-none"></div>
@@ -39,6 +40,31 @@
             {{ $node->name }}
         </div>
     </td>
+    {{-- TODO: Enhance logic to display something that indicates something further down the node tree has something assigned --}}
+    <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-500 dark:text-zinc-400">
+        @if ($node->isLeaf())
+            {{ $leafNodes->firstWhere('id', $node->id)->known_places_count ?? 0 }}
+        @else
+            <div class="flex items-center">
+                <span>0</span>
+                @if (isset($nodesWithAssignedDescendants[$node->id]))
+                    <span class="ml-2 text-emerald-500" title="Contains assigned places in descendants">
+                        <flux:tooltip content="Contains assigned places in descendants" position="right">
+                            <flux:icon.check class="size-5 cursor-pointer stroke-2 text-green-500" />
+                        </flux:tooltip>
+                    </span>
+                @endif
+            </div>
+        @endif
+    </td>
+    {{-- <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-500 dark:text-zinc-400"> --}}
+    {{-- @if ($node->isLeaf()) --}}
+    {{-- {{ $leafNodes->firstWhere('id', $node->id)->known_places_count ?? 0 }} --}}
+    {{-- @else --}}
+    {{-- 0 --}}
+    {{-- @endif --}}
+    {{-- </td> --}}
+
     <!-- Node type name -->
     <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-500 dark:text-zinc-400">
         <x-color-badge :color="$node->type->hex_color">
