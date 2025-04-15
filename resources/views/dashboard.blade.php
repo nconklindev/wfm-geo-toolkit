@@ -50,20 +50,14 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Locations</h2>
                     <flux:badge variant="solid" color="teal" class="inline-flex min-w-[2rem] justify-center">
-                        {{ Location::count() }}
+                        {{ $leafNodes->count() }}
                     </flux:badge>
                 </div>
                 <div class="mt-4 flex flex-grow flex-col space-y-2">
-                    @forelse (Location::latest()->take(3)->get() as $location)
+                    @forelse ($leafNodes as $leafNode)
                         <div class="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-700">
-                            <span class="font-medium">{{ $location->name }}</span>
-                            <flux:link
-                                href="{{ route('locations.show', $location) }}"
-                                class="mr-2 text-sm"
-                                variant="ghost"
-                            >
-                                View
-                            </flux:link>
+                            <span class="font-medium">{{ $leafNode->path }}</span>
+                            <flux:link href="#" class="mr-2 text-sm" variant="ghost">View</flux:link>
                         </div>
                     @empty
                         <flux:text variant="subtle">No locations yet</flux:text>
