@@ -24,7 +24,7 @@
             <div class="flex flex-col items-center lg:flex-row">
                 <div class="mb-10 lg:mb-0 lg:w-1/2">
                     <h1
-                        class="mb-6 text-4xl leading-tight font-bold text-shadow-lg/30 text-shadow-zinc-700 lg:text-5xl"
+                        class="mb-6 text-4xl leading-tight font-bold text-shadow-lg/30 text-shadow-teal-500 lg:text-5xl"
                     >
                         Known Place Geofence Plotting for Workforce Management
                     </h1>
