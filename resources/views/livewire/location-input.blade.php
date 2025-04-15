@@ -52,9 +52,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
                     <!-- Example row - replace with actual data -->
-                    @foreach ($savedLocations as $locationSet)
+                    @foreach ($savedLocations as $i => $locationSet)
                         <tr>
-                            @foreach ($locationSet as $location)
+                            @foreach ($locationSet as $j => $location)
                                 <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-200">
                                     {{ $location }}
                                     {{--
@@ -63,7 +63,7 @@
                                     --}}
                                     <input
                                         type="hidden"
-                                        name="savedLocations[{{ $loop->index }}]"
+                                        name="savedLocations[{{ $i }}][{{ $j }}]"
                                         value="{{ $location }}"
                                     />
                                 </td>
