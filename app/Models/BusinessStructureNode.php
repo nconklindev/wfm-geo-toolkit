@@ -36,7 +36,7 @@ class BusinessStructureNode extends Model
 
     public function knownPlaces(): BelongsToMany
     {
-        return $this->belongsToMany(KnownPlace::class)->withPivot('full_path', 'path_hierarchy')->withTimestamps();
+        return $this->belongsToMany(KnownPlace::class)->withPivot('path', 'path_hierarchy')->withTimestamps();
     }
 
     public function parent(): BelongsTo

@@ -36,9 +36,27 @@ class KnownPlace extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the leaf node (most specific location) for this known place
+     * @return string|null
+     */
+    public function getLocationPathAttribute(): ?string
+    {
+        // Get the deepest node
+        $leafNode = $this->nodes()->orderBy('_lft')->first(['id', 'path']);
+
+        if (!$leafNode) {
+            return null;
+        }
+
+        $ancestors = $leafNode->path;
+
+        return $ancestors->pluck('name')->implode('/');
+    }
+
     public function nodes(): BelongsToMany
     {
-        return $this->belongsToMany(BusinessStructureNode::class)->with('full_path',
+        return $this->belongsToMany(BusinessStructureNode::class)->withPivot('path',
             'path_hierarchy')->withTimestamps();
     }
 

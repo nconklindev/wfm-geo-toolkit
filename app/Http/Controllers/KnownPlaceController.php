@@ -79,7 +79,9 @@ class KnownPlaceController extends Controller
      */
     public function edit(KnownPlace $knownPlace)
     {
-        return view('known-places.edit', compact('knownPlace'));
+        $typesForUser = auth()->user()->types()->get();
+
+        return view('known-places.edit', compact('knownPlace', 'typesForUser'));
     }
 
     public function index()
@@ -90,6 +92,19 @@ class KnownPlaceController extends Controller
 
     public function show(KnownPlace $knownPlace)
     {
+        $knownPlace->load([
+            'nodes' => function ($query) {
+                $query->select([
+                    'business_structure_nodes.id',
+                    'business_structure_nodes.path',
+                    'business_structure_nodes._lft',
+                    'business_structure_nodes._rgt',
+                    'business_structure_nodes.parent_id'
+                ])->orderBy('_lft',
+                    'desc');
+            }
+        ]);
+
         return view('known-places.show', compact('knownPlace'));
     }
 
@@ -101,6 +116,7 @@ class KnownPlaceController extends Controller
     {
         $validated = $request->validated();
 
+
         // Create the Known Place first
         $knownPlace = auth()->user()->knownPlaces()->create($validated);
 
@@ -109,61 +125,82 @@ class KnownPlaceController extends Controller
             // Get the Business Structure Types for the user
             $types = auth()->user()->types()->orderBy('hierarchy_order')->get();
 
-            // Check if the user has at least 1 type created
-            if ($types->count() <= 1) {
-                flash()
-                    ->option('position', 'bottom-right')
-                    ->option('timeout', 5000)
-                    ->error('You must create at least 1 Business Structure Type before creating a Known Place.');
-                return redirect()->route('known-places.create');
-            }
-
             // Transform the saved locations from the validated data
             // - Trim whitespace around each location
             // - Capitalize the first letter of each location
-            $transformedLocations = array_map(function ($item) {
-                return ucfirst(trim($item));
-            }, $validated['savedLocations']);
+            $transformedLocations = array_map(function ($locationGroup) {
+                // Apply transformations to each element in the inner array
+                return array_map(function ($item) {
+                    return is_string($item) ? trim(ucfirst($item)) : $item;
+                }, $locationGroup);
+            }, $validated['savedLocations']); // OK
+//            dd($transformedLocations);
 
-            // Create the full path
-            $path = implode('/', $transformedLocations);
+            // Process each location group (Acme/NC/1/..., Acme/NC/2/..., etc.)
+            foreach ($transformedLocations as $locationGroup) {
+                $parentId = null;
+                $pathHierarchy = [];
+                $currentPath = '';
 
-            // Create the Business Structure for the user
-            // We have to create multiple nodes so this needs to be in a loop
-            $parentId = null;
-            $pathHierarchy = []; // Initialize empty array for path hierarchy
-            $pathSegments = []; // Initialize empty array for building incremental paths
-            foreach ($types as $index => $type) {
-                if (isset($transformedLocations[$index])) {
-                    // Add current location in loop to path segments array
-                    $pathSegments[] = $transformedLocations[$index];
+                // Process each level in the hierarchy for this location group
+                foreach ($types as $index => $type) {
+                    if (isset($locationGroup[$index])) {
+                        $nodeName = $locationGroup[$index];
 
-                    // Create the current node's path (just up to this level)
-                    $currentPath = implode('/', $pathSegments);
+                        // Build the path incrementally
+                        $currentPath = $currentPath ? $currentPath.'/'.$nodeName : $nodeName;
 
-                    // Add current location to path hierarchy array
-                    $pathHierarchy[] = [
-                        'type' => $type->name,
-                        'name' => $transformedLocations[$index],
-                        'level' => $index + 1,
-                    ];
+                        // Add to path hierarchy
+                        $pathHierarchy[] = [
+                            'type' => $type->name,
+                            'name' => $nodeName,
+                            'level' => $type->hierarchy_order,
+                        ];
 
-                    // Create the node
-                    $node = auth()->user()->nodes()->create([
-                        'business_structure_type_id' => $type->id,
-                        'name' => $transformedLocations[$index],
-                        'path' => $currentPath,
-                        'parent_id' => $parentId,
-                        'path_hierarchy' => json_encode($pathHierarchy),
-                    ]);
-                    // Update the Parent ID for the next iteration
-                    $parentId = $node->id;
+                        if ($index === 0) {
+                            // Check if the root node exists
+                            $existingNode = auth()->user()->nodes()
+                                ->where('name', $nodeName)
+                                ->whereNull('parent_id')
+                                ->where('business_structure_type_id', $type->id)
+                                ->first();
+                        } else {
+                            // Check if child node exists
+                            $existingNode = auth()->user()->nodes()
+                                ->where('name', $nodeName)
+                                ->where('parent_id', $parentId)
+                                ->where('business_structure_type_id', $type->id)
+                                ->first();
+                        }
 
-                    dump($node);
+                        if ($existingNode) {
+                            $node = $existingNode;
+                        } else {
+                            // Create the node
+                            $node = auth()->user()->nodes()->create([
+                                'business_structure_type_id' => $type->id,
+                                'name' => $nodeName,
+                                'path' => $currentPath,
+                                'parent_id' => $parentId,
+                                'path_hierarchy' => json_encode($pathHierarchy),
+                            ]);
+                        }
+
+                        // Update parent_id for next iteration
+                        $parentId = $node->id;
+
+                        // Attach the full location to the Known Place
+                        if ($index === count($types) - 1 || !isset($locationGroup[$index + 1])) {
+                            $knownPlace->nodes()->attach($node->id, [
+                                'path' => $currentPath,
+                                'path_hierarchy' => json_encode($pathHierarchy),
+                            ]);
+                        }
+                    }
                 }
             }
         }
-        
+
         // Get existing session places or initialize empty array
         $sessionPlaces = session('session_known_places', []);
 
