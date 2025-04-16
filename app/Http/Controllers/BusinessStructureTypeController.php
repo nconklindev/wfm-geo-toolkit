@@ -80,4 +80,9 @@ class BusinessStructureTypeController extends Controller
     {
         return view('business-structure.types.create');
     }
+
+    public function edit(BusinessStructureType $type)
+    {
+        return view('business-structure.types.edit', compact('type'));
+    }
 }
