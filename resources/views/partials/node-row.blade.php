@@ -35,7 +35,7 @@
                     </svg>
                 </button>
             @else
-                <div class="w-7"></div>
+                <div class="w-5"></div>
             @endif
             {{ $node->name }}
         </div>
@@ -57,19 +57,16 @@
             </div>
         @endif
     </td>
-    {{-- <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-500 dark:text-zinc-400"> --}}
-    {{-- @if ($node->isLeaf()) --}}
-    {{-- {{ $leafNodes->firstWhere('id', $node->id)->known_places_count ?? 0 }} --}}
-    {{-- @else --}}
-    {{-- 0 --}}
-    {{-- @endif --}}
-    {{-- </td> --}}
 
     <!-- Node type name -->
     <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-500 dark:text-zinc-400">
-        <x-color-badge :color="$node->type->hex_color">
+        @if ($node->type->hex_color)
+            <x-color-badge :color="$node->type->hex_color">
+                {{ $node->type->name }}
+            </x-color-badge>
+        @else
             {{ $node->type->name }}
-        </x-color-badge>
+        @endif
     </td>
 </tr>
 
