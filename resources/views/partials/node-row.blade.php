@@ -57,17 +57,6 @@
             </div>
         @endif
     </td>
-
-    <!-- Node type name -->
-    <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-500 dark:text-zinc-400">
-        @if ($node->type->users->first()?->color)
-            <x-color-badge :color="$node->type->users->first()?->color">
-                {{ $node->type->name }}
-            </x-color-badge>
-        @else
-            {{ $node->type->name }}
-        @endif
-    </td>
 </tr>
 
 {{-- Recursively render children --}}
