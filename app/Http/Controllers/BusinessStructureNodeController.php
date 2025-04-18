@@ -15,7 +15,6 @@ class BusinessStructureNodeController extends Controller
     {
 
         $user = auth()->user();
-        $types = $user->types;
         // Get the known places with their associated leaf nodes only
         // Get leaf nodes with count of associated known places
         $leafNodes = $user->nodes()->whereIsLeaf()->withCount('knownPlaces')->get();
@@ -23,7 +22,7 @@ class BusinessStructureNodeController extends Controller
         // Get the entire tree with a single query, ordered hierarchically
         $nodes = auth()->user()->nodes()
             ->with([
-                'type.users' => function ($query) {
+                'user' => function ($query) {
                     $query->where('users.id', auth()->id());
                 }
             ])
@@ -51,9 +50,8 @@ class BusinessStructureNodeController extends Controller
         }
 
 
-        return view('business-structure.locations.index', [
+        return view('locations.index', [
             'nodes' => $nodes,
-            'types' => $types,
             'leafNodes' => $leafNodes,
             'nodesWithAssignedDescendants' => $nodesWithAssignedDescendants,
         ]);
@@ -72,6 +70,6 @@ class BusinessStructureNodeController extends Controller
             ->paginate($perPage);
 
         // Pass the node and the paginated known places to the view
-        return view('business-structure.locations.show', compact('node', 'knownPlaces'));
+        return view('locations.show', compact('node', 'knownPlaces'));
     }
 }

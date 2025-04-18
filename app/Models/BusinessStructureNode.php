@@ -53,12 +53,7 @@ class BusinessStructureNode extends Model
         ];
     }
 
-    public function type(): BelongsTo
-    {
-        return $this->belongsTo(BusinessStructureType::class, 'business_structure_type_id');
-    }
-
-    public function users(): BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
