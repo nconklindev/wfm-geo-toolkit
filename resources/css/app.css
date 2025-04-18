@@ -86,7 +86,11 @@
     }
 
     body {
-        @apply flex min-h-screen flex-col bg-[var(--color-page)] text-[var(--color-body)];
+        @apply flex min-h-screen flex-col bg-[var(--color-page)] text-[var(--color-body)] text-base;
+    }
+
+    html {
+        font-size: 1rem !important;
     }
 }
 
@@ -107,8 +111,6 @@
     /* Additional customization */
     --minimal-blur: 8px; /* Backdrop blur amount */
     --minimal-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Shadow */
-
-    font-size: 16px;
 }
 
 [data-flux-field] {
