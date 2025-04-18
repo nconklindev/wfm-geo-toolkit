@@ -25,7 +25,6 @@
         </div>
         <flux:navbar {{ $attributes }}>
             <flux:navbar.item href="{{ url('/') }}" :current="request()->is('/')">Home</flux:navbar.item>
-            <flux:navbar.item href="{{ url('/about') }}" :current="request()->is('about')">About</flux:navbar.item>
 
             @auth
                 <flux:navbar.item href="{{ url('/dashboard') }}">Dashboard</flux:navbar.item>
