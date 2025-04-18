@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\BusinessStructureNodeController;
-use App\Http\Controllers\BusinessStructureTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KnownPlaceController;
 use App\Http\Controllers\TestController;
@@ -14,13 +13,13 @@ use Illuminate\Support\Facades\Route;
 
 // Home
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 })->name('home');
 
-// About
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
+// Welcome
+Route::get('/welcome', function () {
+    return view('welcome');
+})->middleware(['auth', 'verified'])->name('welcome');
 
 // Dashboard
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
@@ -67,35 +66,18 @@ Route::get('downloads/sample-known-places',
 
 // Locations
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::prefix('business-structure')->name('business-structure.')->group(function () {
-        // Types
-        Route::get('/types/import', [BusinessStructureTypeController::class, 'import'])->name('types.import');
-
-        // Index
-        Route::get('/types', [BusinessStructureTypeController::class, 'index'])->name('types.index');
-
-        // Create
-        Route::get('/types/create', [BusinessStructureTypeController::class, 'create'])->name('types.create');
-        Route::post('/types', [BusinessStructureTypeController::class, 'store'])->name('types.store');
-
-        // Update
-        Route::get('/types/{type}/edit', [BusinessStructureTypeController::class, 'edit'])->name('types.edit');
-        Route::patch('/types/{type}', [BusinessStructureTypeController::class, 'update'])->name('types.update');
-
-        // Delete
-        Route::delete('/types/{type}', [BusinessStructureTypeController::class, 'destroy'])->name('types.destroy');
-
-        // Special Delete
-        Route::get('/types/{type}/confirm-delete',
-            [BusinessStructureTypeController::class, 'confirmDelete'])->name('types.confirm-delete');
-        Route::delete('/types/{type}/reassign',
-            [BusinessStructureTypeController::class, 'reassignAndDelete'])->name('types.reassign-and-delete');
-
+    Route::prefix('locations')->name('locations.')->group(function () {
         // Locations
-        Route::get('/locations', [BusinessStructureNodeController::class, 'index'])->name('locations.index');
+        Route::get('/', [BusinessStructureNodeController::class, 'index'])->name('index');
 
-        Route::get('/locations/{node}',
-            [BusinessStructureNodeController::class, 'show'])->name('locations.show');
+        Route::get('/{node}',
+            [BusinessStructureNodeController::class, 'show'])->name('show');
+
+        Route::get('/{node}/edit',
+            [BusinessStructureNodeController::class, 'edit'])->name('edit'); // New: Edit node name/details
+        Route::patch('/{node}',
+            [BusinessStructureNodeController::class, 'update'])->name('update'); // New: Handle node update
+
     });
 });
 
