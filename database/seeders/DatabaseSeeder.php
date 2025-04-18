@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\KnownPlace;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -29,21 +28,5 @@ class DatabaseSeeder extends Seeder
             'username' => 'concierge',
             'email' => 'concierge@example.com',
         ]);
-
-        KnownPlace::factory(20)
-            ->for($john)
-            ->create();
-
-        KnownPlace::factory(50)
-            ->for($manager)
-            ->create();
-
-        // Add some known places for the test user too
-        KnownPlace::factory(30)
-            ->for($concierge)
-            ->create();
-
-
-//        $this->call([BusinessStructureTypeSeeder::class]);
     }
 }
