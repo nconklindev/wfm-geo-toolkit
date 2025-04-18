@@ -43,7 +43,7 @@
         {{-- Optional: Add a link back to the locations index --}}
         <div class="mt-8">
             <a
-                href="{{ route('business-structure.locations.index') }}"
+                href="{{ route('locations.index') }}"
                 class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             >
                 &larr; Back to Locations
