@@ -70,11 +70,6 @@ class User extends Authenticatable
         return $this->hasMany(KnownPlace::class, 'user_id');
     }
 
-    public function types(): HasMany
-    {
-        return $this->hasMany(BusinessStructureType::class);
-    }
-
     /**
      * Get the attributes that should be cast.
      *
