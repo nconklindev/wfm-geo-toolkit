@@ -1,13 +1,11 @@
 <?php
 
-use App\Http\Controllers\BusinessStructureNode;
 use App\Http\Controllers\BusinessStructureNodeController;
 use App\Http\Controllers\BusinessStructureTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KnownPlaceController;
 use App\Http\Controllers\TestController;
 use App\Livewire\ExportKnownPlaces;
-use App\Livewire\ImportBusinessStructure;
 use App\Livewire\ImportKnownPlaces;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
@@ -70,7 +68,7 @@ Route::get('downloads/sample-known-places',
 // Locations
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('business-structure')->name('business-structure.')->group(function () {
-        // Business Node Types
+        // Types
         Route::get('/types/import', [BusinessStructureTypeController::class, 'import'])->name('types.import');
 
         // Index
@@ -87,8 +85,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Delete
         Route::delete('/types/{type}', [BusinessStructureTypeController::class, 'destroy'])->name('types.destroy');
 
+        // Special Delete
+        Route::get('/types/{type}/confirm-delete',
+            [BusinessStructureTypeController::class, 'confirmDelete'])->name('types.confirm-delete');
+        Route::delete('/types/{type}/reassign',
+            [BusinessStructureTypeController::class, 'reassignAndDelete'])->name('types.reassign-and-delete');
+
         // Locations
         Route::get('/locations', [BusinessStructureNodeController::class, 'index'])->name('locations.index');
+
+        Route::get('/locations/{node}',
+            [BusinessStructureNodeController::class, 'show'])->name('locations.show');
     });
 });
 

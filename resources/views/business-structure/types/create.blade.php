@@ -12,7 +12,8 @@
                 @csrf
 
                 <div class="flex flex-col gap-4 md:max-w-lg">
-                    <div class="flex flex-col gap-4 md:grid md:grid-cols-2">
+                    <div class="flex flex-col items-start gap-4 md:grid md:grid-cols-2">
+                        <!-- Name -->
                         <flux:input
                             type="text"
                             name="name"
@@ -23,9 +24,11 @@
                             autofocus
                             required
                         />
+                        
+                        <!-- Order -->
                         <flux:input
                             type="number"
-                            name="hierarchy_order"
+                            name="order"
                             label="Order"
                             id="order"
                             min="1"

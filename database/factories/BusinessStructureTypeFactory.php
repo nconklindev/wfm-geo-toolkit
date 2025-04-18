@@ -15,7 +15,7 @@ class BusinessStructureTypeFactory extends Factory
         return [
             'name' => $this->faker->name(),
             'description' => $this->faker->text(),
-            'hierarchy_order' => $this->faker->randomNumber(),
+            'order' => $this->faker->randomNumber(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];

@@ -10,8 +10,13 @@ return new class extends Migration {
         Schema::create('business_structure_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('hierarchy_order'); // Maps to hierarchyOrder
+            $table->text('description')->nullable();
+            $table->string('color')->nullable();
+            $table->integer('order');
+            $table->foreignIdFor(\App\Models\User::class)->constrained('users')->cascadeOnDelete();
             $table->timestamps();
+
+            $table->unique(['name', 'user_id']);
         });
     }
 

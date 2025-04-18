@@ -37,7 +37,7 @@
                             badge="{{ __('Optional') }}"
                             label="{{ __('Description') }}"
                         >
-                            {{ old('description', $type->pivot->description ?? '') }}
+                            {{ old('description', $type->description ?? '') }}
                         </flux:textarea>
                     </div>
                 </div>
@@ -51,12 +51,12 @@
                     <div class="flex flex-col gap-6 sm:flex-row sm:items-end">
                         <div class="w-full sm:w-1/3">
                             <flux:input
-                                id="hierarchy_order"
-                                name="hierarchy_order"
+                                id="order"
+                                name="order"
                                 type="number"
                                 badge="Required"
-                                label="{{ __('Hierarchy Order') }}"
-                                value="{{ old('hierarchy_order', $type->hierarchy_order) }}"
+                                label="{{ __('Order') }}"
+                                value="{{ old('order', $type->order) }}"
                                 min="1"
                                 max="9999"
                                 required
@@ -70,6 +70,7 @@
                                 label="{{ __('Color') }}"
                                 id="color-picker"
                                 tabindex="0"
+                                value="{{ old('color', $type->color ?? '') }}"
                                 badge="Optional"
                                 data-color
                             />

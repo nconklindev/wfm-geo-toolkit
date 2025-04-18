@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -71,10 +70,9 @@ class User extends Authenticatable
         return $this->hasMany(KnownPlace::class, 'user_id');
     }
 
-    public function types(): BelongsToMany
+    public function types(): HasMany
     {
-        return $this->belongsToMany(BusinessStructureType::class,
-            'business_structure_type_user')->withPivot('description', 'hex_color')->withTimestamps();
+        return $this->hasMany(BusinessStructureType::class);
     }
 
     /**

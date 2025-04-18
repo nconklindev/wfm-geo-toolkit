@@ -19,7 +19,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 1,
                 'name' => 'Company',
                 'description' => 'Top level organizational unit',
-                'hierarchy_order' => 100,
+                'order' => 100,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -27,7 +27,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 2,
                 'name' => 'Region',
                 'description' => 'Geographic region',
-                'hierarchy_order' => 200,
+                'order' => 200,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -35,7 +35,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 3,
                 'name' => 'State',
                 'description' => 'State or province',
-                'hierarchy_order' => 300,
+                'order' => 300,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -43,7 +43,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 4,
                 'name' => 'Location',
                 'description' => 'Geographic location',
-                'hierarchy_order' => 400,
+                'order' => 400,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -51,7 +51,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 5,
                 'name' => 'Store',
                 'description' => 'Retail outlet',
-                'hierarchy_order' => 500,
+                'order' => 500,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -59,7 +59,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 6,
                 'name' => 'Department',
                 'description' => 'Organizational department',
-                'hierarchy_order' => 600,
+                'order' => 600,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -67,7 +67,7 @@ class BusinessStructureTypeSeeder extends Seeder
                 'id' => 7,
                 'name' => 'Job',
                 'description' => 'Job position',
-                'hierarchy_order' => 700,
+                'order' => 700,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -77,12 +77,12 @@ class BusinessStructureTypeSeeder extends Seeder
         $totalTypes = count($types);
 
         foreach ($types as $index => $type) {
-            // Generate distinct hex color based on hierarchy_order
-            $type['hex_color'] = BusinessStructureTypeService::generateDistinctColor(
+            // Generate distinct hex color based on order
+            $type['color'] = BusinessStructureTypeService::generateDistinctColor(
                 $index,
                 $totalTypes
             );
-            $this->command->info('Setting Hex Color'.$type['hex_color'].' for '.$type['name']);
+            $this->command->info('Setting Hex Color'.$type['color'].' for '.$type['name']);
 
             BusinessStructureType::updateOrCreate(['id' => $type['id']], $type);
         }
