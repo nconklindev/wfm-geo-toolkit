@@ -6,9 +6,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // TODO: Come back and add Locations relationship to this once we fix the locations table
-        $user = auth()->user()->load('types', 'knownPlaces')->loadCount([
-            'types',
+        $user = auth()->user()->load('knownPlaces')->loadCount([
             'knownPlaces',
         ]);
 
@@ -18,7 +16,6 @@ class DashboardController extends Controller
             ->with('knownPlaces')
             ->orderByDesc('created_at')
             ->get();
-//        dd($leafNodes);
 
         return view('dashboard', compact('user', 'leafNodes'));
     }

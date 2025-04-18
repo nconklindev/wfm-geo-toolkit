@@ -28,7 +28,7 @@
                         <flux:navmenu.item href="{{ route('known-places.index') }}" wire:navigate>
                             Manage
                         </flux:navmenu.item>
-                        <flux:navmenu.item href="{{ route('known-places.create') }}" icon="plus" wire:navigate>
+                        <flux:navmenu.item href="{{ route('known-places.create') }}" icon="plus">
                             Create
                         </flux:navmenu.item>
                         <flux:navmenu.item
@@ -51,29 +51,7 @@
                     <flux:navbar.item icon-trailing="chevron-down" icon="building-office">Locations</flux:navbar.item>
 
                     <flux:navmenu>
-                        <flux:navmenu.item href="{{ route('business-structure.locations.index') }}">
-                            Manage
-                        </flux:navmenu.item>
-                        <flux:navmenu.item href="#" icon="arrow-down-tray">Import</flux:navmenu.item>
-                    </flux:navmenu>
-                </flux:dropdown>
-                <flux:dropdown>
-                    <flux:navbar.item icon-trailing="chevron-down" icon="tag">Types</flux:navbar.item>
-
-                    <flux:navmenu>
-                        <flux:navmenu.item href="{{ route('business-structure.types.index') }}" wire:navigate>
-                            Manage
-                        </flux:navmenu.item>
-                        <flux:navmenu.item href="{{ route('business-structure.types.create') }}" icon="plus">
-                            Create
-                        </flux:navmenu.item>
-                        <flux:navmenu.item
-                            href="{{ route('business-structure.types.import') }}"
-                            icon="arrow-up-tray"
-                            wire:navigate
-                        >
-                            Import
-                        </flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('locations.index') }}">Manage</flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
             </flux:navbar>
