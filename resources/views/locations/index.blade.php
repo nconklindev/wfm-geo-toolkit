@@ -8,27 +8,12 @@
             have entered for all of your
             <flux:link href="{{ route('known-places.index') }}">{{ __('known places') }}</flux:link>
         </flux:text>
-        <flux:navbar name="header">
-            <div class="flex items-center justify-between">
-                <div class="flex space-x-4">
-                    <flux:navbar.item href="{{ route('business-structure.types.index') }}">
-                        {{ __('Manage Node Types') }}
-                    </flux:navbar.item>
-                </div>
-            </div>
-        </flux:navbar>
-        <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-zinc-800">
+        <div class="mt-6 overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-zinc-800">
             <div class="p-6" x-data>
                 <!-- Filter controls -->
                 <div class="mb-6 rounded-md bg-zinc-50 p-4 dark:bg-zinc-700">
                     <h3 class="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">{{ __('Filters') }}</h3>
                     <div class="flex flex-wrap gap-4">
-                        <flux:select label="{{ __('Node Type') }}">
-                            <option value="">{{ __('All Types') }}</option>
-                            @foreach ($types as $type)
-                                <option value="{{ $type->id }}">{{ $type->name }}</option>
-                            @endforeach
-                        </flux:select>
                         <flux:input
                             type="text"
                             label="Search"
@@ -64,18 +49,12 @@
                                 >
                                     {{ __('Known Places Assigned') }}
                                 </th>
-                                <th
-                                    scope="col"
-                                    class="w-1/4 px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
-                                >
-                                    {{ __('Type') }}
-                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-800">
                             @if (! $nodes->isEmpty())
                                 @foreach ($nodes as $node)
-                                    @include('partials.node-row', ['node' => $node, 'level' => 0, 'types' => $types, 'leafNodes' => $leafNodes])
+                                    @include('partials.node-row', ['node' => $node, 'level' => 0, 'leafNodes' => $leafNodes])
                                 @endforeach
                             @else
                                 <tr class="w-full items-center justify-center text-center">
