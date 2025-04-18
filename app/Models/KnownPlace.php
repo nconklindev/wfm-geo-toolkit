@@ -23,6 +23,7 @@ class KnownPlace extends Model
         'locations',
         'wifi_networks',
         'accuracy',
+        'color',
         'validation_order',
     ];
 

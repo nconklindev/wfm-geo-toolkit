@@ -29,7 +29,7 @@
             {{ $knownPlace->description ?? old('description') }}
         </flux:textarea>
 
-        <livewire:location-input :types="$typesForUser" />
+        <livewire:location-input name="locations" :assignedLocations="$assignedLocations ?? []" />
 
         <!-- Coordinates -->
         <div class="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-4">
@@ -86,6 +86,19 @@
                 required
                 min="1"
                 tabindex="0"
+            />
+        </div>
+
+        <div id="color-container" class="flex flex-col">
+            <flux:input
+                name="color"
+                type="text"
+                label="Color"
+                :value="$knownPlace->color ?? old('color', '#3b82f6')"
+                id="color-picker"
+                tabindex="0"
+                badge="Optional"
+                data-color
             />
         </div>
 

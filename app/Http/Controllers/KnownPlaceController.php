@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreKnownPlaceRequest;
 use App\Http\Requests\UpdateKnownPlaceRequest;
+use App\Models\BusinessStructureNode;
 use App\Models\KnownPlace;
+use App\Models\User;
 use App\Services\KnownPlaceService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
@@ -14,6 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Log;
 use Throwable;
+
+// Make sure this is imported
 
 class KnownPlaceController extends Controller
 {
@@ -79,9 +83,21 @@ class KnownPlaceController extends Controller
      */
     public function edit(KnownPlace $knownPlace)
     {
-        $typesForUser = auth()->user()->types()->get();
+        $leafNodes = $knownPlace->nodes()->whereIsLeaf()->get(['business_structure_nodes.path']);
 
-        return view('known-places.edit', compact('knownPlace', 'typesForUser'));
+        // Transform the collection of nodes into the array format expected by LocationInput
+        // [['Seg1', 'Seg2'], ['Path2']]
+        $assignedLocations = $leafNodes->map(function ($node) {
+            // Split the path string into segments
+            $segments = explode('/', $node->path ?? ''); // Use null coalesce for safety
+            // Trim whitespace from each segment
+            $segments = array_map('trim', $segments);
+            // Filter out any potentially empty segments
+            return array_values(array_filter($segments, fn($segment) => $segment !== ''));
+        })->all(); // Convert the final Laravel Collection to a plain PHP array
+
+
+        return view('known-places.edit', compact('knownPlace', 'assignedLocations'));
     }
 
     public function index()
@@ -109,105 +125,43 @@ class KnownPlaceController extends Controller
     }
 
     /**
+     * Store a newly created KnownPlace and associate location nodes.
+     *
      * @param  StoreKnownPlaceRequest  $request
      * @return RedirectResponse
      */
     public function store(StoreKnownPlaceRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-
+        $user = auth()->user(); // Get the authenticated user
 
         // Create the Known Place first
-        $knownPlace = auth()->user()->knownPlaces()->create($validated);
+        $knownPlace = $user->knownPlaces()->create($validated);
 
-        // Only process locations if they were provided
-        if (!empty($validated['savedLocations'])) {
-            // Get the Business Structure Types for the user
-            $types = auth()->user()->types()->orderBy('order')->get();
-
-            // Transform the saved locations from the validated data
-            // - Trim whitespace around each location
-            // - Capitalize the first letter of each location
-            $transformedLocations = array_map(function ($locationGroup) {
-                // Apply transformations to each element in the inner array
-                return array_map(function ($item) {
-                    return is_string($item) ? trim(ucfirst($item)) : $item;
-                }, $locationGroup);
-            }, $validated['savedLocations']); // OK
-//            dd($transformedLocations);
-
-            // Process each location group (Acme/NC/1/..., Acme/NC/2/..., etc.)
-            foreach ($transformedLocations as $locationGroup) {
-                $parentId = null;
-                $pathHierarchy = [];
-                $currentPath = '';
-
-                // Process each level in the hierarchy for this location group
-                foreach ($types as $index => $type) {
-                    if (isset($locationGroup[$index])) {
-                        $nodeName = $locationGroup[$index];
-
-                        // Build the path incrementally
-                        $currentPath = $currentPath ? $currentPath.'/'.$nodeName : $nodeName;
-
-                        // Add to path hierarchy
-                        $pathHierarchy[] = [
-                            'type' => $type->name,
-                            'name' => $nodeName,
-                            'level' => $type->order,
-                        ];
-
-                        if ($index === 0) {
-                            // Check if the root node exists
-                            $existingNode = auth()->user()->nodes()
-                                ->where('name', $nodeName)
-                                ->whereNull('parent_id')
-                                ->where('business_structure_type_id', $type->id)
-                                ->first();
-                        } else {
-                            // Check if child node exists
-                            $existingNode = auth()->user()->nodes()
-                                ->where('name', $nodeName)
-                                ->where('parent_id', $parentId)
-                                ->where('business_structure_type_id', $type->id)
-                                ->first();
-                        }
-
-                        if ($existingNode) {
-                            $node = $existingNode;
-                        } else {
-                            // Create the node
-                            $node = auth()->user()->nodes()->create([
-                                'business_structure_type_id' => $type->id,
-                                'name' => $nodeName,
-                                'path' => $currentPath,
-                                'parent_id' => $parentId,
-                                'path_hierarchy' => json_encode($pathHierarchy),
-                            ]);
-                        }
-
-                        // Update parent_id for next iteration
-                        $parentId = $node->id;
-
-                        // Attach the full location to the Known Place
-                        if ($index === count($types) - 1 || !isset($locationGroup[$index + 1])) {
-                            $knownPlace->nodes()->attach($node->id, [
-                                'path' => $currentPath,
-                                'path_hierarchy' => json_encode($pathHierarchy),
-                            ]);
-                        }
-                    }
+        // Process location paths using the helper method and attach
+        $nodeIdsToAttach = [];
+        if (!empty($validated['locations'])) {
+            foreach ($validated['locations'] as $locationSegments) {
+                $leafNode = $this->findOrCreateNodeByPathSegments($locationSegments, $user);
+                if ($leafNode) {
+                    $nodeIdsToAttach[$leafNode->id] = [
+                        'user_id' => $user->id,
+                        'path' => $leafNode->path
+                    ]; // Prepare data for attach/sync
                 }
             }
         }
+        // Attach nodes with pivot data
+        if (!empty($nodeIdsToAttach)) {
+            // Use attach here as it's a new KnownPlace, no need to sync
+            $knownPlace->nodes()->attach($nodeIdsToAttach);
+        }
 
-        // Get existing session places or initialize empty array
+        // Add the new Known Place ID to the session list for the create page
         $sessionPlaces = session('session_known_places', []);
-
-        // Add the new ID to the array
-        $sessionPlaces[] = $knownPlace->id;
-
-        // Store back in session
+        if (!in_array($knownPlace->id, $sessionPlaces)) {
+            $sessionPlaces[] = $knownPlace->id;
+        }
         session(['session_known_places' => $sessionPlaces]);
 
         flash()
@@ -218,50 +172,151 @@ class KnownPlaceController extends Controller
         return redirect()->route('known-places.create');
     }
 
-    /**
-     * Show the form to create a new Known Place
-     * @return Factory|View|Application|\Illuminate\View\View|object
-     * @see KnownPlace
-     */
+
     public function create()
     {
         $sessionPlaceIds = session('session_known_places', []);
-        $typesForUser = auth()->user()->types()->get();
+        $user = auth()->user();
 
-        // Start with an empty query result if there are no session places
         if (empty($sessionPlaceIds)) {
-            // Create an empty paginator
             $sessionKnownPlaces = new Paginator([], 10);
         } else {
-            // Only query if we have session places
-            $sessionKnownPlaces = auth()->user()->knownPlaces()
+            $paginator = $user->knownPlaces()
                 ->whereIn('id', $sessionPlaceIds)
-                ->simplePaginate(10);
+                ->orderByDesc('created_at')
+                ->simplePaginate(10); // Fetch the paginator first
+
+            // Use through() to modify each item in the paginator's collection
+            $sessionKnownPlaces = $paginator->through(function ($knownPlace) {
+                $maxLocationsToShow = 3;
+                // Ensure locations is an array
+                $locations = is_array($knownPlace->locations) ? $knownPlace->locations : [];
+//                dd($locations);
+                $locationCount = count($locations);
+
+                // Add new properties to the object for the view to use
+                $knownPlace->display_locations = array_slice($locations, 0, $maxLocationsToShow);
+                $knownPlace->remaining_locations_count = max(0, $locationCount - $maxLocationsToShow);
+
+                // Return the modified object (it's modified in place, but returning is good practice)
+                return $knownPlace;
+            });
         }
 
-        return view('known-places.create', compact('sessionKnownPlaces', 'typesForUser'));
+        return view('known-places.create', compact('sessionKnownPlaces'));
     }
 
     /**
+     * Finds or creates the necessary BusinessStructureNode hierarchy for a given path.
+     * Returns the final leaf node.
+     *
+     * @param  array<int, string>  $locationSegments  Array of path segments (e.g., ['Acme', 'NC', 'Store 01'])
+     * @param  User  $user  The user owning the nodes.
+     * @return BusinessStructureNode|null The leaf node, or null if segments are empty.
+     */
+    private function findOrCreateNodeByPathSegments(array $locationSegments, User $user): ?BusinessStructureNode
+    {
+        $parentId = null;
+        $currentPath = '';
+        $lastNode = null;
+
+        foreach ($locationSegments as $segmentName) {
+            // Prepare the node name
+            $nodeName = trim(ucfirst($segmentName));
+
+            // Skip empty segments
+            if (empty($nodeName)) {
+                continue;
+            }
+
+            // Build the path string incrementally
+            $currentPath = $currentPath ? $currentPath.'/'.$nodeName : $nodeName;
+
+            // Find existing or create a new node for the current segment
+            // Uniqueness is based on user, name, and parent_id
+            $node = $user->nodes()->updateOrCreate(
+                [
+                    'name' => $nodeName,
+                    'parent_id' => $parentId,
+                ],
+                [
+                    'path' => $currentPath, // Ensure path is set on create/update
+                    // Add any other default fields for BusinessStructureNode if needed
+                ]
+            );
+
+            // Ensure the path is correctly set even if the node already existed
+            // This handles cases where the path might not have been stored previously
+            if ($node->path !== $currentPath) {
+                $node->path = $currentPath;
+                $node->save();
+            }
+
+            $parentId = $node->id;
+            $lastNode = $node; // Track the most recently processed node
+        }
+
+        // Return the last node processed (the leaf node for this path)
+        return $lastNode;
+    }
+
+    /**
+     * Update the specified KnownPlace and sync location nodes.
+     *
      * @param  UpdateKnownPlaceRequest  $request
      * @param  KnownPlace  $knownPlace
      * @return RedirectResponse
      */
     public function update(UpdateKnownPlaceRequest $request, KnownPlace $knownPlace): RedirectResponse
     {
-        if ($request->user()->cannot('update', $knownPlace)) {
-            abort(403);
-        }
+        // Authorization is handled by UpdateKnownPlaceRequest `authorize` method
 
         $validated = $request->validated();
+        $user = $request->user();
 
-        $knownPlace->update($validated);
+        // Update the main KnownPlace attributes (excluding locations for now)
+        $knownPlace->update($request->except('locations'));
+
+        // --- Location Node Synchronization ---
+        $nodeIdsToSync = [];
+        // Process submitted locations only if the key exists and is an array
+        if (isset($validated['locations']) && is_array($validated['locations'])) {
+            foreach ($validated['locations'] as $locationSegments) {
+                // Use the helper function to find or create the leaf node
+                $leafNode = $this->findOrCreateNodeByPathSegments($locationSegments, $user);
+                if ($leafNode) {
+                    // Store the leaf node ID and pivot data for syncing
+                    $nodeIdsToSync[$leafNode->id] = ['user_id' => $user->id, 'path' => $leafNode->path];
+                }
+            }
+        }
+
+        // Sync the relationship:
+        // - Attaches nodes in $nodeIdsToSync that aren't already attached.
+        // - Detaches nodes that are attached but not in $nodeIdsToSync.
+        // - Updates pivot data for nodes that remain attached.
+        $knownPlace->nodes()->sync($nodeIdsToSync);
+        // --- End Location Node Synchronization ---
+
+        // --- Update the 'locations' array column for search ---
+        // Reload the relationship to get the final list of attached nodes after sync
+        $knownPlace->load('nodes:id,path'); // Eager load only necessary columns
+
+        // Get the 'path' attribute from each attached node
+        $currentLocationPaths = $knownPlace->nodes->pluck('path')->toArray();
+
+        // Update the 'locations' column on the KnownPlace model
+        $knownPlace->locations = $currentLocationPaths;
+        $knownPlace->saveQuietly(); // Use saveQuietly to prevent dispatching updated event again if not needed
+        // --- End Update 'locations' array column ---
 
         flash()
             ->option('position', 'bottom-right')
             ->option('timeout', 5000)
             ->success('Known place updated successfully.');
 
+        // Redirect back to index or wherever appropriate after update
         return redirect()->intended(route('known-places.index'));
     }
+
 }

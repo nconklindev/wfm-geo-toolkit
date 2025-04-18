@@ -19,7 +19,7 @@
 
             <form method="POST" action="{{ route('known-places.store') }}" class="space-y-6">
                 @csrf
-                @include('partials.known-place-form', ['knownPlace' => null, 'types' => $typesForUser])
+                @include('partials.known-place-form', ['knownPlace' => null])
             </form>
         </div>
         <!-- Known Places Table -->
@@ -93,14 +93,32 @@
                                     {{ Str::limit($knownPlace->description, 30) ?? 'N/A' }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-muted dark:text-zinc-400">
-                                    @if (is_array($knownPlace->locations) && count($knownPlace->locations) > 0)
+                                    {{-- Check if there are any locations to display (using the new property) --}}
+                                    @if (! empty($knownPlace->display_locations))
                                         <div class="flex flex-col gap-1">
-                                            @foreach ($knownPlace->locations as $location)
-                                                <div>{{ $location }}</div>
+                                            {{-- Loop through the limited locations provided by the controller --}}
+                                            @foreach ($knownPlace->display_locations as $locationPathString)
+                                                <div>{{ $locationPathString }}</div>
                                             @endforeach
+
+                                            {{-- If the controller indicated remaining locations, show the message --}}
+                                            @if ($knownPlace->remaining_locations_count > 0)
+                                                <div class="text-xs text-zinc-500 italic dark:text-zinc-500">
+                                                    ... and {{ $knownPlace->remaining_locations_count }} more
+                                                    location(s).
+                                                    {{-- Link to the detail page --}}
+                                                    <a
+                                                        href="{{ route('known-places.show', $knownPlace) }}"
+                                                        class="hover:text-primary-500 dark:hover:text-primary-400 underline"
+                                                    >
+                                                        View All
+                                                    </a>
+                                                </div>
+                                            @endif
                                         </div>
                                     @else
                                         N/A
+                                        {{-- Display N/A if there were no locations initially or after filtering --}}
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm whitespace-nowrap text-muted dark:text-zinc-400">
