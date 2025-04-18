@@ -4,7 +4,7 @@
 
         <flux:description>
             Enter the locations that are assigned to this place. Enter one full path at a time. Click the button to add
-            it to the table below. If a single node in the path includes a slash, escape it with a backslash.
+            it to the table below.
         </flux:description>
         <flux:input.group>
             <flux:input
@@ -24,6 +24,7 @@
                 Add
             </flux:button>
         </flux:input.group>
+        <flux:error name="currentLocation" />
     </flux:field>
 
     <div class="mt-4 overflow-hidden rounded-lg border border-gray-700 shadow-sm">
@@ -42,7 +43,7 @@
                                         <span
                                             class="inline-block h-3 w-3 rounded-full"
                                             wire:ignore.self
-                                            style="background-color: {{ $type->pivot->hex_color ?? '#cbd5e1' }}"
+                                            style="background-color: {{ $type->color ?? '#cbd5e1' }}"
                                             wire:key="tag-color-{{ $type->id }}"
                                         ></span>
                                         <span>{{ $type->name }}</span>

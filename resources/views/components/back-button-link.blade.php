@@ -1,5 +1,5 @@
 <flux:button
-    href="{{ back() }}"
+    href="{{ url()->previous() }}"
     icon="arrow-left"
     size="sm"
     {{ $attributes->class('font-medium transition') }}

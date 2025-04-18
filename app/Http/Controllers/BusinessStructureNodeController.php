@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\BusinessStructureNode;
 use Illuminate\Http\Request;
 
+// Add this if not already present
+
+// ... other use statements
+
 class BusinessStructureNodeController extends Controller
 {
     public function index(Request $request)
@@ -17,7 +21,16 @@ class BusinessStructureNodeController extends Controller
         $leafNodes = $user->nodes()->whereIsLeaf()->withCount('knownPlaces')->get();
 
         // Get the entire tree with a single query, ordered hierarchically
-        $nodes = BusinessStructureNode::with('type')->withDepth()->defaultOrder()->get()->toTree();
+        $nodes = auth()->user()->nodes()
+            ->with([
+                'type.users' => function ($query) {
+                    $query->where('users.id', auth()->id());
+                }
+            ])
+            ->withDepth()
+            ->defaultOrder()
+            ->get()
+            ->toTree();
 
         // Create a lookup to identify which nodes have descendants with known places
         $nodesWithAssignedDescendants = [];
@@ -44,5 +57,21 @@ class BusinessStructureNodeController extends Controller
             'leafNodes' => $leafNodes,
             'nodesWithAssignedDescendants' => $nodesWithAssignedDescendants,
         ]);
+    }
+
+    // ... other methods
+
+    public function show(BusinessStructureNode $node)
+    {
+        // Define how many items per page (you can make this configurable)
+        $perPage = 15;
+
+        // Query the relationship and paginate the results
+        $knownPlaces = $node->knownPlaces()
+            ->orderBy('name') // Optional: Order the results
+            ->paginate($perPage);
+
+        // Pass the node and the paginated known places to the view
+        return view('business-structure.locations.show', compact('node', 'knownPlaces'));
     }
 }

@@ -57,7 +57,13 @@
                     @forelse ($leafNodes as $leafNode)
                         <div class="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-700">
                             <span class="font-medium">{{ $leafNode->path }}</span>
-                            <flux:link href="#" class="mr-2 text-sm" variant="ghost">View</flux:link>
+                            <flux:link
+                                href="{{ route('business-structure.locations.show', $leafNode) }}"
+                                class="mr-2 text-sm"
+                                variant="ghost"
+                            >
+                                View
+                            </flux:link>
                         </div>
                     @empty
                         <flux:text variant="subtle">No locations yet</flux:text>

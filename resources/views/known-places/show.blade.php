@@ -144,7 +144,7 @@
 
                         <!-- Business Locations Card -->
                         <div class="mt-6 mb-6 rounded-lg bg-zinc-50 p-6 shadow-md dark:bg-zinc-700">
-                            <h2 class="mb-4 text-lg font-semibold">Business Locations</h2>
+                            <flux:heading level="2" size="lg" class="mb-2">Locations</flux:heading>
 
                             @if ($knownPlace->nodes->count() > 0)
                                 <div class="space-y-2">
@@ -172,7 +172,7 @@
 
                         <!-- WiFi Networks -->
                         <div class="rounded-lg bg-zinc-50 p-6 shadow-md dark:bg-zinc-700">
-                            <flux:heading level="2" size="lg">Associated WiFi Networks</flux:heading>
+                            <flux:heading level="2" size="lg" class="mb-2">Associated WiFi Networks</flux:heading>
 
                             {{-- TODO: Implement Wifi Network validation --}}
                             @if (is_array($knownPlace->wifi_networks) && count($knownPlace->wifi_networks) > 0)

@@ -9,7 +9,12 @@ use Livewire\Component;
 class LocationInput extends Component
 {
 
-    #[Validate('string')]
+    #[Validate([
+        'string',
+        'regex:/^[a-zA-Z0-9\s\-_&(),]+(\/[a-zA-Z0-9\s\-_&(),]+)*$/'
+    ], message: [
+        'regex' => 'Invalid location path.'
+    ])]
     public string $currentLocation = '';
     public ?Collection $types = null;
     public array $savedLocations = []; // TODO: We need to somehow send this when the form submits
@@ -21,8 +26,15 @@ class LocationInput extends Component
 
     public function addLocationToList(): void
     {
+        $this->validate();
+        
         if (!empty(trim($this->currentLocation))) {
             $nodes = $this->parseLocationPath($this->currentLocation);
+
+            // Validate that the number of nodes doesn't exceed the number of types
+            if (count($nodes) > $this->types->count()) {
+                $this->addError('currentLocation', 'You have entered more location nodes than available types.');
+            }
 
             // Add the array of nodes to savedLocations
             $this->savedLocations[] = array_values($nodes);
@@ -38,17 +50,11 @@ class LocationInput extends Component
      */
     private function parseLocationPath(string $locationPath): array
     {
-        // Handle escaped slashes - replace them temporarily, then split, then restore
-        $escapedLocation = preg_replace('/\\\\\\//', '{{ESCAPED_SLASH}}', $locationPath);
-
         // Split on slash
-        $nodes = explode('/', $escapedLocation);
+        $nodes = explode('/', $locationPath);
 
-        // Clean up each node
-        $nodes = array_map(function ($node) {
-            // Restore escaped slashes
-            return trim(str_replace('{{ESCAPED_SLASH}}', '/', $node));
-        }, $nodes);
+        // Trim each node
+        $nodes = array_map('trim', $nodes);
 
         // Filter out empty nodes
         return array_filter($nodes, fn($node) => !empty($node));

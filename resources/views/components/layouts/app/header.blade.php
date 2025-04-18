@@ -25,7 +25,9 @@
                     <flux:navbar.item icon-trailing="chevron-down" icon="map">Known Places</flux:navbar.item>
 
                     <flux:navmenu>
-                        <flux:navmenu.item href="{{ route('known-places.index') }}">Manage</flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('known-places.index') }}" wire:navigate>
+                            Manage
+                        </flux:navmenu.item>
                         <flux:navmenu.item href="{{ route('known-places.create') }}" icon="plus" wire:navigate>
                             Create
                         </flux:navmenu.item>
@@ -62,11 +64,7 @@
                         <flux:navmenu.item href="{{ route('business-structure.types.index') }}" wire:navigate>
                             Manage
                         </flux:navmenu.item>
-                        <flux:navmenu.item
-                            href="{{ route('business-structure.types.create') }}"
-                            icon="plus"
-                            wire:navigate
-                        >
+                        <flux:navmenu.item href="{{ route('business-structure.types.create') }}" icon="plus">
                             Create
                         </flux:navmenu.item>
                         <flux:navmenu.item

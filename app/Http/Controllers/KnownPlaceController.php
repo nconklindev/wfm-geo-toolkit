@@ -123,7 +123,7 @@ class KnownPlaceController extends Controller
         // Only process locations if they were provided
         if (!empty($validated['savedLocations'])) {
             // Get the Business Structure Types for the user
-            $types = auth()->user()->types()->orderBy('hierarchy_order')->get();
+            $types = auth()->user()->types()->orderBy('order')->get();
 
             // Transform the saved locations from the validated data
             // - Trim whitespace around each location
@@ -154,7 +154,7 @@ class KnownPlaceController extends Controller
                         $pathHierarchy[] = [
                             'type' => $type->name,
                             'name' => $nodeName,
-                            'level' => $type->hierarchy_order,
+                            'level' => $type->order,
                         ];
 
                         if ($index === 0) {

@@ -58,9 +58,9 @@ class BusinessStructureNode extends Model
         return $this->belongsTo(BusinessStructureType::class, 'business_structure_type_id');
     }
 
-    public function users(): BelongsToMany
+    public function users(): BelongsTo
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->belongsTo(User::class);
     }
 
     protected function casts(): array

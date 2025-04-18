@@ -81,7 +81,7 @@
                                 <tr class="w-full items-center justify-center text-center">
                                     <td class="py-6 text-center" colspan="100%">
                                         <flux:text variant="subtle">
-                                            {{ __('No Business Structure found. Try importing.') }}
+                                            {{ __('No Business Structure found.') }}
                                         </flux:text>
                                     </td>
                                 </tr>

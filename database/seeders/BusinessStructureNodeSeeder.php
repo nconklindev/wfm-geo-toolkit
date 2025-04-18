@@ -54,7 +54,7 @@ class BusinessStructureNodeSeeder extends Seeder
                 $faker = Factory::create();
 
                 // Get types ordered by hierarchy level
-                $types = BusinessStructureType::orderBy('hierarchy_order')->get();
+                $types = BusinessStructureType::orderBy('order')->get();
                 $typeMap = [];
 
                 // Validate types exist
