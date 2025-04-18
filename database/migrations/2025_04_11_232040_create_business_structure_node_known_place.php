@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignIdFor(BusinessStructureNode::class)->constrained('business_structure_nodes')->cascadeOnDelete();
             $table->foreignIdFor(KnownPlace::class)->constrained('known_places')->cascadeOnDelete();
+            $table->foreignIdFor(\App\Models\User::class)->constrained('users')->cascadeOnDelete();
             $table->string('path')->index()->nullable();
             $table->json('path_hierarchy')->nullable();
             $table->timestamps();

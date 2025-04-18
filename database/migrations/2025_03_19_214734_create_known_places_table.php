@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->json('wifi_networks')->nullable();
             $table->integer('accuracy');
             $table->json('validation_order');
+            $table->string('color')->nullable();
             $table->foreignIdFor(User::class)->constrained('users')->cascadeOnDelete();
             $table->timestamps();
 

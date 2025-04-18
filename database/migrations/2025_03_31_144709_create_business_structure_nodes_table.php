@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\BusinessStructureType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,9 +11,8 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->foreignIdFor(\App\Models\User::class)->constrained('users')->cascadeOnDelete();
-            $table->foreignIdFor(BusinessStructureType::class)->constrained('business_structure_types')->restrictOnDelete();
             $table->string('path')->index()->nullable();
-            $table->json('path_hierarchy');
+            $table->json('path_hierarchy')->nullable();
             $table->nestedSet();
             $table->timestamps();
 
