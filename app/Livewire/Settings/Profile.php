@@ -49,7 +49,11 @@ class Profile extends Component
         $user = Auth::user();
 
         $validated = $this->validate([
-            'username' => ['required', 'string', 'max:25'],
+            'username' => [
+                'string',
+                'alpha_dash:2,25',
+                Rule::unique(User::class)->ignore($user->id),
+            ],
 
             'email' => [
                 'required',

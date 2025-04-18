@@ -14,7 +14,7 @@ class EmailOrUsernameRule implements ValidationRule
         $isValidEmail = filter_var($value, FILTER_VALIDATE_EMAIL) !== false;
 
         $isValidUsername = !Validator::make(['username' => $value], [
-            'username' => 'string|alpha_dash:2,15'
+            'username' => 'string|alpha_dash:2,25'
         ])->fails();
 
         // If neither is valid, fail validation
