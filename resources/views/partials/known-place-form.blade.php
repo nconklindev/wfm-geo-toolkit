@@ -95,7 +95,7 @@
                 type="text"
                 label="Color"
                 :value="$knownPlace->color ?? old('color', '#3b82f6')"
-                id="color-picker"
+                id="color"
                 tabindex="0"
                 badge="Optional"
                 data-color

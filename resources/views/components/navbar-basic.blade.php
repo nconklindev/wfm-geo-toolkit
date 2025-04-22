@@ -1,4 +1,4 @@
-<header class="mx-auto w-full max-w-7xl px-6 py-6 lg:px-8">
+<header class="mx-auto w-full max-w-7xl py-6">
     <div class="flex items-center justify-between">
         <div class="flex items-center">
             <svg
@@ -25,6 +25,23 @@
         </div>
         <flux:navbar {{ $attributes }}>
             <flux:navbar.item href="{{ url('/') }}" :current="request()->is('/')">Home</flux:navbar.item>
+
+            @guest
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down" :current="request()->routeIs('tools.plotter')">
+                        Tools
+                    </flux:navbar.item>
+
+                    <flux:navmenu>
+                        <flux:navmenu.item
+                            href="{{ route('tools.plotter') }}"
+                            :current="request()->routeIs('tools.plotter')"
+                        >
+                            Plotter
+                        </flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
+            @endguest
 
             @auth
                 <flux:navbar.item href="{{ url('/dashboard') }}">Dashboard</flux:navbar.item>

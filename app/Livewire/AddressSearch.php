@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Illuminate\View\View;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Spatie\Geocoder\Facades\Geocoder;
@@ -29,18 +30,21 @@ class AddressSearch extends Component
         if ($result['formatted_address'] === 'result_not_found') {
             return [];
         }
-
-        // Dispatch an event to the DOM so we can update the latitude, longitude and description from the response
-        $this->dispatch('coordinates-updated', [
+        
+        $coordinateData = [
             'latitude' => $this->lat,
             'longitude' => $this->lng,
             'formatted_address' => $result['formatted_address'],
-        ]);
+        ];
+
+        // Use a CONSISTENT format for both the browser and Livewire events
+        // Dispatch as an object directly, not wrapped in an array
+        $this->dispatch('coordinates-updated', $coordinateData);
 
         return $result;
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.address-search');
     }

@@ -9,12 +9,17 @@ use App\Livewire\ImportKnownPlaces;
 use App\Livewire\Settings\Appearance;
 use App\Livewire\Settings\Password;
 use App\Livewire\Settings\Profile;
+use App\Livewire\Tools\Plotter;
 use Illuminate\Support\Facades\Route;
 
 // Home
 Route::get('/', function () {
     return view('home');
 })->name('home');
+
+Route::prefix('tools')->name('tools.')->group(function () {
+    Route::get('/plotter', Plotter::class)->name('plotter');
+});
 
 // Welcome
 Route::get('/welcome', function () {
