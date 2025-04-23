@@ -1,5 +1,5 @@
 <x-layouts.app :title="__('Business Structure')">
-    <div class="mx-auto max-w-7xl pb-12" x-data="{}">
+    <div class="pb-12" x-data="{}">
         <flux:heading level="2" size="xl">
             {{ __('Business Structure') }}
         </flux:heading>
