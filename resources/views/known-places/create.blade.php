@@ -98,7 +98,7 @@
                                         <div class="flex flex-col gap-1">
                                             {{-- Loop through the limited locations provided by the controller --}}
                                             @foreach ($knownPlace->display_locations as $locationPathString)
-                                                <div>{{ $locationPathString }}</div>
+                                                <div>{{ implode('/', $locationPathString) }}</div>
                                             @endforeach
 
                                             {{-- If the controller indicated remaining locations, show the message --}}
