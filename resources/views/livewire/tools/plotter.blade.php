@@ -6,7 +6,7 @@
     </flux:text>
 
     {{-- Input Form --}}
-    <div class="grid grid-cols-2 gap-4 rounded bg-zinc-800 p-4 shadow-sm">
+    <div class="grid min-h-[70vh] grid-cols-2 gap-4 rounded bg-zinc-800 p-4 shadow-sm">
         <div>
             {{-- Your form fields remain unchanged --}}
             <flux:heading level="2" size="lg" class="mb-3 font-medium">Add New Item</flux:heading>
