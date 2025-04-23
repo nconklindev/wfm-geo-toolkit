@@ -49,11 +49,10 @@ class Plotter extends Component
         }
     }
 
-
     public function addPoint(): void
     {
         $this->validate();
-        $this->points[] = new Point(
+        $point = new Point(
             latitude: $this->latitude,
             longitude: $this->longitude,
             label: $this->label ?? '',
@@ -61,16 +60,62 @@ class Plotter extends Component
             accuracy: $this->accuracy,
             color: $this->color
         );
-//        dd($this->points);
+
+        $this->points[] = $point;
+
+        // Dispatch event with the new point to update the map
+        $this->dispatch('points-updated', $this->formatPointsForMap());
 
         $this->reset('latitude', 'longitude', 'label', 'radius', 'accuracy', 'color');
     }
+
+    /**
+     * Format points for the map
+     */
+    private function formatPointsForMap(): array
+    {
+        // Ensure this formats the points correctly for the JS update function
+        return array_map(function ($index, $point) {
+            // Ensure Point properties are accessed correctly
+            if (!$point instanceof Point) {
+                return null;
+            } // Basic safety check
+
+            return [
+                'id' => $index,
+                'latitude' => $point->latitude,
+                'longitude' => $point->longitude,
+                'label' => $point->label,
+                'radius' => $point->radius,
+                'accuracy' => $point->accuracy, // Assuming Point has accuracy
+                'color' => $point->color // Assuming Point has color
+            ];
+        }, array_keys($this->points), $this->points);
+
+    }
+
 
     public function removePoint(int $index): void
     {
         if (isset($this->points[$index])) {
             unset($this->points[$index]);
             $this->points = array_values($this->points); // Re-index the array
+
+            // Inform the map that points have changed - need to refresh all points
+            $this->dispatch('points-updated', $this->formatPointsForMap());
+        }
+    }
+
+    public function flyTo(int $index): void
+    {
+        if (isset($this->points[$index])) {
+            $point = $this->points[$index];
+            // Dispatch a browser event with the coordinates to fly to
+            $this->dispatch('fly-to-point', [
+                'latitude' => $point->latitude,
+                'longitude' => $point->longitude,
+                'radius' => $point->radius,
+            ]);
         }
     }
 
@@ -78,6 +123,9 @@ class Plotter extends Component
     #[Title('Plotter | WFM Geo Toolkit')]
     public function render(): View
     {
-        return view('livewire.tools.plotter');
+        // Send all points to the view to initialize the map with existing points
+        return view('livewire.tools.plotter', [
+            'mapPoints' => $this->formatPointsForMap()
+        ]);
     }
 }

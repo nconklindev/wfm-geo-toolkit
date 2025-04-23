@@ -28,7 +28,6 @@ function removeMapInstance() {
     }
 }
 
-// The core map initialization logic
 function setupMap() {
     const mapElement = document.getElementById('map');
     if (!mapElement) {
@@ -36,6 +35,17 @@ function setupMap() {
         removeMapInstance(); // Clean up if the element disappeared
         return;
     }
+
+    // Check if this is the plotter map ---
+    // If the map element is specifically marked for the plotter,
+    // let the plotter's own script handle it and abort this generic setup.
+    if (mapElement.dataset.mapType === 'plotter') {
+        console.log('Map element is for plotter. Aborting generic map.js setup.');
+        // We don't set mapInitialized = true here because the plotter script has its own flag.
+        // We also don't call removeMapInstance unless absolutely necessary.
+        return;
+    }
+    // --- END PLOTTER CHECK ---
 
     // If a map instance somehow still exists or the element has ID, remove before creating new
     if (currentMapInstance || mapElement._leaflet_id) {
@@ -47,6 +57,7 @@ function setupMap() {
     }
 
     // Prevent double initialization attempts closely spaced
+    // Check the flag *after* the plotter check, so plotter doesn't prevent other maps
     if (mapInitialized) {
         console.log('Map setup already in progress or completed. Aborting.');
         if (currentMapInstance) {
@@ -60,9 +71,9 @@ function setupMap() {
     }
 
     mapInitialized = true; // Set the flag early to prevent race conditions
-    console.log('Proceeding with new map instance creation...');
+    console.log('Proceeding with new generic map instance creation...');
 
-    // --- Get form inputs (the rest of the function is similar to before) ---
+    // --- Get form inputs ---
     const latitudeInput = document.getElementById('latitude');
     const longitudeInput = document.getElementById('longitude');
     const radiusInput = document.getElementById('radius');
@@ -85,7 +96,10 @@ function setupMap() {
         const bounds = [];
         window.leafletMarkers = {}; // Reset markers
 
-        if (placesJson) {
+        // --- MODIFIED SECTION START ---
+        // Only process placesJson if it exists AND we are NOT in edit mode
+        if (!isEditMode && placesJson) {
+            console.log('Setting up Display Mode (places found).');
             try {
                 const places = JSON.parse(placesJson);
                 const placesToProcess = Array.isArray(places) ? places : [places];
@@ -111,8 +125,6 @@ function setupMap() {
                         // Add a non-draggable marker at the center for display views
                         L.marker(latLng, {
                             draggable: false, // Ensure it's not draggable on show page
-                            // Optional: Use a custom icon if desired
-                            // icon: L.icon({ ... })
                         })
                             .addTo(currentMapInstance)
                             .bindPopup(popupContent); // Bind the same popup for consistency
@@ -127,11 +139,12 @@ function setupMap() {
                 console.error('Error parsing places data:', e);
                 if (currentMapInstance) currentMapInstance.setView([0, 0], 2);
             }
-        } else {
-            console.log('No placesJson data found.');
+        } else if (!isEditMode) {
+            // Log only if not in edit mode and no places data
+            console.log('Setting up Display Mode (no places found).');
         }
+        // --- MODIFIED SECTION END ---
 
-        // Then in the setupMap function, modify the marker creation:
         if (isEditMode) {
             console.log('Setting up Edit Mode.');
             let lat = 40.7128;
@@ -139,6 +152,7 @@ function setupMap() {
             let radius = 75;
             let initialColor = '#3b82f6';
 
+            // --- EDIT MODE LOGIC (No changes needed here) ---
             if (latitudeInput.value && !isNaN(parseFloat(latitudeInput.value))) lat = parseFloat(latitudeInput.value);
             if (longitudeInput.value && !isNaN(parseFloat(longitudeInput.value)))
                 lng = parseFloat(longitudeInput.value);
@@ -150,7 +164,6 @@ function setupMap() {
                 colorInput.value = initialColor;
             }
 
-            // Change this line to set the global marker
             currentMarker = L.marker([lat, lng], { draggable: true }).addTo(currentMapInstance);
 
             editModeCircle = L.circle([lat, lng], {
@@ -161,17 +174,18 @@ function setupMap() {
                 weight: 2,
             }).addTo(currentMapInstance);
 
-            // Update updateMarkerAndCircle function to use the currentMarker
             function updateMarkerAndCircle(shouldSetView = true) {
-                // Add parameter with default true
-                if (!currentMapInstance) return; // Check map exists
+                if (!currentMapInstance) return;
                 const newLat = parseFloat(latitudeInput.value) || lat;
                 const newLng = parseFloat(longitudeInput.value) || lng;
                 const newRadius = parseInt(radiusInput.value) || radius;
                 const newColor = colorInput.value || initialColor;
 
-                currentMarker.setLatLng([newLat, newLng]);
-                currentMarker.dragging.enable(); // Ensure dragging is enabled
+                if (currentMarker) {
+                    // Add check if currentMarker exists
+                    currentMarker.setLatLng([newLat, newLng]);
+                    if (currentMarker.dragging) currentMarker.dragging.enable(); // Ensure dragging is enabled
+                }
 
                 if (editModeCircle) {
                     editModeCircle.setLatLng([newLat, newLng]);
@@ -182,24 +196,26 @@ function setupMap() {
                         console.warn(`Skipping invalid color update: "${newColor}"`);
                     }
                 }
-                // Only set the view if requested (defaults to true)
                 if (shouldSetView) {
                     currentMapInstance.setView([newLat, newLng]);
                 }
             }
 
-            currentMarker.on('dragend', function () {
-                const position = currentMarker.getLatLng();
-                latitudeInput.value = position.lat.toFixed(6);
-                longitudeInput.value = position.lng.toFixed(6);
-                latitudeInput.dispatchEvent(new Event('input'));
-                longitudeInput.dispatchEvent(new Event('input'));
-                if (editModeCircle) editModeCircle.setLatLng(position);
-            });
+            if (currentMarker) {
+                // Add check if currentMarker exists
+                currentMarker.on('dragend', function () {
+                    const position = currentMarker.getLatLng();
+                    latitudeInput.value = position.lat.toFixed(6);
+                    longitudeInput.value = position.lng.toFixed(6);
+                    latitudeInput.dispatchEvent(new Event('input'));
+                    longitudeInput.dispatchEvent(new Event('input'));
+                    if (editModeCircle) editModeCircle.setLatLng(position);
+                });
+            }
 
-            latitudeInput.addEventListener('input', updateMarkerAndCircle);
-            longitudeInput.addEventListener('input', updateMarkerAndCircle);
-            radiusInput.addEventListener('input', updateMarkerAndCircle);
+            latitudeInput.addEventListener('input', () => updateMarkerAndCircle(true)); // Keep setView true for inputs
+            longitudeInput.addEventListener('input', () => updateMarkerAndCircle(true)); // Keep setView true for inputs
+            radiusInput.addEventListener('input', () => updateMarkerAndCircle(false)); // Don't reset view on radius change
             colorInput.addEventListener('input', () => {
                 if (!editModeCircle) return;
                 const newColor = colorInput.value;
@@ -210,33 +226,26 @@ function setupMap() {
                 }
             });
 
+            // Event listener for 'coordinates-updated'
             if (!window.coordUpdateListenerAdded) {
                 window.coordUpdateListenerAdded = new WeakMap();
             }
             if (!window.coordUpdateListenerAdded.has(window)) {
                 window.addEventListener('coordinates-updated', (event) => {
-                    // Ensure the map instance and detail are valid
                     if (!currentMapInstance || !event.detail) {
                         console.warn('Coordinates updated event ignored: missing map instance or event detail.');
                         return;
                     }
-
-                    console.log('Received coordinates-updated event detail:', event.detail); // Keep this for debugging
-
-                    // Determine the coordinate data, handling both object and array[0] cases
+                    console.log('Received coordinates-updated event detail:', event.detail);
                     let coords;
                     if (Array.isArray(event.detail) && event.detail.length > 0) {
-                        // It's an array containing the object
                         coords = event.detail[0];
-                        console.log('Detected array format, using event.detail[0]');
                     } else if (
                         typeof event.detail === 'object' &&
                         event.detail !== null &&
                         !Array.isArray(event.detail)
                     ) {
-                        // It's a direct object
                         coords = event.detail;
-                        console.log('Detected direct object format, using event.detail');
                     } else {
                         console.warn(
                             'Coordinates updated event ignored: event.detail format is unexpected.',
@@ -244,28 +253,17 @@ function setupMap() {
                         );
                         return;
                     }
-
-                    // Check if the expected properties exist on the coords object
                     if (coords && typeof coords.latitude !== 'undefined' && typeof coords.longitude !== 'undefined') {
                         console.log('Processing coordinates:', coords);
-
                         const newLat = parseFloat(coords.latitude);
                         const newLng = parseFloat(coords.longitude);
-
-                        // Check if parsing was successful before updating
                         if (!isNaN(newLat) && !isNaN(newLng)) {
-                            // Update input fields (ensure they exist)
                             const latitudeInput = document.getElementById('latitude');
                             const longitudeInput = document.getElementById('longitude');
                             if (latitudeInput) latitudeInput.value = newLat.toFixed(6);
                             if (longitudeInput) longitudeInput.value = newLng.toFixed(6);
-
-                            // *** THIS IS THE CRUCIAL PART FOR PLOTTING ***
-                            // Update marker/circle AND set the map view
-                            updateMarkerAndCircle(true); // Pass true to set the view
-
-                            if (currentMarker) currentMarker.dragging.enable();
-                            console.log('Marker set to draggable');
+                            updateMarkerAndCircle(true); // Update marker/circle AND set view
+                            if (currentMarker && currentMarker.dragging) currentMarker.dragging.enable();
                         } else {
                             console.warn('Failed to parse coordinates:', coords.latitude, coords.longitude);
                         }
@@ -276,43 +274,35 @@ function setupMap() {
                         );
                     }
                 });
-                // Set the flag after adding the listener
                 window.coordUpdateListenerAdded.set(window, true);
             }
 
-            // Initial view setup
-            if (editModeCircle || bounds.length > 0) {
-                if (editModeCircle) {
-                    currentMapInstance.setView([lat, lng], 15); // Zoom in closer for edit mode
-                } else {
-                    currentMapInstance.fitBounds(bounds, { padding: [50, 50] });
-                }
-            } else {
-                currentMapInstance.setView([lat, lng], 13); // Default view if nothing else
-            }
+            // Initial view setup for Edit Mode
+            currentMapInstance.setView([lat, lng], 15); // Zoom in closer for edit mode
         } else {
-            // Handle non-edit mode map setup (if bounds exist, fit them)
+            // Initial view setup for Non-Edit Mode
             if (bounds.length > 0) {
+                // bounds only populated if !isEditMode && placesJson
                 currentMapInstance.fitBounds(bounds, { padding: [50, 50] });
             } else {
                 // Default view if no places and not in edit mode
-                currentMapInstance.setView([0, 0], 2); // Sensible default, e.g., world view
+                currentMapInstance.setView([0, 0], 2);
             }
         }
 
-        // Ensure the map size is correct after initialization / potential redrawing
+        // Ensure map size is correct
         setTimeout(() => {
             if (currentMapInstance) {
                 console.log('Invalidating map size...');
                 currentMapInstance.invalidateSize();
             }
-        }, 100); // Short delay
+        }, 100);
 
         console.log('Map setup finished.');
     } catch (error) {
         console.error('Error during map setup:', error);
-        mapInitialized = false; // Reset flag on error
-        removeMapInstance(); // Attempt cleanup on error
+        mapInitialized = false;
+        removeMapInstance();
     }
 }
 

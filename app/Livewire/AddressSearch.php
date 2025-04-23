@@ -5,7 +5,9 @@ namespace App\Livewire;
 use Illuminate\View\View;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Log;
 use Spatie\Geocoder\Facades\Geocoder;
+
 
 class AddressSearch extends Component
 {
@@ -14,7 +16,7 @@ class AddressSearch extends Component
     public $lat = null;
     public $lng = null;
 
-    public function search(string $address): array
+    public function search(string $address): void
     {
 
         $result = Geocoder::getCoordinatesForAddress($address);
@@ -28,20 +30,23 @@ class AddressSearch extends Component
         // Since Spatie Geocoder isn't able to return suggestions, this is the next best thing
         // We'll just not update anything on the form, relying on the absence of results to indicate that nothing was found
         if ($result['formatted_address'] === 'result_not_found') {
-            return [];
+//            return [];
         }
-        
+
         $coordinateData = [
             'latitude' => $this->lat,
             'longitude' => $this->lng,
             'formatted_address' => $result['formatted_address'],
         ];
 
+        Log::debug("Dispatching coordinates-updated with data: ".json_encode($coordinateData));
+
+
         // Use a CONSISTENT format for both the browser and Livewire events
         // Dispatch as an object directly, not wrapped in an array
         $this->dispatch('coordinates-updated', $coordinateData);
 
-        return $result;
+//        return $result;
     }
 
     public function render(): View

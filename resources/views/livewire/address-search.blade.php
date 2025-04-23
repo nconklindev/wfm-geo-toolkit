@@ -8,7 +8,8 @@
             type="text"
             class="rounded-md"
             clearable
-            wire:keyup.debounce.500ms="search($event.target.value)"
+            wire:keyup.debounce.300ms.prevent="search($wire.address)"
+            wire:keydown.enter.prevent="search($wire.address)"
             placeholder="1 Apple Park Way, Cupertino, CA 95014"
         />
     </flux:field>

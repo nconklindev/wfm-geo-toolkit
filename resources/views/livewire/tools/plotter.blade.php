@@ -8,6 +8,7 @@
     {{-- Input Form --}}
     <div class="grid grid-cols-2 gap-4 rounded bg-zinc-800 p-4 shadow-sm">
         <div>
+            {{-- Your form fields remain unchanged --}}
             <flux:heading level="2" size="lg" class="mb-3 font-medium">Add New Item</flux:heading>
             <form wire:submit="addPoint" class="flex flex-grow flex-col gap-6">
                 <!-- Latitude -->
@@ -20,7 +21,6 @@
                             id="latitude"
                             wire:model="latitude"
                             placeholder="40.7128"
-                            {{-- x-on:coordinates-updated.window="$el.value = $event.detail.latitude" --}}
                             required
                             autofocus
                         />
@@ -36,7 +36,6 @@
                             id="longitude"
                             wire:model="longitude"
                             placeholder="-74.0060"
-                            {{-- x-on:coordinates-updated.window="$el.value = $event.detail.longitude" --}}
                             required
                         />
                         <flux:error
@@ -84,7 +83,7 @@
                 </flux:field>
 
                 <!-- Color -->
-                <flux:field>
+                <flux:field wire:ignore>
                     <flux:label badge="Optional">Color</flux:label>
                     <flux:input type="text" id="color" wire:model="color" data-color />
                     <flux:error name="color" />
@@ -98,9 +97,14 @@
         {{-- Map Container --}}
         <div class="relative h-full">
             <!-- Map container -->
-            <div class="h-full" wire:ignore wire:submit="$refresh">
-                <div id="map" class="h-full w-full rounded-md"></div>
-            </div>
+            <div
+                id="map"
+                {{-- Use a unique ID for this page so that we aren't fighting with the global map.js script --}}
+                data-map-type="plotter"
+                data-map-points="{{ json_encode($mapPoints) }}"
+                class="h-full w-full rounded-md"
+                wire:ignore
+            ></div>
 
             <!-- Address search overlay -->
             <livewire:address-search />
@@ -109,7 +113,6 @@
 
     <div class="mt-6">
         <flux:heading level="2" size="lg" class="mb-3 font-medium">Plotted Points</flux:heading>
-
         @if (count($points) > 0)
             <div class="overflow-hidden rounded-md border border-zinc-700">
                 <table class="min-w-full divide-y divide-zinc-700">
@@ -137,13 +140,16 @@
                     </thead>
                     <tbody class="divide-y divide-zinc-800 bg-zinc-900">
                         @foreach ($points as $index => $point)
-                            <tr class="transition-colors hover:bg-zinc-800">
+                            <tr
+                                class="cursor-pointer transition-colors hover:bg-zinc-800"
+                                wire:click="flyTo({{ $index }})"
+                            >
                                 <td class="px-6 py-4 text-sm whitespace-nowrap text-white">
                                     {{ $point->label ?: 'Unnamed Point' }}
                                 </td>
                                 <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-300">
-                                    {{ number_format($point->latitude, 6) }},
-                                    {{ number_format($point->longitude, 6) }}
+                                    {{ number_format($point->latitude, 10) }},
+                                    {{ number_format($point->longitude, 10) }}
                                 </td>
                                 <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-300">
                                     {{ $point->radius }}m
@@ -166,7 +172,7 @@
                                         icon="trash"
                                         size="sm"
                                         variant="danger"
-                                        wire:click="removePoint({{ $index }})"
+                                        wire:click.stop="removePoint({{ $index }})"
                                         class="cursor-pointer focus:outline-none"
                                     />
                                 </td>
@@ -182,11 +188,11 @@
         @endif
     </div>
 
-    {{-- Custom styling to match Flux inputs until checkbox is fixed --}}
     <style>
         /* Making sure that the address search field is the proper color regardless of the appearance settings */
         .dark #address_search {
             background-color: color-mix(in oklab, var(--color-zinc-800) 90%, var(--color-white)) !important;
         }
     </style>
+    @vite('resources/js/plotter.js')
 </div>

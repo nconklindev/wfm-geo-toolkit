@@ -15,7 +15,8 @@
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/coloris.js', 'resources/css/coloris.css', 'resources/js/app.js'])
         @fluxAppearance
-        {{-- Placeholder for page-specific styles --}}
+        {{-- Add custom styles to the stack --}}
+        @stack('styles')
     </head>
     <body class="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-200">
         <!-- Navigation -->
@@ -31,6 +32,6 @@
         @include('partials.footer')
 
         @fluxScripts
-        @livewireScripts
+        @stack('scripts')
     </body>
 </html>
