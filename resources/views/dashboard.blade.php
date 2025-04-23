@@ -91,5 +91,4 @@
             <div id="map" class="h-[calc(100%-2rem)] w-full rounded-lg" data-places="{{ $user->knownPlaces }}"></div>
         </div>
     </div>
-    @include('partials.footer')
 </x-layouts.app>

@@ -4,8 +4,29 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-900">
-        <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+        <!-- Sidebar -->
+        <flux:sidebar
+            stashable
+            sticky
+            class="border-r border-zinc-200 bg-zinc-50 rtl:border-r-0 rtl:border-l dark:border-zinc-700 dark:bg-zinc-950"
+        >
+            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+            <flux:brand href="{{ route('dashboard') }}" name="WFM Geo Toolkit" />
+
+            <flux:navlist variant="outline">
+                <flux:navlist.item icon="home" href="#" current>Home</flux:navlist.item>
+                <flux:navlist.item icon="inbox" badge="12" href="#">Inbox</flux:navlist.item>
+                <flux:navlist.item icon="document-text" href="#">Documents</flux:navlist.item>
+                <flux:navlist.item icon="calendar" href="#">Calendar</flux:navlist.item>
+                <flux:navlist.group expandable heading="Favorites" class="hidden lg:grid">
+                    <flux:navlist.item href="#">Marketing site</flux:navlist.item>
+                    <flux:navlist.item href="#">Android app</flux:navlist.item>
+                    <flux:navlist.item href="#">Brand guidelines</flux:navlist.item>
+                </flux:navlist.group>
+            </flux:navlist>
+        </flux:sidebar>
+        <flux:header class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />
 
             <a href="{{ route('home') }}" class="mr-5 ml-2 flex items-center space-x-2 lg:ml-0" wire:navigate>
                 <x-app-logo />
@@ -86,7 +107,7 @@
                                 </span>
 
                                 <div class="grid flex-1 text-left text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                    <span class="truncate font-semibold">{{ auth()->user()->username }}</span>
                                     <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                                 </div>
                             </div>
@@ -114,34 +135,36 @@
         </flux:header>
 
         <!-- Mobile Menu -->
-        <flux:sidebar
-            stashable
-            sticky
-            class="border-r border-zinc-200 bg-zinc-50 lg:hidden dark:border-zinc-700 dark:bg-zinc-900"
-        >
-            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+        {{-- <flux:sidebar --}}
+        {{-- stashable --}}
+        {{-- sticky --}}
+        {{-- class="border-r border-zinc-200 bg-zinc-50 lg:hidden dark:border-zinc-700 dark:bg-zinc-900" --}}
+        {{-- > --}}
+        {{-- <flux:sidebar.toggle class="lg:hidden" icon="x-mark" /> --}}
 
-            <a href="{{ route('dashboard') }}" class="ml-1 flex items-center space-x-2" wire:navigate>
-                <x-app-logo />
-            </a>
+        {{-- <a href="{{ route('dashboard') }}" class="ml-1 flex items-center space-x-2" wire:navigate> --}}
+        {{-- <x-app-logo /> --}}
+        {{-- </a> --}}
 
-            <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')">
-                    <flux:navlist.item
-                        icon="layout-grid"
-                        :href="route('dashboard')"
-                        :current="request()->routeIs('dashboard')"
-                        wire:navigate
-                    >
-                        {{ __('Dashboard') }}
-                    </flux:navlist.item>
-                </flux:navlist.group>
-            </flux:navlist>
+        {{-- <flux:navlist variant="outline"> --}}
+        {{-- <flux:navlist.group :heading="__('Platform')"> --}}
+        {{-- <flux:navlist.item --}}
+        {{-- icon="layout-grid" --}}
+        {{-- :href="route('dashboard')" --}}
+        {{-- :current="request()->routeIs('dashboard')" --}}
+        {{-- wire:navigate --}}
+        {{-- > --}}
+        {{-- {{ __('Dashboard') }} --}}
+        {{-- </flux:navlist.item> --}}
+        {{-- </flux:navlist.group> --}}
+        {{-- </flux:navlist> --}}
 
-            <flux:spacer />
-        </flux:sidebar>
+        {{-- <flux:spacer /> --}}
+        {{-- </flux:sidebar> --}}
 
         {{ $slot }}
+
+        <!-- Footer -->
 
         @fluxScripts
     </body>

@@ -23,7 +23,7 @@
         <x-navbar-basic />
 
         <!-- Page Content -->
-        <main class="container mx-auto max-w-7xl flex-grow">
+        <main class="container mx-auto flex-grow">
             {{ $slot }}
             {{-- Main content area for specific pages --}}
         </main>

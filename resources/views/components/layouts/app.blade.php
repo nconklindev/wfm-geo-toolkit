@@ -1,5 +1,6 @@
 <x-layouts.app.header :title="$title ?? null">
-    <flux:main container>
+    <flux:main>
         {{ $slot }}
     </flux:main>
+    @include('partials.footer')
 </x-layouts.app.header>

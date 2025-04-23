@@ -1,4 +1,4 @@
-<header class="mx-auto w-full max-w-7xl py-6">
+<header class="container mx-auto w-full py-6">
     <div class="flex items-center justify-between">
         <div class="flex items-center">
             <svg

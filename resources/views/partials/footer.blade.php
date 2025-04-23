@@ -1,4 +1,4 @@
-<footer class="mx-auto mt-20 w-full max-w-7xl border-t border-zinc-200 px-6 py-12 lg:px-8 dark:border-zinc-700">
+<flux:footer class="container mx-auto border-t border-zinc-200 py-12 dark:border-zinc-700">
     <div class="flex flex-col items-center justify-between md:flex-row">
         <div class="mb-6 md:mb-0">
             <div class="flex items-center">
@@ -32,11 +32,10 @@
                     <flux:navbar.item href="{{ route('welcome') }}">Welcome</flux:navbar.item>
                 @endauth
 
-                <flux:navbar.item href="#features">Features</flux:navbar.item>
                 <flux:navbar.item href="#">Support</flux:navbar.item>
                 <flux:navbar.item href="#">Privacy</flux:navbar.item>
                 <flux:navbar.item href="#">Terms</flux:navbar.item>
             </flux:navbar>
         </div>
     </div>
-</footer>
+</flux:footer>
