@@ -35,13 +35,27 @@ class KnownPlaceController extends Controller
     public function destroy(Request $request, KnownPlace $knownPlace): RedirectResponse
     {
         try {
-            $knownPlace->deleteOrFail();
-
             // Authorize the action via the User Model
             // https://laravel.com/docs/12.x/authorization#via-the-user-model
             if ($request->user()->cannot('delete', $knownPlace)) {
                 abort(403);
             }
+
+            // Get the nodes attached to this place before deletion
+            $nodeIds = $knownPlace->nodes()->pluck('business_structure_nodes.id')->toArray();
+
+            $knownPlace->deleteOrFail();
+
+            // Check each node to see if it's orphaned (not attached to any other places)
+            foreach ($nodeIds as $nodeId) {
+                $node = BusinessStructureNode::find($nodeId);
+                if ($node) {
+                    $this->deleteNodeIfOrphaned($node);
+                }
+
+            }
+
+
         } catch (Throwable $e) {
             Log::error($e); // Log the error
 
@@ -66,6 +80,43 @@ class KnownPlaceController extends Controller
         // Redirect intended route
         // This will usually be the index route
         return redirect()->intended(route('known-places.index'));
+    }
+
+    /**
+     * Recursively delete a node and its parents if they're orphaned
+     *
+     * @param  BusinessStructureNode  $node  The node to check and possibly delete
+     * @return void
+     */
+    private function deleteNodeIfOrphaned(BusinessStructureNode $node): void
+    {
+        // Skip if the node is still attached to any known places
+        if ($node->knownPlaces()->count() > 0) {
+            return;
+        }
+
+        // Skip if the node still has any children
+        if ($node->children()->count() > 0) {
+            return;
+        }
+
+        // At this point, the node is orphaned with no children and no known places
+        $parentId = $node->parent_id;
+
+        // Log the node we're about to delete
+        Log::info("Deleting orphaned node {$node->id} with path {$node->path}");
+
+        // Delete the orphaned node
+        $node->delete();
+
+        // If this node had a parent, check if the parent is now orphaned too
+        if ($parentId) {
+            $parent = BusinessStructureNode::find($parentId);
+            if ($parent) {
+                // Recursively check the parent
+                $this->deleteNodeIfOrphaned($parent);
+            }
+        }
     }
 
     public function downloadSample()
