@@ -199,7 +199,12 @@
                                 @foreach ($knownPlaces as $place)
                                     <tr
                                         class="cursor-pointer text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                                        x-on:click="zoomToPlaceOnMap('{{ $place->latitude }}', '{{ $place->longitude }}')"
+                                        x-on:click="
+                                            $dispatch('fly-to-point', {
+                                                lat: {{ $place->latitude }},
+                                                lng: {{ $place->longitude }},
+                                            })
+                                        "
                                         data-latitude="{{ $place->latitude }}"
                                         data-longitude="{{ $place->longitude }}"
                                         data-radius="{{ $place->radius }}"

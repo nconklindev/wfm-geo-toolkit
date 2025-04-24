@@ -307,6 +307,14 @@ function setupMap() {
 }
 
 // --- Event Listeners ---
+window.addEventListener('fly-to-point', (event) => {
+    console.log('[Known Places] Received fly-to-point event from Javascript:', event.detail);
+    const { lat, lng } = event.detail;
+    // Fly to the location
+    currentMapInstance.flyTo([lat, lng], 15, {
+        duration: 1.5, // animation time in seconds
+    });
+});
 
 // Use DOMContentLoaded for initial setup
 document.addEventListener('DOMContentLoaded', setupMap);
