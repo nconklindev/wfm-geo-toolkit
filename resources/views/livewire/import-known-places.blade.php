@@ -29,7 +29,7 @@
                         <ul class="space-y-3 text-sm">
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent-content text-xs font-medium text-zinc-900"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-accent-content dark:text-zinc-200"
                                 >
                                     1
                                 </div>
@@ -39,7 +39,7 @@
                             </li>
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent-content text-xs font-medium text-zinc-900"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-accent-content dark:text-zinc-200"
                                 >
                                     2
                                 </div>
@@ -49,7 +49,7 @@
                             </li>
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent-content text-xs font-medium text-zinc-900"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-accent-content dark:text-zinc-200"
                                 >
                                     3
                                 </div>
