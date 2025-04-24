@@ -6,7 +6,7 @@
     </flux:text>
 
     {{-- Input Form --}}
-    <div class="grid min-h-[70vh] grid-cols-2 gap-4 rounded bg-zinc-800 p-4 shadow-sm">
+    <div class="grid min-h-[70vh] grid-cols-2 gap-4 rounded bg-white p-4 shadow-sm dark:bg-zinc-800">
         <div>
             {{-- Your form fields remain unchanged --}}
             <flux:heading level="2" size="lg" class="mb-3 font-medium">Add New Item</flux:heading>
@@ -114,47 +114,59 @@
     <div class="mt-6">
         <flux:heading level="2" size="lg" class="mb-3 font-medium">Plotted Points</flux:heading>
         @if (count($points) > 0)
-            <div class="overflow-hidden rounded-md border border-zinc-700">
-                <table class="min-w-full divide-y divide-zinc-700">
-                    <thead class="bg-zinc-800">
+            <div class="overflow-hidden rounded-md border border-zinc-400 dark:border-zinc-700">
+                <table class="min-w-full divide-y divide-zinc-400 dark:divide-zinc-700">
+                    <thead class="bg-white dark:bg-zinc-800">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-400 uppercase">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                            >
                                 Label
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-400 uppercase">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                            >
                                 Location
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-400 uppercase">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                            >
                                 Radius
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-400 uppercase">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                            >
                                 Accuracy
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-400 uppercase">
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                            >
                                 Color
                             </th>
-                            <th class="px-6 py-3 text-right text-xs font-medium tracking-wider text-zinc-400 uppercase">
+                            <th
+                                class="px-6 py-3 text-right text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-300"
+                            >
                                 Actions
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-zinc-800 bg-zinc-900">
+                    <tbody class="divide-y divide-zinc-400 bg-white dark:divide-zinc-800 dark:bg-zinc-900">
                         @foreach ($points as $index => $point)
                             <tr
-                                class="cursor-pointer transition-colors hover:bg-zinc-800"
+                                class="cursor-pointer transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                                 wire:click="flyTo({{ $index }})"
                             >
-                                <td class="px-6 py-4 text-sm whitespace-nowrap text-white">
+                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-800 dark:text-white">
                                     {{ $point->label ?: 'Unnamed Point' }}
                                 </td>
-                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-300">
+                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-600 dark:text-zinc-300">
                                     {{ number_format($point->latitude, 10) }},
                                     {{ number_format($point->longitude, 10) }}
                                 </td>
-                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-300">
+                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-600 dark:text-zinc-300">
                                     {{ $point->radius }}m
                                 </td>
-                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-300">
+                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-600 dark:text-zinc-300">
                                     {{ $point->accuracy }}m
                                 </td>
                                 <td class="px-6 py-4 text-sm whitespace-nowrap">
@@ -163,7 +175,7 @@
                                             class="mr-2 h-5 w-5 rounded-full"
                                             style="background-color: {{ $point->color }}"
                                         ></div>
-                                        <span class="text-zinc-300">{{ $point->color }}</span>
+                                        <span class="text-zinc-600 dark:text-zinc-300">{{ $point->color }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
@@ -182,7 +194,9 @@
                 </table>
             </div>
         @else
-            <div class="rounded-md border border-zinc-700 bg-zinc-900 p-6 text-center">
+            <div
+                class="rounded-md border border-zinc-400 bg-white p-6 text-center dark:border-zinc-700 dark:bg-zinc-900"
+            >
                 <p class="text-zinc-400">No points have been added yet. Use the form above to add points to the map.</p>
             </div>
         @endif

@@ -15,9 +15,9 @@ use Livewire\Component;
 class Plotter extends Component
 {
     // Explicitly set the between values as floats to prevent the validation from failing
-    #[Validate('required|decimal:2,10|between:-90.00,90.00')]
+    #[Validate('required|decimal:0,10|between:-90.00,90.00')]
     public float $latitude;
-    #[Validate('required|decimal:2,10|between:-180.00,180.00')]
+    #[Validate('required|decimal:0,10|between:-180.00,180.00')]
     public float $longitude;
     #[Validate('required|integer|between:1,1000')]
     public int $radius;
