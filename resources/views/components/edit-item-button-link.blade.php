@@ -3,7 +3,7 @@
 ])
 
 <flux:button
-    variant="filled"
+    variant="primary"
     size="sm"
     icon="pencil-square"
     href="{{ route('known-places.edit', $knownPlace) }}"
