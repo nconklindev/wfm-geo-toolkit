@@ -1,4 +1,5 @@
 import 'leaflet/dist/leaflet.css';
+import './coloris.js';
 // Import the map functionality
 import './map';
 // import './coverage';
