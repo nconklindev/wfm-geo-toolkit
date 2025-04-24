@@ -20,15 +20,15 @@
         <x-navbar-basic />
 
         <!-- Hero Section -->
-        <section class="mx-auto w-full max-w-7xl px-6 py-12 lg:px-8 lg:py-24">
+        <section class="container mx-auto w-full lg:py-16">
             <div class="flex flex-col items-center lg:flex-row">
                 <div class="mb-10 lg:mb-0 lg:w-1/2">
                     <h1
-                        class="mb-6 text-4xl leading-tight font-bold text-shadow-lg/30 text-shadow-teal-500 lg:text-5xl"
+                        class="mb-6 text-4xl leading-tight font-bold text-shadow-lg text-shadow-zinc-300/50 lg:text-5xl dark:text-shadow-lg/30 dark:text-shadow-teal-500"
                     >
                         Known Place Geofence Plotting for Workforce Management
                     </h1>
-                    <p class="mb-8 text-lg text-muted text-shadow-md">
+                    <p class="mb-8 text-lg text-muted">
                         Track, monitor, and optimize your workforce with our advanced geofencing technology. Real-time
                         location tracking with customizable boundaries.
                     </p>
@@ -105,11 +105,11 @@
         <!-- Features Section -->
         <section
             id="features"
-            class="mx-auto w-full max-w-7xl rounded-lg bg-white px-6 py-16 shadow-sm lg:px-8 dark:bg-zinc-800 dark:shadow-[0px_4px_16px_rgba(255,255,255,0.05)]"
+            class="container mx-auto w-full rounded-lg bg-white px-6 py-16 shadow-sm lg:px-8 dark:bg-zinc-800 dark:shadow-[0px_4px_16px_rgba(255,255,255,0.05)]"
         >
             <div class="no- mb-16 text-center">
-                <h2 class="mb-4 text-3xl font-bold text-shadow-lg">Key Features</h2>
-                <p class="mx-auto max-w-3xl text-lg text-muted text-shadow-md">
+                <flux:heading level="2" size="xl" class="mb-4 font-bold!">Key Features</flux:heading>
+                <p class="mx-auto max-w-3xl text-lg text-muted">
                     Our geofencing solution provides powerful tools to manage your workforce effectively and
                     efficiently.
                 </p>
