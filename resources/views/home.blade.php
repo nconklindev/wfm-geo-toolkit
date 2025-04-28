@@ -103,112 +103,116 @@
         </section>
 
         <!-- Features Section -->
-        <section
-            id="features"
-            class="container mx-auto w-full rounded-lg bg-white px-6 py-16 shadow-sm lg:px-8 dark:bg-zinc-800 dark:shadow-[0px_4px_16px_rgba(255,255,255,0.05)]"
-        >
-            <div class="no- mb-16 text-center">
-                <flux:heading level="2" size="xl" class="mb-4 font-bold!">Key Features</flux:heading>
-                <p class="mx-auto max-w-3xl text-lg text-muted">
-                    Our geofencing solution provides powerful tools to manage your workforce effectively and
-                    efficiently.
-                </p>
+        <section id="features" class="container mx-auto mt-10 w-full">
+            <div class="mb-16">
+                <flux:heading level="2" class="mb-4 text-[2.5rem] font-bold! tracking-tight">
+                    The one-stop known places shop.
+                </flux:heading>
+                <flux:text size="lg" class="max-w-lg">
+                    Explore the powerful tools designed to streamline your workforce management and location tracking.
+                </flux:text>
             </div>
 
-            <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                <!-- Feature 1 -->
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
+                {{-- Changed to 3 columns --}}
+                <!-- Feature 1: Plotting (Full Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 p-6 transition-all hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
+                    class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-3 md:flex-row dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    {{-- Span 3 columns --}}
                 >
-                    <div
-                        class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
-                    >
-                        <flux:icon.map class="h-6 w-6 text-accent" />
+                    <div class="mb-4 w-full md:mr-6 md:mb-0 md:w-1/3 lg:w-1/4">
+                        <x-placeholder-pattern
+                            class="aspect-video w-full rounded text-zinc-400/70 dark:text-zinc-600/70"
+                        />
                     </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Plotting</flux:heading>
-                    <flux:text variant="subtle">
-                        Plot areas based on configured Known Places and geolocation coordinates from employee punches.
+                    <div class="flex flex-1 flex-col justify-center">
+                        <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                            Plotting & Visualization
+                        </flux:heading>
+                        <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                            Visually plot geofence areas against employee punch coordinates on an interactive map for
+                            clear spatial analysis and identification of discrepancies.
+                        </flux:text>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Punch Analysis (Wider - 2/3 Width) -->
+                <div
+                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-2 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    {{-- Span 2 columns --}}
+                >
+                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
+                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                        Punch Analysis
+                    </flux:heading>
+                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                        Diagnose specific punch issues by analyzing individual employee location data against defined
+                        geofences.
                     </flux:text>
                 </div>
 
-                <!-- Feature 2 -->
+                <!-- Feature 3: Advanced Reporting (Narrower - 1/3 Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 p-6 transition-all hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
+                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-1 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    {{-- Span 1 column --}}
                 >
-                    <div
-                        class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
-                    >
-                        <flux:icon.magnifying-glass-plus class="h-6 w-6 text-accent" />
-                    </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Punch Analysis</flux:heading>
-                    <flux:text variant="subtle">
-                        Create individual test scenarios to diagnose why specific employees are experiencing geolocation
-                        punch problems at certain locations.
+                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
+                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                        Advanced Reporting
+                    </flux:heading>
+                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                        Generate detailed reports comparing punch data with Known Places.
                     </flux:text>
                 </div>
 
-                <!-- Feature 3 -->
+                <!-- Feature 4: Automated Alerts (Narrower - 1/3 Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 p-6 transition-all hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
+                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-1 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    {{-- Span 1 column --}}
                 >
-                    <div
-                        class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
-                    >
-                        <flux:icon.chart-bar-square class="h-6 w-6 text-accent" />
-                    </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Advanced Reporting</flux:heading>
-                    <flux:text variant="subtle">
-                        Create comprehensive analyses of punch location data versus Known Places to optimize geofence
-                        configurations and improve location validation.
+                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
+                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                        Automated Alerts
+                    </flux:heading>
+                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                        Configure real-time notifications for critical geofence events.
                     </flux:text>
                 </div>
 
-                <!-- Feature 4 -->
+                <!-- Feature 5: Privacy Controls (Wider - 2/3 Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 p-6 transition-all hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
+                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-2 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    {{-- Span 2 columns --}}
                 >
-                    <div
-                        class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
-                    >
-                        <flux:icon.bell-alert class="h-6 w-6 text-accent" />
-                    </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Automated Alerts</flux:heading>
-                    <flux:text variant="subtle">
-                        Set up customizable notifications for geofence events, including entry, exit, and dwell time
-                        violations.
+                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
+                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                        Privacy Controls
+                    </flux:heading>
+                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                        Ensure employee privacy with granular controls, limiting tracking to specific work hours and
+                        locations. Respect for privacy is paramount.
                     </flux:text>
                 </div>
 
-                <!-- Feature 5 -->
+                <!-- Feature 6: Import Known Places (Full Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 p-6 transition-all hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
+                    class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-3 md:flex-row dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    {{-- Span 3 columns --}}
                 >
-                    <div
-                        class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
-                    >
-                        <flux:icon.lock-closed class="h-6 w-6 text-accent" />
+                    <div class="flex flex-1 flex-col justify-center">
+                        <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                            Import Known Places
+                        </flux:heading>
+                        <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                            Seamlessly import your existing location data via the Pro WFM API for rapid setup and
+                            updates, ensuring consistency across systems.
+                        </flux:text>
                     </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Privacy Controls</flux:heading>
-                    <flux:text variant="subtle">
-                        Robust privacy settings allowing you to track only during work hours and in designated areas,
-                        respecting employee privacy.
-                    </flux:text>
-                </div>
-
-                <!-- Feature 6 -->
-                <div
-                    class="rounded-lg border border-zinc-200 p-6 transition-all hover:border-zinc-900 dark:border-zinc-700 dark:hover:border-zinc-500"
-                >
-                    <div
-                        class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900"
-                    >
-                        <flux:icon.circle-stack class="h-6 w-6 text-accent" />
+                    <div class="mb-4 w-full md:mr-6 md:mb-0 md:w-1/3 lg:w-1/4">
+                        <x-placeholder-pattern
+                            class="aspect-video w-full rounded text-zinc-400/70 dark:text-zinc-600/70"
+                        />
                     </div>
-                    <flux:heading level="3" size="xl" class="mb-2 font-semibold">Import Known Places</flux:heading>
-                    <flux:text variant="subtle">
-                        Easily import configured Known Places using the existing Pro WFM API to quickly set up or update
-                        your location database.
-                    </flux:text>
                 </div>
             </div>
         </section>
