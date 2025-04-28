@@ -102,6 +102,17 @@
             />
         </div>
 
+        <!-- Group -->
+        <flux:field>
+            <flux:select label="Group" badge="Optional" name="group" placeholder="Choose a group" class="w-full">
+                @forelse ($groups as $i => $group)
+                    <flux:select.option value="{{ $i }}">{{ $group['name'] }}</flux:select.option>
+                @empty
+                    <flux:select.option disabled>No groups created...</flux:select.option>
+                @endforelse
+            </flux:select>
+        </flux:field>
+
         {{--
             Custom validation order select implementation.
             Using a custom select instead of flux:checkbox.group due to a known issue with

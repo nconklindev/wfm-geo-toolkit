@@ -23,8 +23,9 @@ class KnownPlace extends Model
         'locations',
         'wifi_networks',
         'accuracy',
-        'color',
         'validation_order',
+        'group_id',
+        'color',
     ];
 
     protected $casts = [
@@ -59,6 +60,11 @@ class KnownPlace extends Model
     {
         return $this->belongsToMany(BusinessStructureNode::class)->withPivot('path',
             'path_hierarchy')->withTimestamps();
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 
     /**

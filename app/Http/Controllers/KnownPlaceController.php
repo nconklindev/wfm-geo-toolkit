@@ -228,6 +228,7 @@ class KnownPlaceController extends Controller
     {
         $sessionPlaceIds = session('session_known_places', []);
         $user = auth()->user();
+        $groups = auth()->user()->groups;
 
         if (empty($sessionPlaceIds)) {
             $sessionKnownPlaces = new Paginator([], 10);
@@ -254,7 +255,7 @@ class KnownPlaceController extends Controller
             });
         }
 
-        return view('known-places.create', compact('sessionKnownPlaces'));
+        return view('known-places.create', compact('sessionKnownPlaces', 'groups'));
     }
 
     /**
