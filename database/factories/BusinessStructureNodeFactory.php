@@ -21,8 +21,6 @@ class BusinessStructureNodeFactory extends Factory
             'path_hierarchy' => $this->faker->words(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
-
-            'business_node_type_id' => BusinessStructureType::factory(),
         ];
     }
 }
