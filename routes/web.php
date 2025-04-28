@@ -77,12 +77,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/{node}',
             [BusinessStructureNodeController::class, 'show'])->name('show');
-
-        Route::get('/{node}/edit',
-            [BusinessStructureNodeController::class, 'edit'])->name('edit'); // New: Edit node name/details
-        Route::patch('/{node}',
-            [BusinessStructureNodeController::class, 'update'])->name('update'); // New: Handle node update
-
     });
 });
 
