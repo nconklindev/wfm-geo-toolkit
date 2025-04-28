@@ -4,7 +4,6 @@
     /**@varstring|null*/'showRoute' => null,
     /**@varstring|null*/'editRoute' => null,
     /**@varstring|null*/'deleteRoute' => null,
-    /**@varstring*/'confirmMessage' => 'Are you sure you want to delete this item?',
     /**@varbool*/'showView' => true,
     /**@varbool*/'showEdit' => true,
     /**@varbool*/'showDelete' => true,
@@ -35,11 +34,7 @@
         >
             @csrf
             @method('DELETE')
-            <button type="submit" onclick="return confirm('{{ __($confirmMessage) }}')">
-                <flux:icon.trash
-                    class="h-5 w-5 cursor-pointer text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-300"
-                />
-            </button>
+            <x-delete-confirmation-modal :model="$model" heading="{{'Delete' . $model->name}}" />
         </form>
     @endif
 </div>
