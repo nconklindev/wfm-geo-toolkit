@@ -11,7 +11,10 @@
             class="border-r border-zinc-200 bg-zinc-50 rtl:border-r-0 rtl:border-l dark:border-zinc-700 dark:bg-zinc-950"
         >
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
-            <flux:brand href="{{ route('home') }}" name="WFM Geo Toolkit" />
+            <div class="flex flex-row items-center">
+                <x-app-logo-icon class="size-6" />
+                <flux:brand href="{{ route('home') }}" name="WFM Geo Toolkit" />
+            </div>
 
             <flux:navlist variant="outline" class="">
                 <flux:navlist.item
