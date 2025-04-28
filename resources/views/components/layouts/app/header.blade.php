@@ -11,17 +11,44 @@
             class="border-r border-zinc-200 bg-zinc-50 rtl:border-r-0 rtl:border-l dark:border-zinc-700 dark:bg-zinc-950"
         >
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
-            <flux:brand href="{{ route('dashboard') }}" name="WFM Geo Toolkit" />
+            <flux:brand href="{{ route('home') }}" name="WFM Geo Toolkit" />
 
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="home" href="#" current>Home</flux:navlist.item>
-                <flux:navlist.item icon="inbox" badge="12" href="#">Inbox</flux:navlist.item>
-                <flux:navlist.item icon="document-text" href="#">Documents</flux:navlist.item>
-                <flux:navlist.item icon="calendar" href="#">Calendar</flux:navlist.item>
-                <flux:navlist.group expandable heading="Favorites" class="hidden lg:grid">
-                    <flux:navlist.item href="#">Marketing site</flux:navlist.item>
-                    <flux:navlist.item href="#">Android app</flux:navlist.item>
-                    <flux:navlist.item href="#">Brand guidelines</flux:navlist.item>
+            <flux:navlist variant="outline" class="">
+                <flux:navlist.item
+                    icon="home"
+                    href="{{ route('dashboard') }}"
+                    :current="request()->routeIs('dashboard')"
+                >
+                    {{ __('Dashboard') }}
+                </flux:navlist.item>
+                {{-- <flux:navlist.item --}}
+                {{-- icon="map-pin" --}}
+                {{-- href="{{ route('known-places.index') }}" --}}
+                {{-- :current="request()->routeIs('known-places.index')" --}}
+                {{-- > --}}
+                {{-- Known Places --}}
+                {{-- </flux:navlist.item> --}}
+                <flux:navlist.item
+                    icon="building-office"
+                    href="{{ route('locations.index') }}"
+                    :current="request()->routeIs('locations.index')"
+                >
+                    {{ __('Locations') }}
+                </flux:navlist.item>
+                <flux:spacer />
+                <flux:navlist.group
+                    heading="Known Places"
+                    expandable
+                    class="lg:grid"
+                    :current="request()->routeIs('known-places.*')"
+                >
+                    <flux:navlist.item href="{{ route('known-places.create') }}" icon="plus">Create</flux:navlist.item>
+                    <flux:navlist.item href="{{ route('known-places.import') }}" icon="arrow-up-tray">
+                        {{ __('Upload') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item href="{{ route('known-places.export') }}" icon="arrow-down-tray">
+                        {{ __('Download') }}
+                    </flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
         </flux:sidebar>
@@ -41,40 +68,6 @@
                 >
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
-
-                <flux:dropdown>
-                    <flux:navbar.item icon-trailing="chevron-down" icon="map">Known Places</flux:navbar.item>
-
-                    <flux:navmenu>
-                        <flux:navmenu.item href="{{ route('known-places.index') }}" wire:navigate>
-                            Manage
-                        </flux:navmenu.item>
-                        <flux:navmenu.item href="{{ route('known-places.create') }}" icon="plus">
-                            Create
-                        </flux:navmenu.item>
-                        <flux:navmenu.item
-                            href="{{ route('known-places.import') }}"
-                            icon="arrow-down-tray"
-                            wire:navigate
-                        >
-                            Import
-                        </flux:navmenu.item>
-                        <flux:navmenu.item
-                            href="{{ route('known-places.export') }}"
-                            icon="arrow-up-tray"
-                            wire:navigate
-                        >
-                            Export
-                        </flux:navmenu.item>
-                    </flux:navmenu>
-                </flux:dropdown>
-                <flux:dropdown>
-                    <flux:navbar.item icon-trailing="chevron-down" icon="building-office">Locations</flux:navbar.item>
-
-                    <flux:navmenu>
-                        <flux:navmenu.item href="{{ route('locations.index') }}">Manage</flux:navmenu.item>
-                    </flux:navmenu>
-                </flux:dropdown>
             </flux:navbar>
 
             <flux:spacer />
