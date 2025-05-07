@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Http\ViewComposers\HeaderViewComposer;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -26,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Model::preventLazyLoading(!$this->app->isProduction());
+        Model::preventLazyLoading(); // Prevent lazy loading of models
+
+        View::composer('*', HeaderViewComposer::class);
     }
 }

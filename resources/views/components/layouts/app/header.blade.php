@@ -12,11 +12,10 @@
         >
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
             <div class="flex flex-row items-center">
-                <x-app-logo-icon class="size-6" />
-                <flux:brand href="{{ route('home') }}" name="WFM Geo Toolkit" />
+                <x-app-logo />
             </div>
 
-            <flux:navlist variant="outline" class="">
+            <flux:navlist variant="outline">
                 <flux:navlist.item
                     icon="home"
                     href="{{ route('dashboard') }}"
@@ -24,13 +23,6 @@
                 >
                     {{ __('Dashboard') }}
                 </flux:navlist.item>
-                {{-- <flux:navlist.item --}}
-                {{-- icon="map-pin" --}}
-                {{-- href="{{ route('known-places.index') }}" --}}
-                {{-- :current="request()->routeIs('known-places.index')" --}}
-                {{-- > --}}
-                {{-- Known Places --}}
-                {{-- </flux:navlist.item> --}}
                 <flux:navlist.item
                     icon="building-office"
                     href="{{ route('locations.index') }}"
@@ -38,13 +30,14 @@
                 >
                     {{ __('Locations') }}
                 </flux:navlist.item>
-                <flux:spacer />
+                {{-- <flux:spacer /> --}}
                 <flux:navlist.group
                     heading="Known Places"
                     expandable
                     class="lg:grid"
                     :current="request()->routeIs('known-places.*')"
                 >
+                    <flux:navlist.item href="{{ route('known-places.index') }}" icon="eye">View All</flux:navlist.item>
                     <flux:navlist.item href="{{ route('known-places.create') }}" icon="plus">Create</flux:navlist.item>
                     <flux:navlist.item href="{{ route('known-places.import') }}" icon="arrow-up-tray">
                         {{ __('Upload') }}
@@ -56,36 +49,37 @@
             </flux:navlist>
         </flux:sidebar>
         <flux:header class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+            <!-- Tools -->
+            <flux:dropdown>
+                <flux:navbar.item icon="wrench" icon-trailing="chevron-down">Tools</flux:navbar.item>
+                <flux:navmenu>
+                    <flux:navmenu.item href="{{ route('tools.plotter') }}">Plotter</flux:navmenu.item>
+                </flux:navmenu>
+            </flux:dropdown>
+
+            <!-- Hamburger menu toggle -->
             <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />
-
-            <a href="{{ route('home') }}" class="mr-5 ml-2 flex items-center space-x-2 lg:ml-0" wire:navigate>
-                <x-app-logo />
-            </a>
-
-            <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item
-                    icon="layout-grid"
-                    :href="route('dashboard')"
-                    :current="request()->routeIs('dashboard')"
-                    wire:navigate
-                >
-                    {{ __('Dashboard') }}
-                </flux:navbar.item>
-            </flux:navbar>
 
             <flux:spacer />
 
+            <!-- Search -->
             <flux:navbar class="mr-1.5 space-x-0.5 py-0!">
-                <flux:tooltip :content="__('Search')" position="bottom">
-                    <flux:navbar.item
-                        class="!h-10 [&>div>svg]:size-5"
-                        icon="magnifying-glass"
-                        href="#"
-                        :label="__('Search')"
-                    />
-                </flux:tooltip>
+                <livewire:search />
             </flux:navbar>
 
+            {{-- TODO: Implement notifications for conflicts of Known Places and Locations --}}
+            <flux:tooltip content="Notifications">
+                <flux:navbar.item
+                    id="notification-badge"
+                    x-data="notificationBadge"
+                    href="{{ route('notifications') }}"
+                    :badge="auth()->user()->unreadNotifications()->count()"
+                    badge-color="teal"
+                    x-init="currentCount = {{ auth()->user()->unreadNotifications()->count() }}"
+                >
+                    <flux:icon.bell />
+                </flux:navbar.item>
+            </flux:tooltip>
             <!-- Desktop User Menu -->
             <flux:dropdown position="top" align="end">
                 <flux:profile class="cursor-pointer" :initials="auth()->user()->initials()" />
@@ -164,4 +158,92 @@
 
         @fluxScripts
     </body>
+    @auth
+        <script>
+            document.addEventListener('alpine:init', () => {
+                console.log('Alpine initialized...');
+                Alpine.data('notificationBadge', () => ({
+                    currentCount: 0,
+
+                    init() {
+                        this.currentCount = {{ auth()->user()->unreadNotifications()->count() }};
+                        console.log('Current notification count is: ', this.currentCount);
+
+                        Echo.private('App.Models.User.{{ auth()->user()->id }}').notification((notification) => {
+                            console.log('Notification received!', notification);
+
+                            // Use the count from the notification if it exists
+                            if (notification.count !== undefined) {
+                                this.currentCount = notification.count;
+                                console.log('Notification included count:', this.currentCount);
+                            } else {
+                                // Fallback: increment the current count
+                                this.currentCount++;
+                                console.log('Incremented count to:', this.currentCount);
+                            }
+
+                            this.updateNotificationBadge();
+                        });
+                    },
+
+                    updateNotificationBadge() {
+                        console.log('Updating notification badge to:', this.currentCount);
+
+                        // Get the badge element
+                        const badgeElement = document.getElementById('notification-badge');
+                        if (!badgeElement) return;
+
+                        // Set the badge attribute
+                        badgeElement.setAttribute('badge', this.currentCount);
+
+                        // Check if the badge span exists
+                        let badgeSpan = badgeElement.querySelector('span.text-xs.font-medium.rounded-sm');
+
+                        // If the badge span doesn't exist but should (count > 0), create it
+                        if (!badgeSpan && this.currentCount > 0) {
+                            badgeSpan = document.createElement('span');
+                            badgeSpan.className =
+                                'text-xs font-medium rounded-sm px-1 py-0.5 text-teal-800 dark:text-teal-200 bg-teal-400/20 dark:bg-teal-400/40 ms-2';
+                            badgeElement.appendChild(badgeSpan);
+                        }
+
+                        // Update the badge text if it exists
+                        if (badgeSpan) {
+                            if (this.currentCount > 0) {
+                                badgeSpan.textContent = this.currentCount;
+                                badgeSpan.style.display = ''; // Make sure it's visible
+                            } else {
+                                // Hide the badge if count is 0
+                                badgeSpan.style.display = 'none';
+                            }
+                        }
+
+                        // Add a simple flash animation
+                        badgeElement.classList.add('notification-pulse');
+                        setTimeout(() => {
+                            badgeElement.classList.remove('notification-pulse');
+                        }, 1000);
+                    },
+                }));
+            });
+        </script>
+
+        <style>
+            @keyframes notification-pulse {
+                0% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.1);
+                }
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .notification-pulse {
+                animation: notification-pulse 0.5s ease-in-out;
+            }
+        </style>
+    @endauth
 </html>

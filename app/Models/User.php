@@ -77,6 +77,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(KnownPlace::class, 'user_id');
     }
 
+    public function receivesBroadcastNotificationsOn(): string
+    {
+        return 'App.Models.User.'.$this->id;
+    }
+
     /**
      * Get the attributes that should be cast.
      *

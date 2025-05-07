@@ -2,15 +2,20 @@
 
 namespace App\Models;
 
+use App\Observers\KnownPlaceObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Scout\Searchable;
 
+#[ObservedBy(KnownPlaceObserver::class)]
 class KnownPlace extends Model
 {
     use HasFactory;
+    use Notifiable;
     use Searchable;
 
     protected $fillable = [
@@ -36,24 +41,6 @@ class KnownPlace extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the leaf node (most specific location) for this known place
-     * @return string|null
-     */
-    public function getLocationPathAttribute(): ?string
-    {
-        // Get the deepest node
-        $leafNode = $this->nodes()->orderBy('_lft')->first(['id', 'path']);
-
-        if (!$leafNode) {
-            return null;
-        }
-
-        $ancestors = $leafNode->path;
-
-        return $ancestors->pluck('name')->implode('/');
     }
 
     public function nodes(): BelongsToMany

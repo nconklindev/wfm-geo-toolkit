@@ -2,6 +2,7 @@ import 'leaflet/dist/leaflet.css';
 import './coloris.js';
 // Import the map functionality
 import './map';
+import './echo.js';
 // import './coverage';
 
 document.addEventListener('DOMContentLoaded', function () {

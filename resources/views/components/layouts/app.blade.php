@@ -1,4 +1,4 @@
-<x-layouts.app.header :title="$title ?? null">
+<x-layouts.app.header :title="$title ?? null" :unread-notifications-count="$unreadNotificationsCount ?? 0">
     <flux:main>
         {{ $slot }}
     </flux:main>
