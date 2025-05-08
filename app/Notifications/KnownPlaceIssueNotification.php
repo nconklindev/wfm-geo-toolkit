@@ -48,11 +48,11 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
 
         // Check if the arrays themselves are empty, not just the IDs
         if (!empty($conflictingDescendantPlaces) && !empty($conflictingAncestorPlaces)) {
-            $message = "A Known Place is linked to one or more locations that are both ancestors of other Known Places' nodes and descendants of other Known Places' nodes. Review is needed.";
+            $message = "This Known Place is linked to one or more locations that are both ancestors of other Known Places' nodes and descendants of other Known Places' nodes. Review is needed.";
         } elseif (!empty($conflictingDescendantPlaces)) {
-            $message = "A Known Place is linked to a broader location, but other Known Places are linked to more specific location. Review is needed.";
+            $message = "This Known Place is linked to a broader location, but other Known Places are linked to more specific location. Review is needed.";
         } elseif (!empty($conflictingAncestorPlaces)) {
-            $message = "A Known Place is linked to a specific location, but another Known Place is linked to a broader location that includes it. Review is needed.";
+            $message = "This Known Place is linked to a specific location, but another Known Place is linked to a broader location that includes it. Review is needed.";
         }
 
         return [
