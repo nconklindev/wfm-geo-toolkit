@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Notifications\Notifiable;
 use Kalnoy\Nestedset\NodeTrait;
 use Laravel\Scout\Searchable;
 
@@ -15,18 +16,14 @@ class BusinessStructureNode extends Model
     use HasFactory, Searchable {
         Searchable::usesSoftDelete insteadof NodeTrait;
     }
-    use NodeTrait;
+    use NodeTrait, Notifiable;
 
     protected $fillable = [
         'name',
         'description',
-        'business_structure_type_id',
         'parent_id',
         'path',
         'path_hierarchy',
-        'structure_hash',
-        'start_date',
-        'end_date',
     ];
 
     public function children(): HasMany
@@ -49,7 +46,8 @@ class BusinessStructureNode extends Model
         return [
             'id' => (int) $this->id,
             'name' => $this->name,
-            'path' => $this->path_hierarchy
+            'path' => $this->path,
+            'user_id' => $this->user_id
         ];
     }
 
