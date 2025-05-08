@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Notifications;
 
+use Exception;
 use Illuminate\Notifications\DatabaseNotification;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Log;
 
 class NotificationCenter extends Component
 {
@@ -19,21 +22,6 @@ class NotificationCenter extends Component
     public function render()
     {
         return view('livewire.notifications.notification-center');
-    }
-
-    #[Computed]
-    public function notifications()
-    {
-        $query = auth()->user()->notifications();
-
-        // Apply sort order
-        if ($this->sortOrder === 'oldest') {
-            $query->oldest();
-        } else {
-            $query->latest();
-        }
-
-        return $query->get();
     }
 
     public function selectNotification($notificationId)
@@ -69,5 +57,31 @@ class NotificationCenter extends Component
         } else {
             $this->selectedNotificationData = null;
         }
+    }
+
+    #[On('delete-all-notifications')]
+    public function deleteAll(): void
+    {
+        try {
+            auth()->user()->notifications()->delete();
+        } catch (Exception $e) {
+            Log::error('[NotificationCenter] Failed to delete all notifications: '.$e->getMessage());
+            flash()->error('Failed to delete all notifications.');
+        }
+    }
+
+    #[Computed]
+    public function notifications()
+    {
+        $query = auth()->user()->notifications();
+
+        // Apply sort order
+        if ($this->sortOrder === 'oldest') {
+            $query->oldest();
+        } else {
+            $query->latest();
+        }
+
+        return $query->get();
     }
 }
