@@ -1,17 +1,18 @@
 <x-layouts.app :title="__($knownPlace->name)">
-    <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div class="overflow-hidden bg-white shadow-xl sm:rounded-lg dark:bg-zinc-800">
+    <div class="container mx-auto">
+        <div class="overflow-hidden bg-white shadow-lg sm:rounded-lg dark:bg-zinc-800">
             <div class="p-6">
                 <div class="mb-6 flex items-center justify-between">
                     <h1 class="text-2xl font-semibold text-zinc-900 dark:text-white">{{ $knownPlace->name }}</h1>
                     <div class="flex space-x-2">
                         <x-edit-item-button-link :knownPlace="$knownPlace" />
-                        <form method="POST" action="{{ route('known-places.destroy', $knownPlace) }}" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            {{-- Delete --}}
-                            <x-delete-item-button />
-                        </form>
+                        <flux:modal.trigger
+                            name="{{ 'delete-' . Str::plural(Str::kebab(class_basename($knownPlace))) . '-' . $knownPlace->id }}"
+                        >
+                            <flux:button variant="danger" size="sm" icon="trash">Delete</flux:button>
+                        </flux:modal.trigger>
+                        {{-- Delete --}}
+                        <x-delete-confirmation-modal :model="$knownPlace" :item-to-delete="$knownPlace->name" />
                         {{-- Back --}}
                         <x-back-button-link />
                     </div>
@@ -149,18 +150,16 @@
                             @if ($knownPlace->nodes->count() > 0)
                                 <div class="space-y-2">
                                     @foreach ($knownPlace->nodes as $node)
-                                        @if ($node->isLeaf())
-                                            <div class="rounded-md bg-zinc-100 p-3 dark:bg-zinc-600">
-                                                <div class="flex items-center">
-                                                    <flux:icon.map-pin
-                                                        class="mr-2 size-5 text-teal-600 dark:text-teal-300"
-                                                    />
-                                                    <span class="font-medium text-zinc-700 dark:text-zinc-200">
-                                                        {{ $node->path }}
-                                                    </span>
-                                                </div>
+                                        <div class="rounded-md bg-zinc-100 p-3 dark:bg-zinc-600">
+                                            <div class="flex items-center">
+                                                <flux:icon.map-pin
+                                                    class="mr-2 size-5 text-teal-600 dark:text-teal-300"
+                                                />
+                                                <span class="font-medium text-zinc-700 dark:text-zinc-200">
+                                                    {{ $node->pivot->path ? $node->path : '' }}
+                                                </span>
                                             </div>
-                                        @endif
+                                        </div>
                                     @endforeach
                                 </div>
                             @else
