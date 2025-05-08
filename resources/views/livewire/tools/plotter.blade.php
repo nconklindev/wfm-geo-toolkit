@@ -1,12 +1,13 @@
-<div>
+<div class="">
     <flux:heading level="1" size="xl" class="mb-1 font-semibold">Plotting Tool</flux:heading>
     <flux:text class="mb-4">
         Use the plotting tool to plot Known Places from WFM alongside employee punches. Helpful for troubleshooting
         geofencing issues within Pro WFM.
     </flux:text>
 
-    {{-- Input Form --}}
-    <div class="grid min-h-[70vh] grid-cols-2 gap-4 rounded bg-white p-4 shadow-sm dark:bg-zinc-800">
+    {{-- Input Form and Map Container --}}
+    <div class="grid min-h-[70vh] grid-cols-1 gap-4 rounded bg-white p-4 shadow-sm md:grid-cols-2 dark:bg-zinc-800">
+        {{-- Input Form --}}
         <div>
             {{-- Your form fields remain unchanged --}}
             <flux:heading level="2" size="lg" class="mb-3 font-medium">Add New Item</flux:heading>
@@ -95,7 +96,7 @@
             </form>
         </div>
         {{-- Map Container --}}
-        <div class="relative h-full">
+        <div class="relative min-h-[50vh] md:h-full">
             <!-- Map container -->
             <div
                 id="map"
