@@ -1,5 +1,8 @@
 <div wire:cloak>
-    <flux:heading level="1" size="xl" class="mb-4">Notification Center</flux:heading>
+    <div class="flex flex-row justify-between">
+        <flux:heading level="1" size="xl" class="mb-4">Notification Center</flux:heading>
+        <flux:button icon="rotate-ccw" wire:click="$refresh"></flux:button>
+    </div>
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-5" wire:cloak>
         <!-- Sidebar for filters (Column 1) -->
         <livewire:notifications.filters />
@@ -78,6 +81,7 @@
                                 :notification="$notification"
                                 wire:key="notification-{{ $notification->id }}"
                                 wire:click="selectNotification('{{ $notification->id }}')"
+                                wire:transition
                                 @class([
                                     'bg-teal-50 dark:bg-teal-900/50 border-l-4 border-teal-500' => $selectedNotificationId === $notification->id,
                                     'border-l-4 border-transparent' => $selectedNotificationId !== $notification->id
