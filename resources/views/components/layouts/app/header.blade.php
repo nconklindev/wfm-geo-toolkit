@@ -49,6 +49,9 @@
             </flux:navlist>
         </flux:sidebar>
         <flux:header class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+            <!-- Hamburger menu toggle -->
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />
+
             <!-- Tools -->
             <flux:dropdown>
                 <flux:navbar.item icon="wrench" icon-trailing="chevron-down">Tools</flux:navbar.item>
@@ -56,9 +59,6 @@
                     <flux:navmenu.item href="{{ route('tools.plotter') }}">Plotter</flux:navmenu.item>
                 </flux:navmenu>
             </flux:dropdown>
-
-            <!-- Hamburger menu toggle -->
-            <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />
 
             <flux:spacer />
 
