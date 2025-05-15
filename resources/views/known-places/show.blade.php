@@ -9,7 +9,9 @@
                         <flux:modal.trigger
                             name="{{ 'delete-' . Str::plural(Str::kebab(class_basename($knownPlace))) . '-' . $knownPlace->id }}"
                         >
-                            <flux:button variant="danger" size="sm" icon="trash">Delete</flux:button>
+                            <flux:button variant="danger" size="sm" icon="trash" class="cursor-pointer">
+                                Delete
+                            </flux:button>
                         </flux:modal.trigger>
                         {{-- Delete --}}
                         <x-delete-confirmation-modal :model="$knownPlace" :item-to-delete="$knownPlace->name" />
@@ -39,7 +41,7 @@
                                         {{ $knownPlace->description }}
                                     </flux:text>
                                 </div>
-                                <hr class="my-4 border-zinc-200 dark:border-zinc-600" />
+                                <flux:separator class="my-2.5" />
                             @endif
 
                             <div class="grid grid-cols-2 gap-4">
@@ -53,7 +55,7 @@
                                 </div>
                             </div>
 
-                            <hr class="my-4 border-zinc-200 dark:border-zinc-600" />
+                            <flux:separator class="my-2.5" />
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -66,23 +68,34 @@
                                 </div>
                             </div>
 
-                            <hr class="my-4 border-zinc-200 dark:border-zinc-600" />
+                            <flux:separator class="my-2.5" />
 
-                            <div>
-                                <flux:heading level="3" size="lg">Created</flux:heading>
-                                <flux:text>
-                                    {{ $knownPlace->created_at->format('F j, Y \a\t g:i a') }}
-                                </flux:text>
+                            <div class="grid grid-cols-2">
+                                <div>
+                                    <flux:heading level="3" size="lg">Created</flux:heading>
+                                    <flux:text>
+                                        {{ $knownPlace->created_at->format('F j, Y \a\t g:i a') }}
+                                    </flux:text>
+                                </div>
+
+                                <div>
+                                    <flux:heading level="3" size="lg">Last Updated</flux:heading>
+                                    <flux:text>
+                                        {{ $knownPlace->updated_at->format('F j, Y \a\t g:i a') }}
+                                    </flux:text>
+                                </div>
                             </div>
 
-                            <hr class="my-4 border-zinc-200 dark:border-zinc-600" />
-
-                            <div>
-                                <flux:heading level="3" size="lg">Last Updated</flux:heading>
-                                <flux:text>
-                                    {{ $knownPlace->updated_at->format('F j, Y \a\t g:i a') }}
-                                </flux:text>
-                            </div>
+                            {{-- The separator goes in the if block to make sure there isn't one stranded if there is no group --}}
+                            @if (isset($knownPlace->group))
+                                <flux:separator class="my-2.5" />
+                                <div>
+                                    <flux:heading level="3" size="lg">Group</flux:heading>
+                                    <flux:text>
+                                        {{ $knownPlace->group->name }}
+                                    </flux:text>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -112,28 +125,6 @@
                                                     <flux:icon.wifi class="h-4 w-4 text-blue-600 dark:text-blue-300" />
                                                 </span>
                                                 <span class="text-sm text-zinc-800 dark:text-zinc-200">WiFi</span>
-                                            @else
-                                                <span
-                                                    class="mr-3 inline-flex items-center justify-center rounded-full bg-zinc-100 p-2 dark:bg-zinc-600"
-                                                >
-                                                    <svg
-                                                        class="h-5 w-5 text-zinc-600 dark:text-zinc-300"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                                        ></path>
-                                                    </svg>
-                                                </span>
-                                                <span class="text-zinc-800 dark:text-zinc-200">
-                                                    {{ ucfirst($method) }}
-                                                </span>
                                             @endif
                                         </li>
                                     @endforeach
@@ -163,9 +154,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <p class="text-zinc-500 italic dark:text-zinc-400">
-                                    No business locations assigned to this known place.
-                                </p>
+                                <flux:text variant="subtle">No locations assigned to this known place.</flux:text>
                             @endif
                         </div>
 
@@ -205,124 +194,6 @@
                                 </a>
                             </div>
                         </div>
-
-                        <!-- Actions Card -->
-                        {{-- <div class="mt-6 rounded-lg bg-zinc-50 p-6 shadow-md dark:bg-zinc-700"> --}}
-                        {{-- <h2 class="mb-4 text-lg font-semibold text-zinc-900 dark:text-white">Quick Actions</h2> --}}
-
-                        {{-- <div class="grid grid-cols-1 gap-3"> --}}
-                        {{-- <a --}}
-                        {{-- href="#" --}}
-                        {{-- class="flex items-center justify-between rounded-md bg-blue-50 p-3 transition hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-800" --}}
-                        {{-- > --}}
-                        {{-- <div class="flex items-center"> --}}
-                        {{-- <svg --}}
-                        {{-- class="mr-3 h-5 w-5 text-blue-600 dark:text-blue-300" --}}
-                        {{-- fill="none" --}}
-                        {{-- stroke="currentColor" --}}
-                        {{-- viewBox="0 0 24 24" --}}
-                        {{-- xmlns="http://www.w3.org/2000/svg" --}}
-                        {{-- > --}}
-                        {{-- <path --}}
-                        {{-- stroke-linecap="round" --}}
-                        {{-- stroke-linejoin="round" --}}
-                        {{-- stroke-width="2" --}}
-                        {{-- d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" --}}
-                        {{-- ></path> --}}
-                        {{-- </svg> --}}
-                        {{-- <span class="text-blue-800 dark:text-blue-200">Validate Current Position</span> --}}
-                        {{-- </div> --}}
-                        {{-- <svg --}}
-                        {{-- class="h-4 w-4 text-blue-600 dark:text-blue-300" --}}
-                        {{-- fill="none" --}}
-                        {{-- stroke="currentColor" --}}
-                        {{-- viewBox="0 0 24 24" --}}
-                        {{-- xmlns="http://www.w3.org/2000/svg" --}}
-                        {{-- > --}}
-                        {{-- <path --}}
-                        {{-- stroke-linecap="round" --}}
-                        {{-- stroke-linejoin="round" --}}
-                        {{-- stroke-width="2" --}}
-                        {{-- d="M9 5l7 7-7 7" --}}
-                        {{-- ></path> --}}
-                        {{-- </svg> --}}
-                        {{-- </a> --}}
-
-                        {{-- <a --}}
-                        {{-- href="#" --}}
-                        {{-- class="flex items-center justify-between rounded-md bg-green-50 p-3 transition hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-800" --}}
-                        {{-- > --}}
-                        {{-- <div class="flex items-center"> --}}
-                        {{-- <svg --}}
-                        {{-- class="mr-3 h-5 w-5 text-green-600 dark:text-green-300" --}}
-                        {{-- fill="none" --}}
-                        {{-- stroke="currentColor" --}}
-                        {{-- viewBox="0 0 24 24" --}}
-                        {{-- xmlns="http://www.w3.org/2000/svg" --}}
-                        {{-- > --}}
-                        {{-- <path --}}
-                        {{-- stroke-linecap="round" --}}
-                        {{-- stroke-linejoin="round" --}}
-                        {{-- stroke-width="2" --}}
-                        {{-- d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" --}}
-                        {{-- ></path> --}}
-                        {{-- </svg> --}}
-                        {{-- <span class="text-green-800 dark:text-green-200">Schedule Events</span> --}}
-                        {{-- </div> --}}
-                        {{-- <svg --}}
-                        {{-- class="h-4 w-4 text-green-600 dark:text-green-300" --}}
-                        {{-- fill="none" --}}
-                        {{-- stroke="currentColor" --}}
-                        {{-- viewBox="0 0 24 24" --}}
-                        {{-- xmlns="http://www.w3.org/2000/svg" --}}
-                        {{-- > --}}
-                        {{-- <path --}}
-                        {{-- stroke-linecap="round" --}}
-                        {{-- stroke-linejoin="round" --}}
-                        {{-- stroke-width="2" --}}
-                        {{-- d="M9 5l7 7-7 7" --}}
-                        {{-- ></path> --}}
-                        {{-- </svg> --}}
-                        {{-- </a> --}}
-
-                        {{-- <a --}}
-                        {{-- href="#" --}}
-                        {{-- class="flex items-center justify-between rounded-md bg-purple-50 p-3 transition hover:bg-purple-100 dark:bg-purple-900 dark:hover:bg-purple-800" --}}
-                        {{-- > --}}
-                        {{-- <div class="flex items-center"> --}}
-                        {{-- <svg --}}
-                        {{-- class="mr-3 h-5 w-5 text-purple-600 dark:text-purple-300" --}}
-                        {{-- fill="none" --}}
-                        {{-- stroke="currentColor" --}}
-                        {{-- viewBox="0 0 24 24" --}}
-                        {{-- xmlns="http://www.w3.org/2000/svg" --}}
-                        {{-- > --}}
-                        {{-- <path --}}
-                        {{-- stroke-linecap="round" --}}
-                        {{-- stroke-linejoin="round" --}}
-                        {{-- stroke-width="2" --}}
-                        {{-- d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" --}}
-                        {{-- ></path> --}}
-                        {{-- </svg> --}}
-                        {{-- <span class="text-purple-800 dark:text-purple-200">View Analytics</span> --}}
-                        {{-- </div> --}}
-                        {{-- <svg --}}
-                        {{-- class="h-4 w-4 text-purple-600 dark:text-purple-300" --}}
-                        {{-- fill="none" --}}
-                        {{-- stroke="currentColor" --}}
-                        {{-- viewBox="0 0 24 24" --}}
-                        {{-- xmlns="http://www.w3.org/2000/svg" --}}
-                        {{-- > --}}
-                        {{-- <path --}}
-                        {{-- stroke-linecap="round" --}}
-                        {{-- stroke-linejoin="round" --}}
-                        {{-- stroke-width="2" --}}
-                        {{-- d="M9 5l7 7-7 7" --}}
-                        {{-- ></path> --}}
-                        {{-- </svg> --}}
-                        {{-- </a> --}}
-                        {{-- </div> --}}
-                        {{-- </div> --}}
                     </div>
                 </div>
             </div>
