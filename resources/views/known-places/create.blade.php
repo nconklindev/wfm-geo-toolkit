@@ -19,7 +19,7 @@
 
             <form method="POST" action="{{ route('known-places.store') }}" class="space-y-6">
                 @csrf
-                @include('partials.known-place-form', ['knownPlace' => null, 'groups' => $groups])
+                @include('partials.known-place-form', ['knownPlace' => null, 'groups' => $groups ?? []])
             </form>
         </div>
         <!-- Known Places Table -->
