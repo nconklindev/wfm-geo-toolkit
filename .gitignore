@@ -12,6 +12,7 @@
 .phpactor.json
 .phpunit.result.cache
 .prettierrc
+qodana.yaml
 Homestead.json
 Homestead.yaml
 npm-debug.log
