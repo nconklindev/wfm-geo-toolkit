@@ -1,3 +1,7 @@
+@php
+    use App\Models\KnownPlace;
+@endphp
+
 @props([
     'name' => null,
     'itemToDelete' => 'this item',
@@ -39,14 +43,12 @@
         Log::warning('Delete Confirmation Modal: The "name" prop is required or a "model" prop must be provided to generate a default name.');
     @endphp
 
-    {{-- Optionally, render nothing or display an error message --}}
     <div>Error: Modal name is missing.</div>
 @elseif (! $actionRoute)
     @php
         Log::warning('Delete Confirmation Modal: The "deleteRoute" prop is required or a "model" prop with a standard resource route or a "deleteRouteName" must be provided to generate a default route.');
     @endphp
 
-    {{-- Optionally, render nothing or display an error message --}}
     <div>Error: Delete route is missing.</div>
 @else
     <flux:modal name="{{ $modalName }}" class="min-w-[22rem]">
@@ -58,9 +60,14 @@
                 <div>
                     <flux:heading size="lg">{{ $heading }}</flux:heading>
 
-                    <flux:text class="mt-2">
-                        <p>You are about to delete {{ $displayItemToDelete }}.</p>
-                        <p>This action cannot be reversed.</p>
+                    <flux:text class="mt-2 leading-loose">
+                        <flux:text>You are about to delete {{ $displayItemToDelete }}.</flux:text>
+                        <flux:text>This action cannot be reversed.</flux:text>
+                        @if ($model instanceof KnownPlace)
+                            <flux:text class="mt-1" variant="strong">
+                                Deleting this Known Place might affect related records.
+                            </flux:text>
+                        @endif
                     </flux:text>
                 </div>
 
@@ -68,10 +75,10 @@
                     <flux:spacer />
 
                     <flux:modal.close>
-                        <flux:button variant="ghost">Cancel</flux:button>
+                        <flux:button variant="ghost" class="cursor-pointer">Cancel</flux:button>
                     </flux:modal.close>
 
-                    <flux:button type="submit" variant="danger">Delete</flux:button>
+                    <flux:button type="submit" variant="danger" class="cursor-pointer">Delete</flux:button>
                 </div>
             </div>
         </form>
