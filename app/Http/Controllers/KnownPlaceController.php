@@ -29,6 +29,7 @@ class KnownPlaceController extends Controller
     }
 
     /**
+     * @param  Request  $request
      * @param  KnownPlace  $knownPlace
      * @return RedirectResponse
      */
@@ -104,7 +105,7 @@ class KnownPlaceController extends Controller
         $parentId = $node->parent_id;
 
         // Log the node we're about to delete
-        Log::info("Deleting orphaned node {$node->id} with path {$node->path}");
+        Log::info("Deleting orphaned node $node->id with path $node->path");
 
         // Delete the orphaned node
         $node->delete();
@@ -134,7 +135,10 @@ class KnownPlaceController extends Controller
      */
     public function edit(KnownPlace $knownPlace)
     {
+        $knownPlace->load('user.groups');
         $leafNodes = $knownPlace->nodes()->whereIsLeaf()->get(['business_structure_nodes.path']);
+
+//        dd($knownPlace);
 
         // Transform the collection of nodes into the array format expected by LocationInput
         // [['Seg1', 'Seg2'], ['Path2']]
@@ -227,8 +231,8 @@ class KnownPlaceController extends Controller
     public function create()
     {
         $sessionPlaceIds = session('session_known_places', []);
-        $user = auth()->user();
-        $groups = auth()->user()->groups;
+        $user = auth()->user()->load('groups');
+        $groups = $user->groups ?? [];
 
         if (empty($sessionPlaceIds)) {
             $sessionKnownPlaces = new Paginator([], 10);
@@ -243,7 +247,6 @@ class KnownPlaceController extends Controller
                 $maxLocationsToShow = 3;
                 // Ensure locations is an array
                 $locations = is_array($knownPlace->locations) ? $knownPlace->locations : [];
-//                dd($locations);
                 $locationCount = count($locations);
 
                 // Add new properties to the object for the view to use
