@@ -31,20 +31,42 @@
                     {{ __('Locations') }}
                 </flux:navlist.item>
                 {{-- <flux:spacer /> --}}
-                <flux:navlist.group
-                    heading="Known Places"
-                    expandable
-                    class="lg:grid"
-                    :current="request()->routeIs('known-places.*')"
-                >
-                    <flux:navlist.item href="{{ route('known-places.index') }}" icon="eye">View All</flux:navlist.item>
-                    <flux:navlist.item href="{{ route('known-places.create') }}" icon="plus">Create</flux:navlist.item>
-                    <flux:navlist.item href="{{ route('known-places.import') }}" icon="arrow-up-tray">
+                <flux:navlist.group heading="Known Places" expandable>
+                    <flux:navlist.item
+                        href="{{ route('known-places.index') }}"
+                        icon="eye"
+                        :current="request()->routeIs('known-places.index')"
+                    >
+                        View All
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        href="{{ route('known-places.create') }}"
+                        icon="plus"
+                        :current="request()->routeIs('known-places.create')"
+                    >
+                        Create
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        href="{{ route('known-places.import') }}"
+                        icon="arrow-up-tray"
+                        :current="request()->routeIs('known-places.import')"
+                    >
                         {{ __('Upload') }}
                     </flux:navlist.item>
-                    <flux:navlist.item href="{{ route('known-places.export') }}" icon="arrow-down-tray">
+                    <flux:navlist.item
+                        href="{{ route('known-places.export') }}"
+                        icon="arrow-down-tray"
+                        :current="request()->routeIs('known-places.export')"
+                    >
                         {{ __('Download') }}
                     </flux:navlist.item>
+                </flux:navlist.group>
+
+                {{-- TODO: Get the + icon somehow inline with the heading --}}
+                <flux:navlist.group expandable>
+                    <x-slot name="heading">
+                        {{ __('Groups') }}
+                    </x-slot>
                 </flux:navlist.group>
             </flux:navlist>
         </flux:sidebar>
@@ -59,6 +81,8 @@
                     <flux:navmenu.item href="{{ route('tools.plotter') }}">Plotter</flux:navmenu.item>
                 </flux:navmenu>
             </flux:dropdown>
+
+            <flux:navbar.item icon="cloud">API Docs</flux:navbar.item>
 
             <flux:spacer />
 
