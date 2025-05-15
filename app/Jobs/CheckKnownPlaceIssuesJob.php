@@ -82,6 +82,7 @@ class CheckKnownPlaceIssuesJob implements ShouldQueue
      * Checks for hierarchical conflicts in associated Known Places
      *
      * @param  KnownPlace  $knownPlace  The KnownPlace (fresh instance with nodes loaded) to check.
+     *
      * @return bool|array False if no conflict, or an array with conflict details.
      * @uses KnownPlace
      */
@@ -96,55 +97,51 @@ class CheckKnownPlaceIssuesJob implements ShouldQueue
 
         Log::info("CheckKnownPlaceIssues Job: Checking conflicts for KnownPlace ID {$knownPlace->id} with nodes: ".$associatedNodes->pluck('id')->implode(', '));
 
-        $allDescendantIds = [];
-        $allAncestorIds = [];
+        $conflictingDescendantPlaces = collect();
+        $conflictingAncestorPlaces = collect();
 
+        // Check each node individually for conflicts
         foreach ($associatedNodes as $node) {
-            if ($node instanceof BusinessStructureNode) {
-                $descendantIds = $node->descendants()->pluck('id')->all();
-                $allDescendantIds = array_merge($allDescendantIds, $descendantIds);
+            if (!($node instanceof BusinessStructureNode)) {
+                continue;
+            }
 
-                $ancestorIds = $node->ancestors()->pluck('id')->all();
-                $allAncestorIds = array_merge($allAncestorIds, $ancestorIds);
+            // Get descendant and ancestor IDs for this specific node
+            $descendantIds = $node->descendants()->pluck('id')->all();
+            $ancestorIds = $node->ancestors()->pluck('id')->all();
+
+            // Find conflicts for this specific node's descendants
+            if (!empty($descendantIds)) {
+                $descendantConflicts = KnownPlace::where('id', '!=', $knownPlace->id)
+                    ->whereHas('nodes', function ($query) use ($descendantIds) {
+                        $query->whereIn('business_structure_node_id', $descendantIds);
+                    })
+                    ->with('nodes')
+                    ->get();
+
+                $conflictingDescendantPlaces = $conflictingDescendantPlaces->merge($descendantConflicts);
+            }
+
+            // Find conflicts for this specific node's ancestors
+            if (!empty($ancestorIds)) {
+                $ancestorConflicts = KnownPlace::where('id', '!=', $knownPlace->id)
+                    ->whereHas('nodes', function ($query) use ($ancestorIds) {
+                        $query->whereIn('business_structure_node_id', $ancestorIds);
+                    })
+                    ->with('nodes')
+                    ->get();
+
+                $conflictingAncestorPlaces = $conflictingAncestorPlaces->merge($ancestorConflicts);
             }
         }
 
-        $allDescendantIds = array_unique($allDescendantIds);
-        $allAncestorIds = array_unique($allAncestorIds);
+        // Remove duplicates
+        $conflictingDescendantPlaces = $conflictingDescendantPlaces->unique('id');
+        $conflictingAncestorPlaces = $conflictingAncestorPlaces->unique('id');
 
-        $conflictingDescendantKnownPlaceIds = [];
-        $conflictingAncestorKnownPlaceIds = [];
-
-        if (!empty($allDescendantIds)) {
-            $conflictingDescendantKnownPlaceIds = KnownPlace::where('id', '!=', $knownPlace->id)
-                ->whereHas('nodes', function ($query) use ($allDescendantIds) {
-                    $query->whereIn('business_structure_node_id', $allDescendantIds);
-                })
-                ->pluck('id')
-                ->all();
-        }
-
-        if (!empty($allAncestorIds)) {
-            $conflictingAncestorKnownPlaceIds = KnownPlace::where('id', '!=', $knownPlace->id)
-                ->whereHas('nodes', function ($query) use ($allAncestorIds) {
-                    $query->whereIn('business_structure_node_id', $allAncestorIds);
-                })
-                ->pluck('id')
-                ->all();
-        }
-
-        $conflict = !empty($conflictingDescendantKnownPlaceIds) || !empty($conflictingAncestorKnownPlaceIds);
+        $conflict = $conflictingDescendantPlaces->isNotEmpty() || $conflictingAncestorPlaces->isNotEmpty();
 
         if ($conflict) {
-            // Fetch conflicting Known Places with their nodes to get paths
-            $conflictingDescendantPlaces = KnownPlace::with('nodes')
-                ->whereIn('id', $conflictingDescendantKnownPlaceIds)
-                ->get();
-
-            $conflictingAncestorPlaces = KnownPlace::with('nodes')
-                ->whereIn('id', $conflictingAncestorKnownPlaceIds)
-                ->get();
-
             return [
                 'status' => 'Possible Conflict',
                 'details' => [
