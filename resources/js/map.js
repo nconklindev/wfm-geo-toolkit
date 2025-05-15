@@ -124,7 +124,7 @@ function setupMap() {
                         // --- Add the Marker (Pin) ---
                         // Add a non-draggable marker at the center for display views
                         L.marker(latLng, {
-                            draggable: false, // Ensure it's not draggable on show page
+                            draggable: false, // Ensure it's not draggable on the show page
                         })
                             .addTo(currentMapInstance)
                             .bindPopup(popupContent); // Bind the same popup for consistency
@@ -182,7 +182,7 @@ function setupMap() {
                 const newColor = colorInput.value || initialColor;
 
                 if (currentMarker) {
-                    // Add check if currentMarker exists
+                    // Add check if the currentMarker exists
                     currentMarker.setLatLng([newLat, newLng]);
                     if (currentMarker.dragging) currentMarker.dragging.enable(); // Ensure dragging is enabled
                 }
@@ -202,7 +202,7 @@ function setupMap() {
             }
 
             if (currentMarker) {
-                // Add check if currentMarker exists
+                // Add check if the currentMarker exists
                 currentMarker.on('dragend', function () {
                     const position = currentMarker.getLatLng();
                     latitudeInput.value = position.lat.toFixed(6);
@@ -215,7 +215,7 @@ function setupMap() {
 
             latitudeInput.addEventListener('input', () => updateMarkerAndCircle(true)); // Keep setView true for inputs
             longitudeInput.addEventListener('input', () => updateMarkerAndCircle(true)); // Keep setView true for inputs
-            radiusInput.addEventListener('input', () => updateMarkerAndCircle(false)); // Don't reset view on radius change
+            radiusInput.addEventListener('input', () => updateMarkerAndCircle(false)); // Don't reset the view on radius change
             colorInput.addEventListener('input', () => {
                 if (!editModeCircle) return;
                 const newColor = colorInput.value;
@@ -290,7 +290,7 @@ function setupMap() {
             }
         }
 
-        // Ensure map size is correct
+        // Ensure the map size is correct
         setTimeout(() => {
             if (currentMapInstance) {
                 console.log('Invalidating map size...');
