@@ -17,6 +17,7 @@
         "laravel/reverb": "^1.0",
         "laravel/scout": "^10.14",
         "laravel/tinker": "^2.10.1",
+        "league/csv": "^9.23",
         "livewire/flux": "^2.0",
         "php-flasher/flasher-laravel": "^2.1",
         "spatie/geocoder": "^3.16"
