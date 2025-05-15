@@ -58,7 +58,7 @@ class Search extends Component
             $routeParameters = [];
             $routeName = match ($modelType) {
                 'KnownPlace' => 'known-places.show',
-                'BusinessStructureNode' => 'locations.show', // Adjust if needed
+                'BusinessStructureNode' => 'locations.show',
                 default => throw new Exception("Unsupported model type for routing: $modelType"),
             };
 
@@ -104,6 +104,12 @@ class Search extends Component
         }
     }
 
+    public function resetSearch(): void
+    {
+        $this->reset('searchQuery');
+        $this->results = new Collection(); // Also clear results
+    }
+
     public function render(): View
     {
         return view('livewire.search');
@@ -119,9 +125,6 @@ class Search extends Component
         }
 
         // --- Search Multiple Models ---
-        // Ensure both models have a 'user_id' check and a 'search' scope or similar functionality
-
-        // Limit results per model if needed (e.g., ->limit(5))
         $knownPlaces = KnownPlace::search($this->searchQuery)
             ->where('user_id', auth()->user()->id)
             ->query(fn(Builder $query) => $query->with('group'))
@@ -136,11 +139,5 @@ class Search extends Component
 
         // Sort the merged results if desired (e.g., by name)
         $this->results = $this->results->sortBy('name')->values();
-    }
-
-    public function resetSearch(): void
-    {
-        $this->reset('searchQuery');
-        $this->results = new Collection(); // Also clear results
     }
 }
