@@ -7,13 +7,18 @@ use Illuminate\Validation\Rule;
 
 class StoreKnownPlaceRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        return true;
+    }
+
     public function rules(): array
     {
         return [
             'name' => [
                 'required',
                 'string',
-                'alpha:ascii',
+                'regex:/^[a-zA-Z0-9 ]+$/', // Only letters, spaces, and numbers
                 'max:255',
                 Rule::unique('known_places')->where('user_id', auth()->id())
             ],
@@ -36,12 +41,8 @@ class StoreKnownPlaceRequest extends FormRequest
         ];
     }
 
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     // Optional: Add logging here too to see data AFTER validation passes
+
     public function validated($key = null, $default = null)
     {
         $validatedData = parent::validated($key, $default);

@@ -7,13 +7,21 @@ use Illuminate\Validation\Rule;
 
 class UpdateKnownPlaceRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        // Ensure the user is authorized to update the specific KnownPlace instance
+        // The controller already checks this, but double checking is good.
+        $knownPlace = $this->route('knownPlace'); // Get the model instance from the route
+        return $knownPlace && $this->user()->can('update', $knownPlace);
+    }
+
     public function rules(): array
     {
         return [
             'name' => [
                 'required',
                 'string',
-                'alpha:ascii',
+                'regex:/^[a-zA-Z0-9 ]+$/', // Only letters, spaces, and numbers
                 'max:255',
                 Rule::unique('known_places')->where('user_id', auth()->id())->ignore($this->route('knownPlace'))
             ],
@@ -34,13 +42,5 @@ class UpdateKnownPlaceRequest extends FormRequest
                 Rule::in(['gps', 'wifi']),
             ],
         ];
-    }
-
-    public function authorize(): bool
-    {
-        // Ensure the user is authorized to update the specific KnownPlace instance
-        // The controller already checks this, but double checking is good.
-        $knownPlace = $this->route('knownPlace'); // Get the model instance from the route
-        return $knownPlace && $this->user()->can('update', $knownPlace);
     }
 }
