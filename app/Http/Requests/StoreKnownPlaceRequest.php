@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Log;
 
 class StoreKnownPlaceRequest extends FormRequest
 {
@@ -14,6 +13,7 @@ class StoreKnownPlaceRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
+                'alpha:ascii',
                 'max:255',
                 Rule::unique('known_places')->where('user_id', auth()->id())
             ],
@@ -45,7 +45,7 @@ class StoreKnownPlaceRequest extends FormRequest
     public function validated($key = null, $default = null)
     {
         $validatedData = parent::validated($key, $default);
-        Log::info('Validated Data:', $validatedData);
+//        Log::info('Validated Data:', $validatedData);
         return $validatedData;
     }
 

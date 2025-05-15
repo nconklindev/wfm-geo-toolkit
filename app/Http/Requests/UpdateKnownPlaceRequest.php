@@ -13,6 +13,7 @@ class UpdateKnownPlaceRequest extends FormRequest
             'name' => [
                 'required',
                 'string',
+                'alpha:ascii',
                 'max:255',
                 Rule::unique('known_places')->where('user_id', auth()->id())->ignore($this->route('knownPlace'))
             ],
