@@ -1,5 +1,5 @@
 <x-layouts.app :title="__('Known Places')">
-    <div class="mx-auto max-w-7xl">
+    <div class="container mx-auto">
         <!-- Header with Actions -->
         <div class="mb-6 flex flex-col items-start justify-between sm:flex-row sm:items-center">
             <div>
