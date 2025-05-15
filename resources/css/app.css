@@ -106,11 +106,7 @@
     }
 
     body {
-        @apply flex min-h-screen flex-col bg-[var(--color-page)] text-[var(--color-body)] text-base;
-    }
-
-    html {
-        font-size: 1rem !important;
+        @apply flex min-h-screen flex-col bg-[var(--color-page)] text-[var(--color-body)] font-sans antialiased;
     }
 }
 

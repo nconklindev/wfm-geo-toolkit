@@ -5,7 +5,6 @@ namespace App\Livewire;
 use Illuminate\View\View;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
-use Log;
 use Spatie\Geocoder\Facades\Geocoder;
 
 
@@ -39,7 +38,7 @@ class AddressSearch extends Component
             'formatted_address' => $result['formatted_address'],
         ];
 
-        Log::debug("Dispatching coordinates-updated with data: ".json_encode($coordinateData));
+//        Log::debug("Dispatching coordinates-updated with data: ".json_encode($coordinateData));
 
 
         // Use a CONSISTENT format for both the browser and Livewire events
