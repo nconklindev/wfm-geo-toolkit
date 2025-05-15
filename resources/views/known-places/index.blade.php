@@ -19,7 +19,7 @@
                     href="{{ route('known-places.create') }}"
                     class="cursor-pointer text-xs font-semibold tracking-widest uppercase transition-colors duration-150 ease-in-out"
                 >
-                    {{ __('Add New Place') }}
+                    {{ __('Add') }}
                 </flux:button>
 
                 <div class="flex space-x-2">
@@ -30,7 +30,7 @@
                         href="{{ route('known-places.import') }}"
                         class="cursor-pointer text-xs font-semibold tracking-widest uppercase transition-colors duration-150 ease-in-out"
                     >
-                        {{ __('Import') }}
+                        {{ __('Upload') }}
                     </flux:button>
 
                     <flux:button
@@ -40,7 +40,7 @@
                         href="{{ route('known-places.export') }}"
                         class="cursor-pointer text-xs font-semibold tracking-widest uppercase transition-colors duration-150 ease-in-out"
                     >
-                        {{ __('Export') }}
+                        {{ __('Download') }}
                     </flux:button>
                 </div>
             </div>
