@@ -6,7 +6,7 @@
     </flux:text>
 
     {{-- Input Form and Map Container --}}
-    <div class="grid min-h-[70vh] grid-cols-1 gap-4 rounded bg-white p-4 shadow-sm md:grid-cols-2 dark:bg-zinc-800">
+    <div class="grid min-h-[70vh] grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow-sm md:grid-cols-2 dark:bg-zinc-800">
         {{-- Input Form --}}
         <div>
             {{-- Your form fields remain unchanged --}}
