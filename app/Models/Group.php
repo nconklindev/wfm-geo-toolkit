@@ -11,7 +11,6 @@ class Group extends Model
     protected $fillable = [
         'name',
         'description',
-        'parent_id',
     ];
 
     public function user(): BelongsTo

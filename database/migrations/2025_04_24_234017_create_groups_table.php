@@ -12,7 +12,6 @@ return new class extends Migration {
             $table->string('name');
             $table->text('description')->nullable();
             $table->foreignIdFor(\App\Models\User::class)->constrained('users')->cascadeOnDelete();
-            $table->unsignedBigInteger('parent_id')->nullable();
             $table->timestamps();
         });
 
