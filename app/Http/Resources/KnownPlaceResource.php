@@ -18,7 +18,7 @@ class KnownPlaceResource extends JsonResource
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'radius' => $this->radius,
-            'is_active' => $this->is_active,
+            'is_active' => (string) $this->is_active,
             'locations' => $this->locations,
             'accuracy' => $this->accuracy,
             'validation_order' => $this->validation_order,
