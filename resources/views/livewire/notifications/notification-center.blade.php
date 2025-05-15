@@ -5,7 +5,7 @@
     </div>
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-5" wire:cloak>
         <!-- Sidebar for filters (Column 1) -->
-        <livewire:notifications.filters />
+        <livewire:notifications.filters :current-filter="$this->filter" :current-status="$this->status" />
 
         <!-- Notification List (Column 2) -->
         <div class="lg:col-span-2">
@@ -14,15 +14,15 @@
                 <div class="border-b border-gray-200 p-4 dark:border-gray-700">
                     <div class="flex items-center justify-between">
                         <div>
-                            @if (request('status') && request('status') !== 'all')
-                                <flux:text size="sm" variant="subtle">Filtered by: {{ request('status') }}</flux:text>
+                            @if ($this->status && $this->status !== 'all')
+                                <flux:text size="sm" variant="subtle">Filtered by Type: {{ $this->status }}</flux:text>
                             @endif
 
                             <flux:heading level="2" size="md">
                                 {{
-                                    request('filter') == 'read'
+                                    $this->filter == 'read'
                                         ? 'Read Notifications'
-                                        : (request('filter') == 'unread'
+                                        : ($this->filter == 'unread'
                                             ? 'Unread Notifications'
                                             : 'All Notifications')
                                 }}
@@ -50,65 +50,33 @@
 
                 {{-- List Container - Make this scrollable if needed --}}
                 <div class="max-h-[70vh] overflow-y-auto">
-                    @php
-                        $filteredNotificationsCount = 0;
-                    @endphp
-
                     @forelse ($this->notifications as $notification)
-                        @php
-                            $showNotification = true;
-                            // Apply filters (same logic as before)
-                            if (request('filter') == 'read' && $notification->unread()) {
-                                $showNotification = false;
-                            } elseif (request('filter') == 'unread' && ! $notification->unread()) {
-                                $showNotification = false;
-                            }
-                            if (
-                                request('status') &&
-                                request('status') != 'all' &&
-                                ($notification->data['status'] ?? '') != request('status')
-                            ) {
-                                $showNotification = false;
-                            }
-
-                            if ($showNotification) {
-                                $filteredNotificationsCount++;
-                            }
-                        @endphp
-
-                        @if ($showNotification)
-                            <x-notification.card
-                                :notification="$notification"
-                                wire:key="notification-{{ $notification->id }}"
-                                wire:click="selectNotification('{{ $notification->id }}')"
-                                wire:transition
-                                @class([
-                                    'bg-teal-50 dark:bg-teal-900/50 border-l-4 border-teal-500' => $selectedNotificationId === $notification->id,
-                                    'border-l-4 border-transparent' => $selectedNotificationId !== $notification->id
-                                ])
-                            />
-                        @endif
+                        <x-notification.card
+                            :notification="$notification"
+                            wire:key="notification-{{ $notification->id }}"
+                            wire:click="selectNotification('{{ $notification->id }}')"
+                            wire:transition
+                            @class([
+                                'bg-teal-50 dark:bg-teal-900/50 border-l-4 border-teal-500' => $selectedNotificationId === $notification->id,
+                                'border-l-4 border-transparent' => $selectedNotificationId !== $notification->id
+                            ])
+                        />
                     @empty
-                        {{-- Handled below based on filtered count --}}
+                        <div class="flex flex-col items-center justify-center p-12 text-center">
+                            @if ($this->filter !== 'all' || $this->status !== 'all')
+                                <flux:icon.bell-slash class="size-10 text-gray-400 dark:text-gray-600" />
+                                <flux:text variant="subtle" size="lg" class="mt-4">
+                                    No notifications match the current filters.
+                                </flux:text>
+                                <flux:text variant="subtle" class="mt-2">
+                                    Try adjusting or clearing the filters.
+                                </flux:text>
+                            @else
+                                <flux:icon.bell class="size-10 text-gray-400 dark:text-gray-600" />
+                                <flux:text variant="subtle" size="lg" class="mt-4">No notifications found.</flux:text>
+                            @endif
+                        </div>
                     @endforelse
-
-                    {{-- Show empty state message if no notifications match filters --}}
-                    @if ($this->notifications->isNotEmpty() && $filteredNotificationsCount === 0)
-                        <div class="flex flex-col items-center justify-center p-12 text-center">
-                            <flux:icon.bell-slash class="size-10 text-gray-400 dark:text-gray-600" />
-                            <flux:text variant="subtle" size="lg" class="mt-4">
-                                No notifications match filters.
-                            </flux:text>
-                            <flux:text variant="subtle" class="mt-2">
-                                Try adjusting the filters in the sidebar.
-                            </flux:text>
-                        </div>
-                    @elseif ($this->notifications->isEmpty())
-                        <div class="flex flex-col items-center justify-center p-12 text-center">
-                            <flux:icon.bell class="size-10 text-gray-400 dark:text-gray-600" />
-                            <flux:text variant="subtle" size="lg" class="mt-4">No notifications found.</flux:text>
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>
