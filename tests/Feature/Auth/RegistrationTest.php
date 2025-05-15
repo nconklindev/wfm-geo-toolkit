@@ -13,23 +13,43 @@ test('registration screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('new users can register', function () {
-    $password = Factory::create()->password(10);
-    $response = Livewire::test(Register::class)
-        ->set('username', 'testuser')
-        ->set('email', 'test@example.com')
+test('new user can register with a UKG email address', function () {
+    $password = Factory::create()->password(10, 25);
+    $responseUkgEmail = Livewire::test(Register::class)
+        ->set('username', 'test_ukg_user')
+        ->set('email', 'nicholas.conklin@ukg.com')
         ->set('password', $password)
         ->set('password_confirmation', $password)
         ->call('register');
 
     // Debug the errors if registration failed
-    if (count($errors = $response->errors()) > 0) {
+    if (count($errors = $responseUkgEmail->errors()) > 0) {
         dump('Registration validation errors:', $errors);
     }
 
-    $response
+    $responseUkgEmail
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('welcome', absolute: false));
 
     $this->assertAuthenticated();
+});
+
+test('non-UKG domain user cannot register', function () {
+    $password = Factory::create()->password(10, 25);
+    $responseNonUkgEmail = Livewire::test(Register::class)
+        ->set('username', 'test_non_ukg_user')
+        ->set('email', 'test@gmail.com')
+        ->set('password', $password)
+        ->set('password_confirmation', $password)
+        ->call('register');
+
+    // Debug the errors if registration failed
+    if (count($errors = $responseNonUkgEmail->errors()) > 0) {
+        dump('Registration validation errors:', $errors);
+    }
+
+    $responseNonUkgEmail
+        ->assertHasErrors(['email']);
+
+    $this->assertGuest();
 });

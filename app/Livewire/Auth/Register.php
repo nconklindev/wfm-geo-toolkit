@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use App\Models\User;
+use App\Rules\UkgEmailDomainRule;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +29,11 @@ class Register extends Component
     {
         $validated = $this->validate([
             'username' => ['required', 'string', 'max:25', 'unique:'.User::class, 'alpha_dash'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+            'email' => [
+                'required', 'string', 'email:rfc,spoof,dns,filter,strict', 'max:255',
+                'unique:'.User::class,
+                new UkgEmailDomainRule(),
+            ],
             'password' => [
                 'required',
                 'string',
