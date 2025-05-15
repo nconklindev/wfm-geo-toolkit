@@ -7,6 +7,7 @@ use App\Models\KnownPlace;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
@@ -30,45 +31,12 @@ class Search extends Component
         $this->results = new Collection();
     }
 
-    public function updatedSearchQuery(): void
-    {
-        $this->validateOnly('searchQuery'); // Validate just the query
-
-        if (empty(trim($this->searchQuery))) {
-            $this->resetSearch(); // Clear results if the query is empty
-            return;
-        }
-
-        // --- Search Multiple Models ---
-        // Ensure both models have a 'user_id' check and a 'search' scope or similar functionality
-
-        // Limit results per model if needed (e.g., ->limit(5))
-        $knownPlaces = KnownPlace::search($this->searchQuery)
-            ->where('user_id', auth()->user()->id)
-            ->get();
-
-        $locations = BusinessStructureNode::search($this->searchQuery)
-            ->where('user_id', auth()->user()->id) // Basic name search example
-            ->get();
-
-        // Merge the results
-        $this->results = $knownPlaces->merge($locations);
-
-        // Sort the merged results if desired (e.g., by name)
-        $this->results = $this->results->sortBy('name')->values();
-    }
-
-    public function resetSearch(): void
-    {
-        $this->reset('searchQuery');
-        $this->results = new Collection(); // Also clear results
-    }
-
     /**
      * Redirects to the detail page of the selected search result after authorization.
      *
      * @param  string  $modelType  The class basename (e.g., 'KnownPlace', 'BusinessStructureNode')
      * @param  int  $id  The ID of the model instance
+     *
      * @return void
      * @throws ModelNotFoundException|AuthorizationException|Exception
      */
@@ -139,5 +107,40 @@ class Search extends Component
     public function render(): View
     {
         return view('livewire.search');
+    }
+
+    public function updatedSearchQuery(): void
+    {
+        $this->validateOnly('searchQuery'); // Validate just the query
+
+        if (empty(trim($this->searchQuery))) {
+            $this->resetSearch(); // Clear results if the query is empty
+            return;
+        }
+
+        // --- Search Multiple Models ---
+        // Ensure both models have a 'user_id' check and a 'search' scope or similar functionality
+
+        // Limit results per model if needed (e.g., ->limit(5))
+        $knownPlaces = KnownPlace::search($this->searchQuery)
+            ->where('user_id', auth()->user()->id)
+            ->query(fn(Builder $query) => $query->with('group'))
+            ->get();
+
+        $locations = BusinessStructureNode::search($this->searchQuery)
+            ->where('user_id', auth()->user()->id) // Basic name search example
+            ->get();
+
+        // Merge the results
+        $this->results = $knownPlaces->merge($locations);
+
+        // Sort the merged results if desired (e.g., by name)
+        $this->results = $this->results->sortBy('name')->values();
+    }
+
+    public function resetSearch(): void
+    {
+        $this->reset('searchQuery');
+        $this->results = new Collection(); // Also clear results
     }
 }
