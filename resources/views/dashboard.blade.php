@@ -12,7 +12,6 @@
             <!-- Known Places Summary Card -->
             <div
                 class="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
-                {{-- Added flex h-full flex-col --}}
             >
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Known Places</h2>
@@ -22,7 +21,6 @@
                     </flux:badge>
                 </div>
                 <div class="mt-4 flex flex-grow flex-col space-y-2">
-                    {{-- flex-grow and flex-col make this area expand --}}
                     @forelse ($user->knownPlaces->take(5) as $knownPlace)
                         <div class="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-700">
                             <span class="font-medium">{{ $knownPlace->name }}</span>
@@ -41,7 +39,6 @@
                         </flux:text>
                     @endforelse
                     <div class="mt-auto self-end pt-2">
-                        {{-- mt-auto pushes this to the bottom, self-end to the right --}}
                         <flux:link href="{{ route('known-places.index') }}" class="text-sm" variant="ghost">
                             View all known places →
                         </flux:link>
@@ -85,10 +82,12 @@
 
         <!-- Map Overview -->
         <div
-            class="relative h-full flex-1 overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
+            class="relative flex min-h-[500px] flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
         >
-            <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Geographic Overview</h2>
-            <div id="map" class="h-[calc(100%-2rem)] w-full rounded-lg" data-places="{{ $user->knownPlaces }}"></div>
+            <flux:heading level="2" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                Geographic Overview
+            </flux:heading>
+            <div id="map" class="flex w-full flex-1 flex-grow rounded-lg" data-places="{{ $user->knownPlaces }}"></div>
         </div>
     </div>
 </x-layouts.app>
