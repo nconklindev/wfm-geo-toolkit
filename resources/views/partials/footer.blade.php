@@ -1,7 +1,7 @@
 <flux:footer class="container mx-auto mt-24 border-t border-zinc-200 py-12 dark:border-zinc-700">
     <div class="flex flex-col items-center justify-between md:flex-row">
         <div class="mb-6 md:mb-0">
-            <div class="flex items-center justify-center">
+            <div class="flex items-center sm:justify-center md:justify-start">
                 <x-app-logo-icon class="size-4" />
                 <span class="ml-2 block text-lg font-semibold">WFM Geo Toolkit</span>
             </div>
