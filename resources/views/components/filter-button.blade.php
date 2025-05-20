@@ -14,6 +14,7 @@
             'flex items-center gap-2 rounded-md p-2',
         ])
     }}
+    wire:navigate
 >
     <div>
         {{ $icon }}
