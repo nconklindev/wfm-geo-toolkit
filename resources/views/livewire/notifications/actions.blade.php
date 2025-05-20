@@ -1,9 +1,7 @@
 <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
     <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">Actions</flux:heading>
     <div class="flex flex-col space-y-2">
-        <form method="POST" wire:submit="markAllAsRead">
-            @csrf
-            @method('PATCH')
+        <form wire:submit="markAllAsRead">
             <flux:button
                 type="submit"
                 icon="eye"

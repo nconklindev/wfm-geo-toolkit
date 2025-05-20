@@ -2,15 +2,14 @@
 
 namespace App\Livewire\Notifications;
 
-use App\Http\Controllers\NotificationController;
 use Exception;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Log;
 use LogicException;
 
 class Actions extends Component
 {
-
     public $selectedNotificationId = null;
     public $selectedNotificationData = null;
 
@@ -29,19 +28,20 @@ class Actions extends Component
         }
     }
 
-    public function markAllAsRead()
+    public function markAllAsRead(): void
     {
         try {
             auth()->user()->unreadNotifications->markAsRead();
         } catch (LogicException $exception) {
             Log::error("NotificationController: 'markAllAsRead' failed: ".$exception);
-            return back()->with('error', 'Failed to mark all notifications as read.');
+            $this->redirect(NotificationCenter::class);
         }
 
-        $this->redirect(NotificationController::class)->with('success', 'All notifications marked as read.');
+        session()->flash('success', 'All notifications have been marked as read.');
+        $this->redirect(NotificationCenter::class);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.notifications.actions');
     }
