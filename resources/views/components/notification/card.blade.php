@@ -65,7 +65,7 @@
                                 {{-- Or "trash" if that's your desired icon --}}
                                 title="Delete notification"
                                 tooltip="Delete notification"
-                                class="p-1"
+                                class="cursor-pointer p-1"
                                 wire:click.stop="deleteNotification('{{ $notification->id }}')"
                             />
                         </div>
