@@ -33,9 +33,7 @@
                                 >
                                     1
                                 </div>
-                                <flux:text variant="subtle" size="sm" class="ml-3">
-                                    Upload your JSON file with known places data
-                                </flux:text>
+                                <flux:text class="ml-3">Upload your JSON file with known places data</flux:text>
                             </li>
                             <li class="flex items-start">
                                 <div
@@ -43,9 +41,7 @@
                                 >
                                     2
                                 </div>
-                                <flux:text variant="subtle" size="sm" class="ml-3">
-                                    Customize import options if needed
-                                </flux:text>
+                                <flux:text class="ml-3">Customize import options if needed</flux:text>
                             </li>
                             <li class="flex items-start">
                                 <div
@@ -53,9 +49,7 @@
                                 >
                                     3
                                 </div>
-                                <flux:text variant="subtle" size="sm" class="ml-3">
-                                    Click the "Import" button when done
-                                </flux:text>
+                                <flux:text class="ml-3">Click the "Import" button when done</flux:text>
                             </li>
                         </ul>
                         <!-- Expected format -->
