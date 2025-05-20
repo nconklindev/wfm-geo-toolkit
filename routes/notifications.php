@@ -19,10 +19,6 @@ Route::patch('/notifications/{notification}', [NotificationController::class, 'm
     'verified'
 ])->name('notifications.mark-as-read');
 
-Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])
-    ->middleware(['auth', 'verified'])
-    ->name('notifications.mark-all-read');
-
 Route::delete('/notifications/{notification}', [NotificationController::class, 'deleteNotification'])
     ->middleware(['auth', 'verified'])
     ->name('notifications.delete');
