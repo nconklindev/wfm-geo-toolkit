@@ -1,7 +1,7 @@
 <div wire:cloak>
     <div class="flex flex-row justify-between">
         <flux:heading level="1" size="xl" class="mb-4">Notification Center</flux:heading>
-        <flux:button icon="rotate-ccw" wire:click="$refresh"></flux:button>
+        <flux:button icon="rotate-ccw" wire:click="$refresh" class="cursor-pointer"></flux:button>
     </div>
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-5" wire:cloak>
         <!-- Sidebar for filters (Column 1) -->
