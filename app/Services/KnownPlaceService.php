@@ -19,6 +19,7 @@ class KnownPlaceService
      * @param  UploadedFile  $file  The uploaded JSON file
      * @param  User  $user  The user who owns these known places
      * @param  array  $options  Additional import options
+     *
      * @return array{success: bool, count: int, message: string}
      */
     public function processUploadedFile(UploadedFile $file, User $user, array $options = []): array
@@ -80,6 +81,7 @@ class KnownPlaceService
      * @param  array  $apiDataCollection  Collection of API data items
      * @param  User  $user  The user who owns these known places
      * @param  array  $options  Import options (duplicate_handling, match_by)
+     *
      * @return array The created known places
      */
     public function batchImportFromApiData(array $apiDataCollection, User $user, array $options = []): array
@@ -127,6 +129,7 @@ class KnownPlaceService
      * @param  array  $apiData  API data to check against
      * @param  User  $user  The user who owns the known places
      * @param  string  $matchBy  How to match duplicates: 'name', 'coordinates', or 'both'
+     *
      * @return KnownPlace|null  The duplicate if found, null otherwise
      */
     protected function findDuplicate(array $apiData, User $user, string $matchBy): ?KnownPlace
@@ -154,6 +157,7 @@ class KnownPlaceService
      * Used in importing Known Places into Geo Toolkit
      *
      * @param  array  $sourceData  Data from external API
+     *
      * @return array Mapped data for KnownPlace model
      */
     public function mapJsonDataToKnownPlace(array $sourceData): array
@@ -164,7 +168,8 @@ class KnownPlaceService
             'longitude' => $sourceData['longitude'],
             'radius' => $sourceData['radius'],
             'accuracy' => $sourceData['accuracy'],
-            'validation_order' => $sourceData['validationOrder'],
+            'validation_order' => isset($sourceData['validationOrder']) && is_array($sourceData['validationOrder']) ? array_map('strtolower',
+                $sourceData['validationOrder']) : [],
             'is_active' => $sourceData['active'] ?? true,
         ];
     }
@@ -174,6 +179,7 @@ class KnownPlaceService
      *
      * @param  array  $apiData  Data from external API
      * @param  User  $user  The user who owns this known place
+     *
      * @return KnownPlace The created known place
      */
     public function importFromApiData(array $apiData, User $user): KnownPlace
@@ -188,6 +194,7 @@ class KnownPlaceService
      *
      * @param  array|Collection  $knownPlaces  Collection of KnownPlace objects or array of data
      * @param  bool  $doTransformData  Whether to transform data for external tool format
+     *
      * @return array  Transformed data ready for export
      * @uses KnownPlace
      */
@@ -236,21 +243,6 @@ class KnownPlaceService
 
         }
         return $result;
-    }
-
-    /**
-     * Get the Known Places for the authenticated user
-     *
-     * @param  User  $user
-     * @param  bool  $paginate
-     * @param  int  $perPage
-     * @return Collection
-     */
-    public function getKnownPlacesForUser(User $user, bool $paginate = false, int $perPage = 15): Collection
-    {
-        $query = $user->knownPlaces()->latest();
-
-        return $paginate ? $query->paginate($perPage) : $query->get();
     }
 
 }
