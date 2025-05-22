@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\KnownIpAddress;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -28,5 +29,9 @@ class DatabaseSeeder extends Seeder
             'username' => 'concierge',
             'email' => 'concierge@example.com',
         ]);
+
+        $john->knownIpAddresses()->createMany(
+            KnownIpAddress::factory()->count(100)->make()->toArray()
+        );
     }
 }

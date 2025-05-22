@@ -6,8 +6,8 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $user = auth()->user()->load('knownPlaces')->loadCount([
-            'knownPlaces',
+        $user = auth()->user()->load('knownPlaces', 'knownIpAddresses')->loadCount([
+            'knownPlaces', 'knownIpAddresses'
         ]);
 
         $leafNodes = $user->nodes()

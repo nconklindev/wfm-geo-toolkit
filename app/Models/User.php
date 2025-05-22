@@ -50,11 +50,6 @@ class User extends Authenticatable implements MustVerifyEmail
         });
     }
 
-    public function nodes(): HasMany
-    {
-        return $this->hasMany(BusinessStructureNode::class, 'user_id');
-    }
-
     public function groups(): HasMany
     {
         // Automatically load the relationships
@@ -72,9 +67,19 @@ class User extends Authenticatable implements MustVerifyEmail
             ->implode('');
     }
 
+    public function knownIpAddresses(): HasMany
+    {
+        return $this->hasMany(KnownIpAddress::class, 'user_id');
+    }
+
     public function knownPlaces(): HasMany
     {
         return $this->hasMany(KnownPlace::class, 'user_id');
+    }
+
+    public function nodes(): HasMany
+    {
+        return $this->hasMany(BusinessStructureNode::class, 'user_id');
     }
 
     public function receivesBroadcastNotificationsOn(): string

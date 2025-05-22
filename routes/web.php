@@ -33,3 +33,4 @@ require __DIR__.'/known_places.php';
 require __DIR__.'/settings.php';
 require __DIR__.'/locations.php';
 require __DIR__.'/notifications.php';
+require __DIR__.'/known_ips.php';
