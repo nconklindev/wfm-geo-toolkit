@@ -19,6 +19,13 @@ class WfmService
     // Default token URL if no mapping is found
     private string $hostname = '';
 
+    private Request $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
     /**
      * Authenticate with WFM API via Auth0
      *
@@ -43,7 +50,7 @@ class WfmService
 
         // Get the authenticated user and IP address
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
-        $ipAddress = Request::ip();
+        $ipAddress = $this->request->ip();
 
 
         Log::info('Authenticating with WFM', [
@@ -224,7 +231,7 @@ class WfmService
     {
         // Get the authenticated user and IP address for logging
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
-        $ipAddress = Request::ip();
+        $ipAddress = $this->request->ip();
 
         // Extract error details from response
         $status = $response->status();

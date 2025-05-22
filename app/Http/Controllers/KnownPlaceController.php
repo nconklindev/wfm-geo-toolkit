@@ -26,9 +26,10 @@ class KnownPlaceController extends Controller
     protected KnownPlaceService $knownPlaceService;
     protected WfmService $wfmService;
 
-    function __construct(KnownPlaceService $knownPlaceService)
+    function __construct(KnownPlaceService $knownPlaceService, WfmService $wfmService)
     {
         $this->knownPlaceService = $knownPlaceService;
+        $this->wfmService = $wfmService;
     }
 
     /**
@@ -304,7 +305,6 @@ class KnownPlaceController extends Controller
                 ],
                 [
                     'path' => $currentPath, // Ensure path is set on create/update
-                    // Add any other default fields for BusinessStructureNode if needed
                 ]
             );
 
@@ -326,13 +326,24 @@ class KnownPlaceController extends Controller
     /**
      * Store a newly created WFM Known Place.
      *
-     * @param  Request  $request
+     * @param  StoreWfmKnownPlaceRequest  $request
      *
      * @return RedirectResponse
      */
     public function storeWfm(StoreWfmKnownPlaceRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+
+        $credentials = [
+            'client_id' => $validated['client_id'],
+            'client_secret' => $validated['client_secret'],
+            'org_id' => $validated['org_id'],
+            'username' => $validated['username'],
+            'hostname' => $validated['hostname'],
+            // Intentionally exclude password for security
+        ];
+
+        session(['wfm_credentials' => $credentials]);
 
         try {
             // Set the hostname first so the service can determine the correct token URL
@@ -381,6 +392,7 @@ class KnownPlaceController extends Controller
                 'accuracy' => (int) $validated['accuracy'],
                 'latitude' => (float) $validated['latitude'],
                 'longitude' => (float) $validated['longitude'],
+                'active' => true
             ];
 
             // Create the place in WFM
@@ -404,7 +416,9 @@ class KnownPlaceController extends Controller
                 ->option('timeout', 5000)
                 ->success('Known place created successfully in WFM.');
 
-            return redirect()->route('known-places.wfm-import');
+            // On success, redirect with saved credentials in flash data
+            return redirect()->route('known-places.wfm-import')
+                ->with('wfm_credentials', $credentials);
         } catch (Throwable $e) {
             Log::error('Unexpected error in WFM integration', [
                 'message' => $e->getMessage(),
@@ -432,7 +446,6 @@ class KnownPlaceController extends Controller
     public function update(UpdateKnownPlaceRequest $request, KnownPlace $knownPlace): RedirectResponse
     {
         // Authorization is handled by UpdateKnownPlaceRequest `authorize` method
-
         $validated = $request->validated();
         $user = $request->user();
 
@@ -477,7 +490,7 @@ class KnownPlaceController extends Controller
             ->option('timeout', 5000)
             ->success('Known place updated successfully.');
 
-        // Redirect back to index or wherever appropriate after update
+        // Redirect back to index after update
         return redirect()->intended(route('known-places.index'));
     }
 

@@ -25,14 +25,14 @@
                                     name="client_id"
                                     label="Client ID"
                                     placeholder="Client ID"
-                                    value="{{ old('client_id') }}"
+                                    value="{{ old('client_id', session('wfm_credentials.client_id')) }}"
                                     required
                                 />
                                 <flux:input
                                     name="client_secret"
                                     label="Client Secret"
                                     placeholder="Client Secret"
-                                    value="{{ old('password') }}"
+                                    value="{{ old('client_secret', session('wfm_credentials.client_secret')) }}"
                                     type="password"
                                     required
                                     viewable
@@ -42,7 +42,7 @@
                                         name="org_id"
                                         label="Organization ID"
                                         placeholder="org_PGHKngyxtxV6kU7Z"
-                                        value="{{ old('org_id') }}"
+                                        value="{{ old('org_id', session('wfm_credentials.org_id')) }}"
                                         required
                                     />
                                 </div>
@@ -54,7 +54,7 @@
                                 name="username"
                                 label="Username"
                                 placeholder="APIUSER"
-                                value="{{ old('username') }}"
+                                value="{{ old('username', session('wfm_credentials.username')) }}"
                                 required
                             />
                             <flux:input
@@ -70,7 +70,7 @@
                                 name="hostname"
                                 label="Hostname"
                                 placeholder="https://host.prd.mykronos.com"
-                                value="{{ old('hostname') }}"
+                                value="{{ old('hostname', session('wfm_credentials.hostname')) }}"
                                 type="url"
                                 required
                             />
