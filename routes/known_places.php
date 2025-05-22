@@ -16,6 +16,9 @@ Route::get('known-places/export', ExportKnownPlaces::class)
 Route::get('known-places/wfm-import', [KnownPlaceController::class, 'wfmImport'])->middleware([
     'auth', 'verified'
 ])->name('known-places.wfm-import');
+Route::post('known-places/wfm-import', [KnownPlaceController::class, 'storeWfm'])->middleware([
+    'auth', 'verified'
+])->name('known-places.storeWfm');
 
 // Known Places Resources
 Route::middleware(['auth', 'verified'])->group(function () {

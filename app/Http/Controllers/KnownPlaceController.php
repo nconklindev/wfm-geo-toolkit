@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreKnownPlaceRequest;
+use App\Http\Requests\StoreWfmKnownPlaceRequest;
 use App\Http\Requests\UpdateKnownPlaceRequest;
 use App\Models\BusinessStructureNode;
 use App\Models\KnownPlace;
 use App\Models\User;
 use App\Services\KnownPlaceService;
+use App\Services\WfmService;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Foundation\Application;
@@ -21,7 +23,8 @@ use Throwable;
 
 class KnownPlaceController extends Controller
 {
-    protected knownPlaceService $knownPlaceService;
+    protected KnownPlaceService $knownPlaceService;
+    protected WfmService $wfmService;
 
     function __construct(KnownPlaceService $knownPlaceService)
     {
@@ -31,6 +34,7 @@ class KnownPlaceController extends Controller
     /**
      * @param  Request  $request
      * @param  KnownPlace  $knownPlace
+     *
      * @return RedirectResponse
      */
     public function destroy(Request $request, KnownPlace $knownPlace): RedirectResponse
@@ -87,6 +91,7 @@ class KnownPlaceController extends Controller
      * Recursively delete a node and its parents if they're orphaned
      *
      * @param  BusinessStructureNode  $node  The node to check and possibly delete
+     *
      * @return void
      */
     private function deleteNodeIfOrphaned(BusinessStructureNode $node): void
@@ -131,6 +136,7 @@ class KnownPlaceController extends Controller
 
     /**
      * @param  KnownPlace  $knownPlace
+     *
      * @return Factory|View|Application|\Illuminate\View\View|object
      */
     public function edit(KnownPlace $knownPlace)
@@ -183,6 +189,7 @@ class KnownPlaceController extends Controller
      * Store a newly created KnownPlace and associate location nodes.
      *
      * @param  StoreKnownPlaceRequest  $request
+     *
      * @return RedirectResponse
      */
     public function store(StoreKnownPlaceRequest $request): RedirectResponse
@@ -267,6 +274,7 @@ class KnownPlaceController extends Controller
      *
      * @param  array<int, string>  $locationSegments  Array of path segments (e.g., ['Acme', 'NC', 'Store 01'])
      * @param  User  $user  The user owning the nodes.
+     *
      * @return BusinessStructureNode|null The leaf node, or null if segments are empty.
      */
     private function findOrCreateNodeByPathSegments(array $locationSegments, User $user): ?BusinessStructureNode
@@ -316,10 +324,109 @@ class KnownPlaceController extends Controller
     }
 
     /**
+     * Store a newly created WFM Known Place.
+     *
+     * @param  Request  $request
+     *
+     * @return RedirectResponse
+     */
+    public function storeWfm(StoreWfmKnownPlaceRequest $request): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        try {
+            // Set the hostname first so the service can determine the correct token URL
+            $this->wfmService->setHostname($validated['hostname']);
+
+            // Authenticate with WFM
+            $authenticated = $this->wfmService->authenticate(
+                $validated['client_id'],
+                $validated['client_secret'],
+                $validated['org_id'],
+                $validated['username'],
+                $validated['password']
+            );
+
+            if (!$authenticated) {
+                flash()
+                    ->use('theme.minimal')
+                    ->option('position', 'bottom-right')
+                    ->option('timeout', 5000)
+                    ->error('Authentication failed. Please check your credentials.');
+
+                return redirect()->back()->withInput();
+            }
+
+            // Get existing places to determine next ID
+            $wfmPlaces = $this->wfmService->getKnownPlaces();
+            if (empty($wfmPlaces)) {
+                flash()
+                    ->use('theme.minimal')
+                    ->option('position', 'bottom-right')
+                    ->option('timeout', 5000)
+                    ->error('Failed to retrieve existing known places from WFM.');
+
+                return redirect()->back()->withInput();
+            }
+
+            $placeIds = $this->wfmService->extractPlaceIds($wfmPlaces);
+            $nextId = $this->wfmService->getNextAvailableId($placeIds);
+
+            // Prepare payload for creating a new place
+            $payload = [
+                'id' => $nextId,
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? '',
+                'radius' => (int) $validated['radius'],
+                'accuracy' => (int) $validated['accuracy'],
+                'latitude' => (float) $validated['latitude'],
+                'longitude' => (float) $validated['longitude'],
+            ];
+
+            // Create the place in WFM
+            $response = $this->wfmService->createKnownPlace($payload);
+
+            if (!$response->successful()) {
+                $error = $this->wfmService->handleWfmError($response, 'Creating known place');
+
+                flash()
+                    ->use('theme.minimal')
+                    ->option('position', 'bottom-right')
+                    ->option('timeout', 5000)
+                    ->error($error['message']);
+
+                return redirect()->back()->withInput();
+            }
+
+            flash()
+                ->use('theme.minimal')
+                ->option('position', 'bottom-right')
+                ->option('timeout', 5000)
+                ->success('Known place created successfully in WFM.');
+
+            return redirect()->route('known-places.wfm-import');
+        } catch (Throwable $e) {
+            Log::error('Unexpected error in WFM integration', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            flash()
+                ->use('theme.minimal')
+                ->option('position', 'bottom-right')
+                ->option('timeout', 5000)
+                ->error('An unexpected error occurred. Please try again.');
+
+            return redirect()->back()->withInput();
+        }
+    }
+
+    /**
      * Update the specified KnownPlace and sync location nodes.
      *
      * @param  UpdateKnownPlaceRequest  $request
      * @param  KnownPlace  $knownPlace
+     *
      * @return RedirectResponse
      */
     public function update(UpdateKnownPlaceRequest $request, KnownPlace $knownPlace): RedirectResponse
@@ -374,4 +481,8 @@ class KnownPlaceController extends Controller
         return redirect()->intended(route('known-places.index'));
     }
 
+    public function wfmImport()
+    {
+        return view('known-places.wfm-import');
+    }
 }

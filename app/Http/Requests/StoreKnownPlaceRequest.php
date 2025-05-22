@@ -41,12 +41,9 @@ class StoreKnownPlaceRequest extends FormRequest
         ];
     }
 
-    // Optional: Add logging here too to see data AFTER validation passes
-
     public function validated($key = null, $default = null)
     {
         $validatedData = parent::validated($key, $default);
-//        Log::info('Validated Data:', $validatedData);
         return $validatedData;
     }
 
