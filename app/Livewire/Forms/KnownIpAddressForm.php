@@ -3,7 +3,6 @@
 namespace App\Livewire\Forms;
 
 use App\Models\KnownIpAddress;
-use App\Models\User;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -23,11 +22,17 @@ class KnownIpAddressForm extends Form
     #[Validate(['nullable', 'string', 'max:255', 'min:5'])]
     public $description = '';
 
+    public function setKnownIpAddress(KnownIpAddress $knownIpAddress): void
+    {
+        $this->knownIpAddress = $knownIpAddress;
+        $this->name = $knownIpAddress->name;
+        $this->description = $knownIpAddress->description;
+        $this->start = $knownIpAddress->start;
+        $this->end = $knownIpAddress->end;
+    }
+
     /**
      * Store method to create a new Known IP Address for the authenticated user
-     *
-     * @return void
-     * @see KnownIpAddress, User
      */
     public function store(): void
     {
@@ -40,6 +45,11 @@ class KnownIpAddressForm extends Form
     {
         $this->validate();
 
-        $this->knownIpAddress->update([$this->all(), 'user_id' => auth()->user()->id]);
+        $this->knownIpAddress->update([
+            'name' => $this->name,
+            'description' => $this->description,
+            'start' => $this->start,
+            'end' => $this->end,
+        ]);
     }
 }

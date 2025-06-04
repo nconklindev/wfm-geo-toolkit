@@ -109,15 +109,16 @@
                                 >
                                     <div class="py-1" role="none">
                                         <!-- Edit option -->
-                                        {{-- TODO: Open modal to edit --}}
-                                        <button
-                                            class="flex w-full items-center px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                                            role="menuitem"
-                                            wire:click="editIpAddress({{ $ipAddress->id }})"
-                                        >
-                                            <flux:icon.pencil class="mr-2 h-4 w-4 text-blue-500" />
-                                            Edit
-                                        </button>
+                                        <flux:modal.trigger name="edit-known-ip-address-{{ $ipAddress->id }}">
+                                            <button
+                                                class="flex w-full items-center px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-700"
+                                                role="menuitem"
+                                                @click="open = false"
+                                            >
+                                                <flux:icon.pencil class="mr-2 h-4 w-4 text-blue-500" />
+                                                Edit
+                                            </button>
+                                        </flux:modal.trigger>
 
                                         <!-- Delete option -->
                                         <form
@@ -150,8 +151,16 @@
             </tbody>
         </table>
     </div>
+
     <div class="mt-8">
         {{ $ipAddresses->links() }}
     </div>
+
+    <!-- Create Modal -->
     <livewire:known-ip-address-modal />
+
+    <!-- Edit Modals for each IP Address -->
+    @foreach ($ipAddresses as $ipAddress)
+        <livewire:edit-known-ip-address-modal :ip-address="$ipAddress" :key="'edit-modal-' . $ipAddress->id" />
+    @endforeach
 </x-layouts.app>
