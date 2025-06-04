@@ -7,7 +7,12 @@
 @php
     $isUnread = $notification->unread();
     $status = $notification->data['status'] ?? 'Notification';
-    $knownPlaceName = $notification->data['known_place_name'] ?? 'N/A';
+
+    // Support both Known Place and Known IP Address notifications
+    $title =
+        $notification->data['known_place_name'] ??
+        ($notification->data['known_ip_address_name'] ?? 'Notification');
+
     $message = $notification->data['message'] ?? 'No message content.';
 
     $badgeColor = match ($status) {
@@ -16,7 +21,8 @@
         'Warning' => 'orange',
         'Critical' => 'red',
         'Success' => 'green',
-        default => 'blue',
+        'Info' => 'blue',
+        default => 'gray',
     };
 @endphp
 
@@ -34,13 +40,11 @@
         <div class="min-w-0 flex-1">
             <div class="flex items-center justify-between">
                 <flux:heading class="truncate">
-                    {{ $knownPlaceName }}
+                    {{ $title }}
                 </flux:heading>
                 <div class="flex items-center space-x-2">
                     <flux:badge size="sm" variant="pill" :color="$badgeColor">{{ $status }}</flux:badge>
                     <div class="group relative">
-                        {{-- This is your 'card' or notification item container --}}
-                        {{-- Timestamp: Visible by default, fades out on group hover --}}
                         <div class="transition-opacity duration-150 ease-in-out group-hover:opacity-0">
                             <flux:text variant="subtle" title="{{ $notification->created_at->format('Y-m-d H:i:s') }}">
                                 <time datetime="{{ $notification->created_at->toIso8601String() }}">
@@ -48,16 +52,9 @@
                                 </time>
                             </flux:text>
                         </div>
-
-                        {{-- Delete Button: Hidden by opacity initially, fades in on group hover, right-aligned and inset --}}
-                        {{-- Positioned absolutely to the right side of the parent --}}
                         <div
                             class="pointer-events-none absolute top-0 right-2 bottom-0 flex items-center opacity-0 transition-opacity duration-150 ease-in-out group-hover:pointer-events-auto group-hover:opacity-100"
                         >
-                            {{-- `top-0 bottom-0` makes it span the parent's height. --}}
-                            {{-- `right-2` positions it 0.5rem from the right edge (adjust as needed, e.g., right-1, right-3, right-4). --}}
-                            {{-- `flex items-center` vertically centers the button within this absolute div. --}}
-                            {{-- `pointer-events-none` initially, then `pointer-events-auto` on hover to make it clickable. --}}
                             <flux:button
                                 variant="ghost"
                                 size="xs"
