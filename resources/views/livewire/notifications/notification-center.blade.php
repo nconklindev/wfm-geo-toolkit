@@ -1,8 +1,9 @@
 <div wire:cloak>
     <div class="flex flex-row justify-between">
         <flux:heading level="1" size="xl" class="mb-4">Notification Center</flux:heading>
-        <flux:button icon="rotate-ccw" wire:click="$refresh" class="cursor-pointer"></flux:button>
+        <flux:button icon="rotate-ccw" wire:click="refreshNotifications" class="cursor-pointer"></flux:button>
     </div>
+
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-5" wire:cloak>
         <!-- Sidebar for filters (Column 1) -->
         <livewire:notifications.filters :current-filter="$this->filter" :current-status="$this->status" />
@@ -19,46 +20,58 @@
                             @endif
 
                             <flux:heading level="2" size="md">
-                                {{
-                                    $this->filter == 'read'
-                                        ? 'Read Notifications'
-                                        : ($this->filter == 'unread'
-                                            ? 'Unread Notifications'
-                                            : 'All Notifications')
-                                }}
+                                @if ($this->filter === 'read')
+                                    Read Notifications
+                                @elseif ($this->filter === 'unread')
+                                    Unread Notifications
+                                @else
+                                    All Notifications
+                                @endif
                             </flux:heading>
                         </div>
-                        {{-- Optional: Add sorting dropdown if needed --}}
+
                         <div>
                             <flux:select size="sm" wire:model.live="sortOrder">
                                 <flux:select.option value="newest">Newest First</flux:select.option>
-                                <flux:select.option value="oldest">Oldest First</flux:select:option>
+                                <flux:select.option value="oldest">Oldest First</flux:select.option>
                             </flux:select>
                         </div>
                     </div>
                 </div>
 
-                {{-- Success Message --}}
+                {{-- Success/Error Messages --}}
                 @if (session('success'))
-                    <div
-                        class="m-4 rounded border border-green-400 bg-green-100 p-3 text-sm text-green-700 dark:border-green-600 dark:bg-green-900 dark:text-green-200"
+                    <flux:callout
+                        variant="success"
+                        :heading="session('success') ? 'Success! ' . session('success') : 'Success! Operation completed'"
+                        icon="check-circle"
+                        icon:variant="solid"
+                        class="m-4 p-1 text-sm"
                         role="alert"
-                    >
-                        {{ session('success') }}
-                    </div>
+                    />
                 @endif
 
-                {{-- List Container - Make this scrollable if needed --}}
+                @if (session('error'))
+                    <flux:callout
+                        variant="error"
+                        :heading="session('error') ? 'Error! ' . session('error') : 'Error! An error occurred'"
+                        icon="exclamation-circle"
+                        icon:variant="solid"
+                        class="m-4 p-1 text-sm"
+                        role="alert"
+                    />
+                @endif
+
+                {{-- Notification List --}}
                 <div class="max-h-[70vh] overflow-y-auto">
                     @forelse ($this->notifications as $notification)
                         <x-notification.card
                             :notification="$notification"
                             wire:key="notification-{{ $notification->id }}"
                             wire:click="selectNotification('{{ $notification->id }}')"
-                            wire:transition
                             @class([
                                 'bg-teal-50 dark:bg-teal-900/50 border-l-4 border-teal-500' => $selectedNotificationId === $notification->id,
-                                'border-l-4 border-transparent' => $selectedNotificationId !== $notification->id
+                                'border-l-4 border-transparent' => $selectedNotificationId !== $notification->id,
                             ])
                         />
                     @empty
@@ -83,16 +96,15 @@
 
         <!-- Notification Details (Column 3) -->
         <div class="lg:col-span-2">
-            <div class="sticky top-6 max-h-[calc(100vh-theme(spacing.24))]">
-                @if ($selectedNotificationData)
-                    <x-notification.details :details="$selectedNotificationData" />
-                @else
-                    <div
-                        class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800">
-                        Select a notification from the list to view its details.
-                    </div>
-                @endif
-            </div>
+            @if ($selectedNotificationData)
+                <x-notification.details :details="$selectedNotificationData" />
+            @else
+                <div
+                    class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800"
+                >
+                    Select a notification from the list to view its details.
+                </div>
+            @endif
         </div>
     </div>
 </div>
