@@ -22,15 +22,11 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
         $this->issueDetails = $issueDetails;
     }
 
-    public function via($notifiable): array
-    {
-        return ['database', 'broadcast'];
-    }
-
     /**
      * Get the array representation of the notification (for database storage).
      *
      * @param  object  $notifiable
+     *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
@@ -42,7 +38,6 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
         $conflictingDescendantPlaces = $details['conflicting_descendant_places'] ?? [];
         $conflictingAncestorPlaces = $details['conflicting_ancestor_places'] ?? [];
 
-        // --- Removed the plucking of IDs ---
 
         $message = 'A potential hierarchy conflict has been detected for a Known Place. Please review the details to resolve the issue.';
 
@@ -77,5 +72,10 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
             'count' => $notifiable->unreadNotifications->count(),
             'message' => $this->issueDetails['details'] ?? [],
         ]);
+    }
+
+    public function via($notifiable): array
+    {
+        return ['database', 'broadcast'];
     }
 }

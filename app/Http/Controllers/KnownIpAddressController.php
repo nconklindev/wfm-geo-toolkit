@@ -20,6 +20,12 @@ class KnownIpAddressController extends Controller
         }
     }
 
+    // TODO: This will be a Modal later on but for now I just need it so things don't error
+    public function edit(KnownIpAddress $knownIpAddress)
+    {
+        return view('known-ip-addresses.edit', compact('knownIpAddress'));
+    }
+
     public function index()
     {
         $ipAddresses = auth()->user()->knownIpAddresses()->paginate();
