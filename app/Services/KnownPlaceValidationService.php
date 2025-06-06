@@ -4,13 +4,13 @@ namespace App\Services;
 
 use App\Models\BusinessStructureNode;
 use App\Models\KnownPlace;
-use App\Notifications\KnownPlaceIssueNotification;
+use App\Notifications\KnownPlaceNotification;
 use Illuminate\Support\Facades\Log;
 
 class KnownPlaceValidationService
 {
     /**
-     * Validate a Known Place and send a notification if issues are detected.
+     * Validate a Known Place and send notification if issues are detected.
      */
     public function validateAndNotify(KnownPlace $knownPlace): void
     {
@@ -29,11 +29,11 @@ class KnownPlaceValidationService
         $associatedNodes = $knownPlace->nodes;
 
         if ($associatedNodes->isEmpty()) {
-            Log::info("KnownPlaceValidationService: KnownPlace ID $knownPlace->id has no associated nodes. Skipping conflict check.");
+            Log::info("KnownPlaceValidationService: KnownPlace ID {$knownPlace->id} has no associated nodes. Skipping conflict check.");
             return [];
         }
 
-        Log::info("KnownPlaceValidationService: Checking conflicts for KnownPlace ID $knownPlace->id with nodes: ".$associatedNodes->pluck('id')->implode(', '));
+        Log::info("KnownPlaceValidationService: Checking conflicts for KnownPlace ID {$knownPlace->id} with nodes: ".$associatedNodes->pluck('id')->implode(', '));
 
         $conflictingDescendantPlaces = collect();
         $conflictingAncestorPlaces = collect();
@@ -51,7 +51,7 @@ class KnownPlaceValidationService
             // Find conflicts for this specific node's descendants
             if (!empty($descendantIds)) {
                 $descendantConflicts = KnownPlace::where('id', '!=', $knownPlace->id)
-                    ->where('user_id', $knownPlace->user_id) // Only check within the same user
+                    ->where('user_id', $knownPlace->user_id) // Only check within same user
                     ->whereHas('nodes', function ($query) use ($descendantIds) {
                         $query->whereIn('business_structure_node_id', $descendantIds);
                     })
@@ -64,7 +64,7 @@ class KnownPlaceValidationService
             // Find conflicts for this specific node's ancestors
             if (!empty($ancestorIds)) {
                 $ancestorConflicts = KnownPlace::where('id', '!=', $knownPlace->id)
-                    ->where('user_id', $knownPlace->user_id) // Only check within the same user
+                    ->where('user_id', $knownPlace->user_id) // Only check within same user
                     ->whereHas('nodes', function ($query) use ($ancestorIds) {
                         $query->whereIn('business_structure_node_id', $ancestorIds);
                     })
@@ -86,7 +86,7 @@ class KnownPlaceValidationService
             $issues[] = [
                 'type' => 'hierarchy_conflict',
                 'severity' => $severity,
-                'message' => $this->generateIssueMessage($conflictingDescendantPlaces,
+                'message' => $this->generateIssueMessage($severity, $conflictingDescendantPlaces,
                     $conflictingAncestorPlaces),
                 'conflicting_descendant_places' => $conflictingDescendantPlaces->map(function ($place) {
                     return [
@@ -119,7 +119,7 @@ class KnownPlaceValidationService
     }
 
     /**
-     * Send a notification to the user about Known Place issues.
+     * Send notification to the user about Known Place issues.
      */
     private function sendNotification(KnownPlace $knownPlace, array $issues): void
     {
@@ -146,7 +146,7 @@ class KnownPlaceValidationService
             ]
         ];
 
-        $knownPlace->user->notify(new KnownPlaceIssueNotification($knownPlace, $issueDetails));
+        $knownPlace->user->notify(new KnownPlaceNotification($knownPlace, $issueDetails));
 
         Log::info("Known Place validation notification sent", [
             'known_place_id' => $knownPlace->id,
@@ -188,6 +188,7 @@ class KnownPlaceValidationService
      * Generate an issue-specific message.
      */
     private function generateIssueMessage(
+        string $severity,
         $conflictingDescendantPlaces,
         $conflictingAncestorPlaces
     ): string {
@@ -198,10 +199,10 @@ class KnownPlaceValidationService
             return "Hierarchy conflict: This Known Place conflicts with both broader and more specific locations";
         } elseif ($descendantCount > 0) {
             $pluralPlace = $descendantCount > 1 ? 'places' : 'place';
-            return "Hierarchy conflict: This location is broader than $descendantCount other Known $pluralPlace";
+            return "Hierarchy conflict: This location is broader than {$descendantCount} other Known {$pluralPlace}";
         } elseif ($ancestorCount > 0) {
             $pluralPlace = $ancestorCount > 1 ? 'places' : 'place';
-            return "Hierarchy conflict: This location is more specific than $ancestorCount other Known $pluralPlace";
+            return "Hierarchy conflict: This location is more specific than {$ancestorCount} other Known {$pluralPlace}";
         }
 
         return "Hierarchy conflict detected";

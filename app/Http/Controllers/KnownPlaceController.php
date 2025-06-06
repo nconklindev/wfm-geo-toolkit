@@ -16,10 +16,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
-
-// Make sure this is imported
 
 class KnownPlaceController extends Controller
 {
@@ -196,29 +195,34 @@ class KnownPlaceController extends Controller
     public function store(StoreKnownPlaceRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $user = auth()->user(); // Get the authenticated user
+        $user = auth()->user();
 
-        // Create the Known Place first
-        $knownPlace = $user->knownPlaces()->create($validated);
+        $knownPlace = DB::transaction(function () use ($validated, $user) {
+            // Create the Known Place - this will trigger the observer
+            $knownPlace = $user->knownPlaces()->create($validated);
 
-        // Process location paths using the helper method and attach
-        $nodeIdsToAttach = [];
-        if (!empty($validated['locations'])) {
-            foreach ($validated['locations'] as $locationSegments) {
-                $leafNode = $this->findOrCreateNodeByPathSegments($locationSegments, $user);
-                if ($leafNode) {
-                    $nodeIdsToAttach[$leafNode->id] = [
-                        'user_id' => $user->id,
-                        'path' => $leafNode->path
-                    ]; // Prepare data for attach/sync
+            // Process location paths using the helper method and attach
+            $nodeIdsToAttach = [];
+            if (!empty($validated['locations'])) {
+                foreach ($validated['locations'] as $locationSegments) {
+                    $leafNode = $this->findOrCreateNodeByPathSegments($locationSegments, $user);
+                    if ($leafNode) {
+                        $nodeIdsToAttach[$leafNode->id] = [
+                            'user_id' => $user->id,
+                            'path' => $leafNode->path
+                        ];
+                    }
                 }
             }
-        }
-        // Attach nodes with pivot data
-        if (!empty($nodeIdsToAttach)) {
-            // Use attach here as it's a new KnownPlace, no need to sync
-            $knownPlace->nodes()->attach($nodeIdsToAttach);
-        }
+
+            // Attach nodes with pivot data
+            if (!empty($nodeIdsToAttach)) {
+                $knownPlace->nodes()->attach($nodeIdsToAttach);
+                Log::info("KnownPlaceController: Attached ".count($nodeIdsToAttach)." nodes to KnownPlace {$knownPlace->id}");
+            }
+
+            return $knownPlace;
+        });
 
         // Add the new Known Place ID to the session list for the create page
         $sessionPlaces = session('session_known_places', []);
@@ -234,7 +238,6 @@ class KnownPlaceController extends Controller
 
         return redirect()->route('known-places.create');
     }
-
 
     public function create()
     {

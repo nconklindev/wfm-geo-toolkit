@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
-class KnownPlaceIssueNotification extends Notification implements ShouldQueue
+class KnownPlaceNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -59,13 +59,18 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
      */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        Log::info("KnownPlaceIssueNotification: Broadcasting notification for KnownPlace ID {$this->knownPlace->id}");
+        Log::info("KnownPlaceNotification: Broadcasting notification for KnownPlace ID {$this->knownPlace->id}");
+
+        // The notification is already saved when toBroadcast() is called
+        $currentCount = $notifiable->unreadNotifications()->count();
+
+        Log::info("KnownPlaceNotification: Broadcasting with count: {$currentCount}");
 
         return new BroadcastMessage([
             'known_place_id' => $this->knownPlace->id,
             'known_place_name' => $this->knownPlace->name,
             'message' => $this->issueDetails['message'] ?? 'Known Place notification',
-            'count' => $notifiable->unreadNotifications()->count(),
+            'count' => $currentCount,
         ]);
     }
 
@@ -79,18 +84,5 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         return ['database', 'broadcast'];
-    }
-
-    /**
-     * Determine which queues should be used for each notification channel.
-     *
-     * @return array<string, string>
-     */
-    public function viaQueues(): array
-    {
-        return [
-            'database' => 'default',
-            'broadcast' => 'notifications',
-        ];
     }
 }
