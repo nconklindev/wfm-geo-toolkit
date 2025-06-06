@@ -1,4 +1,4 @@
-<div class="space-y-6 lg:col-span-1" wire:cloak>
+<div class="space-y-6">
     {{-- Filter: Read/Unread --}}
     <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
         <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">
