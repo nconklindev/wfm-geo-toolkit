@@ -26,31 +26,39 @@
         </div>
     </div>
 
-    {{-- Filter: Issue Types --}}
+    {{-- Filter: Severity Levels --}}
     <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
-        <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">Issue Types</flux:heading>
+        <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">Severity Levels</flux:heading>
         <div class="flex flex-col space-y-2">
             <x-filter-button query="status" filter="all" :is-active="$currentStatus === 'all'">
                 <x-slot:icon>
                     <flux:icon.chart-pie class="size-5" variant="solid" />
                 </x-slot>
-                All Types
+                All Levels
             </x-filter-button>
-            <x-filter-button
-                query="status"
-                filter="Possible Conflict"
-                :is-active="$currentStatus === 'Possible Conflict'"
-            >
+            <x-filter-button query="status" filter="critical" :is-active="$currentStatus === 'critical'">
                 <x-slot:icon>
-                    <flux:icon.exclamation-triangle class="size-5" variant="solid" />
+                    <flux:icon.exclamation-circle class="size-5 text-red-500" variant="solid" />
                 </x-slot>
-                Possible Conflict
+                Critical
             </x-filter-button>
-            <x-filter-button query="status" filter="Notification" :is-active="$currentStatus === 'Notification'">
+            <x-filter-button query="status" filter="warning" :is-active="$currentStatus === 'warning'">
                 <x-slot:icon>
-                    <flux:icon.information-circle class="size-5" variant="solid" />
+                    <flux:icon.exclamation-triangle class="size-5 text-orange-500" variant="solid" />
                 </x-slot>
-                Information
+                Warning
+            </x-filter-button>
+            <x-filter-button query="status" filter="info" :is-active="$currentStatus === 'info'">
+                <x-slot:icon>
+                    <flux:icon.information-circle class="size-5 text-blue-500" variant="solid" />
+                </x-slot>
+                Info
+            </x-filter-button>
+            <x-filter-button query="status" filter="notification" :is-active="$currentStatus === 'notification'">
+                <x-slot:icon>
+                    <flux:icon.bell class="size-5 text-gray-500" variant="solid" />
+                </x-slot>
+                General
             </x-filter-button>
         </div>
     </div>

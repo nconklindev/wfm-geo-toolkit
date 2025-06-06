@@ -73,13 +73,6 @@ class NotificationCenter extends Component
         return $this->cachedNotifications;
     }
 
-    public function mount(): void
-    {
-        $this->filter = request()->input('filter', 'all');
-        $this->status = request()->input('status', 'all');
-        $this->loadNotifications();
-    }
-
     public function loadNotifications(): void
     {
         $query = auth()->user()->notifications();
@@ -93,7 +86,16 @@ class NotificationCenter extends Component
 
         // Apply filter for notification status (type)
         if ($this->status !== 'all') {
-            $query->whereJsonContains('data', ['status' => $this->status]);
+            // Convert lowercase filter to proper case for database comparison
+            $statusFilter = match ($this->status) {
+                'critical' => 'Critical',
+                'warning' => 'Warning',
+                'info' => 'Info',
+                'notification' => 'Notification',
+                default => $this->status
+            };
+
+            $query->whereJsonContains('data', ['status' => $statusFilter]);
         }
 
         // Apply sort order
@@ -104,6 +106,13 @@ class NotificationCenter extends Component
         }
 
         $this->cachedNotifications = $query->get();
+    }
+
+    public function mount(): void
+    {
+        $this->filter = request()->input('filter', 'all');
+        $this->status = request()->input('status', 'all');
+        $this->loadNotifications();
     }
 
     public function refreshNotifications(): void
