@@ -74,11 +74,11 @@
 
                     <flux:navlist.group heading="Known IP Addresses" icon="network" expandable>
                         <flux:navlist.item
-                            icon="network"
+                            icon="eye"
                             href="{{ route('known-ip-addresses.index') }}"
                             :current="request()->routeIs('known-ip-addresses.index')"
                         >
-                            Home
+                            View
                         </flux:navlist.item>
                         <flux:navlist.item
                             icon="arrow-up-tray"
@@ -89,15 +89,55 @@
                         </flux:navlist.item>
                     </flux:navlist.group>
 
-                    {{-- TODO: Get the + icon somehow inline with the heading --}}
-                    <flux:navlist.item class="pointer-events-none">
-                        <div class="pointer-events-none flex items-center justify-between">
-                            <span class="pointer-events-none">{{ __('Groups') }}</span>
-                            <div class="items-center justify-between">
-                                <flux:icon.plus class="pointer-events-auto size-4 cursor-pointer" />
+                    {{-- Groups with inline + icon --}}
+                    {{-- The hackiest hack because Flux is a bit too opinionated --}}
+                    <div class="mt-2 flex flex-col">
+                        <div
+                            class="relative my-px flex h-10 w-full items-center justify-between rounded-lg border border-transparent px-3 py-0 text-zinc-500 lg:h-8 dark:text-white/80"
+                        >
+                            <div class="flex-1 text-sm leading-none font-medium whitespace-nowrap">
+                                <span>{{ __('Your groups') }}</span>
                             </div>
+                            <flux:modal.trigger name="create-group-modal">
+                                <flux:button
+                                    size="xs"
+                                    variant="ghost"
+                                    type="button"
+                                    icon="plus"
+                                    class="cursor-pointer"
+                                />
+                            </flux:modal.trigger>
+                            <livewire:create-group-modal />
                         </div>
-                    </flux:navlist.item>
+                        @auth
+                            @php
+                                $userGroups = auth()->user()->groups;
+                                $maxGroups = 10;
+                                $visibleGroups = $userGroups->take($maxGroups);
+                                $hasMoreGroups = $userGroups->count() > $maxGroups;
+                                $remainingCount = $userGroups->count() - $maxGroups;
+                            @endphp
+
+                            @foreach ($visibleGroups as $group)
+                                <flux:navlist.item class="mt-0! cursor-pointer gap-0! space-y-0!">
+                                    <div class="mt-0 gap-0 space-y-0 font-normal">
+                                        {{ $group->name }}
+                                    </div>
+                                </flux:navlist.item>
+                            @endforeach
+
+                            @if ($hasMoreGroups)
+                                <flux:navlist.item
+                                    icon="chevron-down"
+                                    class="cursor-pointer text-zinc-400 italic hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                                    onclick="alert('Show all groups functionality - you could redirect to a groups page or open a modal')"
+                                >
+                                    View {{ $remainingCount }} more...
+                                </flux:navlist.item>
+                                {{-- TODO: Expand this out if clicked --}}
+                            @endif
+                        @endauth
+                    </div>
                 </flux:navlist>
             </flux:sidebar>
         @endauth
