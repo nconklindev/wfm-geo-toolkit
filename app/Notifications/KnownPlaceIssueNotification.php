@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
-use Log;
+use Illuminate\Support\Facades\Log;
 
 class KnownPlaceIssueNotification extends Notification implements ShouldQueue
 {
@@ -23,6 +23,16 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
     }
 
     /**
+     * Get the notification's broadcast type for real-time updates.
+     *
+     * @return string
+     */
+    public function broadcastType(): string
+    {
+        return 'known-place.notification';
+    }
+
+    /**
      * Get the array representation of the notification (for database storage).
      *
      * @param  object  $notifiable
@@ -31,51 +41,56 @@ class KnownPlaceIssueNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $details = $this->issueDetails['details'] ?? [];
-        $triggeredKnownPlaceData = $details['triggered_known_place'] ?? null;
-
-        // Access the full conflicting places data directly
-        $conflictingDescendantPlaces = $details['conflicting_descendant_places'] ?? [];
-        $conflictingAncestorPlaces = $details['conflicting_ancestor_places'] ?? [];
-
-
-        $message = 'A potential hierarchy conflict has been detected for a Known Place. Please review the details to resolve the issue.';
-
-        // Check if the arrays themselves are empty, not just the IDs
-        if (!empty($conflictingDescendantPlaces) && !empty($conflictingAncestorPlaces)) {
-            $message = "This Known Place is linked to one or more locations that are both ancestors of other Known Places' nodes and descendants of other Known Places' nodes. Review is needed.";
-        } elseif (!empty($conflictingDescendantPlaces)) {
-            $message = "This Known Place is linked to a broader location, but other Known Places are linked to more specific location. Review is needed.";
-        } elseif (!empty($conflictingAncestorPlaces)) {
-            $message = "This Known Place is linked to a specific location, but another Known Place is linked to a broader location that includes it. Review is needed.";
-        }
-
         return [
             'known_place_id' => $this->knownPlace->id,
             'known_place_name' => $this->knownPlace->name,
+            'message' => $this->issueDetails['message'] ?? null,
             'status' => $this->issueDetails['status'] ?? 'Notification',
-            'message' => $message,
-            'details' => [
-                'triggered_known_place' => $triggeredKnownPlaceData,
-                // Use the full data arrays and update the keys
-                'conflicting_descendant_places' => $conflictingDescendantPlaces,
-                'conflicting_ancestor_places' => $conflictingAncestorPlaces,
-            ],
+            'details' => $this->issueDetails['details'] ?? [],
         ];
     }
 
+    /**
+     * Get the broadcastable representation of the notification.
+     *
+     * @param  object  $notifiable
+     *
+     * @return BroadcastMessage
+     */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         Log::info("KnownPlaceIssueNotification: Broadcasting notification for KnownPlace ID {$this->knownPlace->id}");
+
         return new BroadcastMessage([
             'known_place_id' => $this->knownPlace->id,
-            'count' => $notifiable->unreadNotifications->count(),
-            'message' => $this->issueDetails['details'] ?? [],
+            'known_place_name' => $this->knownPlace->name,
+            'message' => $this->issueDetails['message'] ?? 'Known Place notification',
+            'count' => $notifiable->unreadNotifications()->count(),
         ]);
     }
 
-    public function via($notifiable): array
+    /**
+     * Get the notification's delivery channels.
+     *
+     * @param  object  $notifiable
+     *
+     * @return array<int, string>
+     */
+    public function via(object $notifiable): array
     {
         return ['database', 'broadcast'];
+    }
+
+    /**
+     * Determine which queues should be used for each notification channel.
+     *
+     * @return array<string, string>
+     */
+    public function viaQueues(): array
+    {
+        return [
+            'database' => 'default',
+            'broadcast' => 'notifications',
+        ];
     }
 }
