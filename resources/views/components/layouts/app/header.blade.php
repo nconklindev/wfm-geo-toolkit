@@ -32,17 +32,58 @@
                     Notifications
                 </flux:navlist.item>
                 <flux:separator variant="subtle" class="my-1" />
-                <flux:navlist.item icon="building-office" :href="route('locations.index')">Locations</flux:navlist.item>
+                <flux:navlist.item
+                    icon="building-office"
+                    :href="route('locations.index')"
+                    :current="request()->routeIs('locations.index') || request()->routeIs('locations.show')"
+                >
+                    Locations
+                </flux:navlist.item>
                 <flux:navlist.group expandable heading="Known Places" class="hidden lg:grid">
-                    <flux:navlist.item :href="route('known-places.index')">View</flux:navlist.item>
-                    <flux:navlist.item :href="route('known-places.create')">Create</flux:navlist.item>
-                    <flux:navlist.item :href="route('known-places.wfm-import')">API Import</flux:navlist.item>
-                    <flux:navlist.item :href="route('known-places.import')">Import</flux:navlist.item>
-                    <flux:navlist.item :href="route('known-places.export')">Export</flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-places.index')"
+                        :current="request()->routeIs('known-places.index')"
+                    >
+                        View
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-places.create')"
+                        :current="request()->routeIs('known-places.create')"
+                    >
+                        Create
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-places.wfm-import')"
+                        :current="request()->routeIs('known-places.wfm-import')"
+                    >
+                        API Import
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-places.import')"
+                        :current="request()->routeIs('known-places.import')"
+                    >
+                        Import
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-places.export')"
+                        :current="request()->routeIs('known-places.export')"
+                    >
+                        Export
+                    </flux:navlist.item>
                 </flux:navlist.group>
                 <flux:navlist.group expandable expanded="false" heading="Known IP Addresses" class="hidden lg:grid">
-                    <flux:navlist.item :href="route('known-ip-addresses.index')">View</flux:navlist.item>
-                    <flux:navlist.item :href="route('known-ip-addresses.import')">Import</flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-ip-addresses.index')"
+                        :current="request()->routeIs('known-ip-addresses.index')"
+                    >
+                        View
+                    </flux:navlist.item>
+                    <flux:navlist.item
+                        :href="route('known-ip-addresses.import')"
+                        :current="request()->routeIs('known-ip-addresses.import')"
+                    >
+                        Import
+                    </flux:navlist.item>
                 </flux:navlist.group>
                 <div class="mt-2 flex flex-col">
                     <div
@@ -164,15 +205,19 @@
         <script>
             document.addEventListener('alpine:init', () => {
                 console.log('Alpine initialized...');
+
+                const userId = @json(auth()->user()->id);
+                const initialCount = @json(auth()->user()->unreadNotifications()->count());
+
                 Alpine.data('notificationBadge', () => ({
                     currentCount: 0,
 
                     init() {
-                        this.currentCount = {{ auth()->user()->unreadNotifications()->count() }};
+                        this.currentCount = initialCount;
                         console.log('Current notification count is: ', this.currentCount);
 
                         // Use the websocket
-                        Echo.private('App.Models.User.{{ auth()->user()->id }}').notification((notification) => {
+                        Echo.private(`App.Models.User.${userId}`).notification((notification) => {
                             console.log('Notification received!', notification);
 
                             // Use the count from the notification if it exists
