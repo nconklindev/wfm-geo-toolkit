@@ -1,5 +1,5 @@
 name: "Feature Request"
-description: Use this form to submit a bug request
+description: Use this form to submit a feature request
 title: "[Feature Request]: "
 labels: [ "enhancement" ]
 projects: [ "nconklindev/1" ]
