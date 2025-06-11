@@ -13,6 +13,7 @@
         "algolia/algoliasearch-client-php": "^4.18",
         "kalnoy/nestedset": "^6.0",
         "laravel/framework": "^12.0",
+        "laravel/octane": "^2.9",
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.0",
         "laravel/scout": "^10.14",
@@ -63,6 +64,10 @@
             "@php artisan migrate --graceful --ansi"
         ],
         "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#a3e635\" \"php artisan octane:start --watch\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan reverb:start\" --names=octane,queue,logs,vite,reverb"
+        ],
+        "dev-std": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#a3e635\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan reverb:start\" --names=server,queue,logs,vite,reverb"
         ]
