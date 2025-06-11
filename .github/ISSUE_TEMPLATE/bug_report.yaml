@@ -1,7 +1,8 @@
 name: Bug Report
 description: Use this form to submit a bug request
 title: "[Bug]: "
-labels: [ bug ]
+labels: [ "bug" ]
+projects: [ "nconklindev/1" ]
 assignees:
   - nconklindev
 body:
@@ -17,8 +18,8 @@ body:
       label: Support ID
       description: Please provide your Support ID from the application. This will help me identify who is submitting the issue without compromising possibly sensitive information
       placeholder: e.g. 1f1d86dd-aab0-460f-a974-6088934badd6
-      validations:
-        required: false
+    validations:
+      required: false
   - type: dropdown
     id: browsers
     attributes:
@@ -36,21 +37,29 @@ body:
     attributes:
       label: Bug description
       description: Please provide an accurate description of what is occurring. Do not list steps to reproduce here. Those will be provided in another step.
-      validations:
-        required: true
+    validations:
+      required: true
   - type: textarea
     id: steps-to-reproduce
     attributes:
       label: Steps to reproduce
       description: Please provide numbered steps on how to reproduce your bug
-      validations:
-        required: true
+      value: |
+        1.
+        2.
+        3.
+        ...
+      render: bash
+    validations:
+      required: true
   - type: textarea
     id: logs
     attributes:
       label: Relevant console output
       description: Please copy and paste any relevant browser console output. This will be automatically formatted into code, so no need for backticks.
       render: shell
+    validations:
+      required: false
   - type: checkboxes
     id: terms
     attributes:

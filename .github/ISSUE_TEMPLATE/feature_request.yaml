@@ -1,0 +1,35 @@
+name: Bug Report
+description: Use this form to submit a bug request
+title: "[Feature Request]: "
+labels: [ "enhancement" ]
+projects: [ "nconklindev/1" ]
+assignees:
+  - nconklindev
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a new issue for a feature request, please use the search feature in Github to see if your feature has already been requested.
+
+        This will help me cut down on duplicate requests and get to the features you want faster.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is the problem being solved by this new feature?
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the solution to the problem. Provide a clear and concise description of what you want to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: workaround-available
+    attributes:
+      label: Workaround available?
+      description: Is there a workaround available that could be used in place of your feature? If so, describe it. If no workaround is available, enter "N/A"
+    validations:
+      required: true
