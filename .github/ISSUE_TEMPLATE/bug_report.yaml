@@ -1,0 +1,61 @@
+name: Bug Report
+description: Use this form to submit a bug request
+title: "[Bug]: "
+labels: [ bug ]
+assignees:
+  - nconklindev
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a new issue, please use the search feature in Github to see if your bug has already been reported.
+
+        This will help me cut down on duplicate issues and address issues faster. Thank you for taking hte time to file a bug report.
+  - type: input
+    id: contact
+    attributes:
+      label: Support ID
+      description: Please provide your Support ID from the application. This will help me identify who is submitting the issue without compromising possibly sensitive information
+      placeholder: e.g. 1f1d86dd-aab0-460f-a974-6088934badd6
+      validations:
+        required: false
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browsers are you seeing the problem on?
+      description: Most browser versions can be found by going to their 3-dot menu and finding either "Help" or "About"
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Microsoft Edge
+        - Opera
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug description
+      description: Please provide an accurate description of what is occurring. Do not list steps to reproduce here. Those will be provided in another step.
+      validations:
+        required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Please provide numbered steps on how to reproduce your bug
+      validations:
+        required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant console output
+      description: Please copy and paste any relevant browser console output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Due Diligence Attestation
+      description: By submitting this issue, you confirm that, to the best of your ability, you have reviewed existing issues and confirmed that no existing, open issue fits what you are submitting.
+      options:
+        - label: I attest that I have performed my due diligence
+          required: true
