@@ -1,0 +1,184 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+@import './coloris.css';
+
+@source "../views";
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+    'Noto Color Emoji';
+
+    --color-zinc-50: var(--color-gray-50);
+    --color-zinc-100: var(--color-gray-100);
+    --color-zinc-200: var(--color-gray-200);
+    --color-zinc-300: var(--color-gray-300);
+    --color-zinc-400: var(--color-gray-400);
+    --color-zinc-500: var(--color-gray-500);
+    --color-zinc-600: var(--color-gray-600);
+    --color-zinc-700: var(--color-gray-700);
+    --color-zinc-800: var(--color-gray-800);
+    --color-zinc-900: var(--color-gray-900);
+    --color-zinc-950: var(--color-gray-950);
+
+    --color-accent: var(--color-teal-600);
+    --color-accent-content: var(--color-teal-600);
+    --color-accent-foreground: var(--color-white);
+
+    /*--color-accent: var(--color-lime-400);*/
+    /*--color-accent-content: var(--color-lime-600);*/
+    /*--color-accent-foreground: var(--color-lime-900);*/
+    --color-warning: #f59e0b;
+    --color-warning-hover: #d97706;
+    --color-danger: #ef4444;
+    --color-danger-hover: #dc2626;
+    --color-success: #10b981;
+    --color-success-hover: #059669;
+    --color-info: #3b82f6; /* Info color */
+    --color-info-hover: #2563eb; /* Info hover color */
+    --color-muted: var(--color-zinc-400);
+}
+
+@layer theme {
+    :root {
+        /* Base appearance */
+        --minimal-bg-light: rgba(255, 255, 255, 0.8); /* Light mode background */
+        --minimal-bg-dark: rgba(25, 25, 25, 0.8); /* Dark mode background */
+        --minimal-text-light: #333333; /* Light mode text */
+        --minimal-text-dark: #f5f5f5; /* Dark mode text */
+        --minimal-border-radius: 6px; /* Corner radius */
+
+        /* Type colors */
+        --minimal-success: rgba(34, 197, 94, 0.9); /* Success color */
+        --minimal-info: rgba(14, 165, 233, 0.9); /* Info color */
+        --minimal-warning: rgba(245, 158, 11, 0.9); /* Warning color */
+        --minimal-error: rgba(239, 68, 68, 0.9); /* Error color */
+
+        /* Additional customization */
+        --minimal-blur: 8px; /* Backdrop blur amount */
+        --minimal-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Shadow */
+    }
+
+    .dark {
+        --color-accent: var(--color-teal-600);
+        --color-accent-content: var(--color-teal-400);
+        --color-accent-foreground: var(--color-white);
+        /*--color-accent: var(--color-lime-400);*/
+        /*--color-accent-content: var(--color-lime-400);*/
+        /*--color-accent-foreground: var(--color-lime-950);*/
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply rounded-md bg-[var(--color-brand)] px-6 py-3 font-medium text-white transition-colors hover:bg-[var(--color-brand-hover)];
+    }
+
+    .btn-ghost {
+        @apply rounded-md border border-[var(--color-neutral-700)] px-6 py-3 font-medium transition-colors hover:border-[var(--color-neutral-500)];
+    }
+
+    .nav-link {
+        @apply inline-block px-4 py-1.5 text-sm leading-normal font-medium;
+    }
+
+    .text-muted {
+        @apply text-[var(--color-muted)];
+    }
+}
+
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+
+    @font-face {
+        font-family: 'Inter';
+        font-display: swap;
+    }
+
+    body {
+        @apply flex min-h-screen flex-col bg-[var(--color-page)] text-[var(--color-body)] font-sans antialiased;
+    }
+}
+
+
+[data-flux-field] {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground outline-hidden;
+}
+
+.leaflet-container {
+    @apply bg-zinc-800!;
+}
+
+/* Z-index override for PHP Flasher so it does not conflict with Leaflet */
+.fl-container, .fl-wrapper {
+    z-index: 9999 !important;
+}
+
+/* Target the Coloris field wrapper */
+.clr-field {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+/* Position the button inside the input */
+.clr-field [aria-labelledby="clr-open-label"] {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 4px;
+    z-index: 2;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+/* Style the color preview (::after element) */
+.clr-field [aria-labelledby="clr-open-label"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 3px;
+    background-color: currentColor;
+}
+
+/* Add focus state */
+.clr-field [aria-labelledby="clr-open-label"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* Make space for the color button inside the input */
+.clr-field input[data-flux-control] {
+    padding-right: 42px !important; /* Create space for the color button */
+}
+
+/* For dark mode */
+.dark .clr-field [aria-labelledby="clr-open-label"] {
+    border-color: var(--color-gray-600);
+}

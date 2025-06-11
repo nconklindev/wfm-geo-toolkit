@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /*
+
+#Disallow: /welcome
+#Disallow: /register
+#Disallow: /verify-email
+#Disallow: /notifications*
+#Disallow: /storage/
+#Disallow: /livewire/
+
