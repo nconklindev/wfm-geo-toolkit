@@ -1,4 +1,4 @@
-name: Feature Request
+name: "Feature Request"
 description: Use this form to submit a bug request
 title: "[Feature Request]: "
 labels: [ "enhancement" ]
