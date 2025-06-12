@@ -22,7 +22,9 @@ will change in the future.
 
 ## How do I use it?
 
-Guests can simply go to [URL] and get started by going to **Tools > Plotter**. This tool is a very basic coordinate
+Guests can simply go to https://wfmgeotoolkit.app and get started by going to **Tools > Plotter**. Or, by going directly
+to the page at https://wfmgeotoolkit.app/plotter. This tool is a very
+basic coordinate
 plotter that allows for search by address as well as manual entering of latitude and longitude coordinates. Enter all
 required fields (though, it is recommended to change the color too), and click "Add to Plot." Plotted points will appear
 in the "Plotted Points" table. Clicking on a row in the table will fly to that point and zoom in. Clicking the trashcan
