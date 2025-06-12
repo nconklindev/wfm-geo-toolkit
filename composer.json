@@ -20,6 +20,7 @@
         "league/csv": "^9.23",
         "livewire/flux": "^2.0",
         "php-flasher/flasher-laravel": "^2.1",
+        "resend/resend-php": "^0.18.0",
         "spatie/geocoder": "^3.16"
     },
     "require-dev": {
