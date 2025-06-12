@@ -33,22 +33,6 @@ class Plotter extends Component
      */
     public array $points = [];
 
-    /**
-     * Update the coordinates when received from the AddressSearch component
-     *
-     * @param  array  $data
-     */
-    #[On('coordinates-updated')]
-    public function updateCoordinates(array $data): void
-    {
-        Log::debug('Received coordinates from AddressSearch component: '.json_encode($data));
-        if (isset($data['latitude'], $data['longitude'])) {
-            $this->latitude = $data['latitude'];
-            $this->longitude = $data['longitude'];
-            $this->label = $data['formatted_address'];
-        }
-    }
-
     public function addPoint(): void
     {
         $this->validate();
@@ -67,6 +51,7 @@ class Plotter extends Component
         $this->dispatch('points-updated', $this->formatPointsForMap());
 
         $this->reset('latitude', 'longitude', 'label', 'radius', 'accuracy', 'color');
+        $this->color = "#3b82f6";
     }
 
     /**
@@ -94,16 +79,10 @@ class Plotter extends Component
 
     }
 
-
-    public function removePoint(int $index): void
+    public function clearAllPoints(): void
     {
-        if (isset($this->points[$index])) {
-            unset($this->points[$index]);
-            $this->points = array_values($this->points); // Re-index the array
-
-            // Inform the map that points have changed - need to refresh all points
-            $this->dispatch('points-updated', $this->formatPointsForMap());
-        }
+        $this->points = [];
+        $this->dispatch('points-updated', []);
     }
 
     public function flyTo(int $index): void
@@ -119,6 +98,23 @@ class Plotter extends Component
         }
     }
 
+    public function mount(): void
+    {
+        $this->points = [];
+        $this->color = "#3b82f6";
+    }
+
+    public function removePoint(int $index): void
+    {
+        if (isset($this->points[$index])) {
+            unset($this->points[$index]);
+            $this->points = array_values($this->points); // Re-index the array
+
+            // Inform the map that points have changed - need to refresh all points
+            $this->dispatch('points-updated', $this->formatPointsForMap());
+        }
+    }
+
     #[Layout('components.layouts.guest')]
     #[Title('Plotter | WFM Geo Toolkit')]
     public function render(): View
@@ -127,5 +123,21 @@ class Plotter extends Component
         return view('livewire.tools.plotter', [
             'mapPoints' => $this->formatPointsForMap()
         ]);
+    }
+
+    /**
+     * Update the coordinates when received from the AddressSearch component
+     *
+     * @param  array  $data
+     */
+    #[On('coordinates-updated')]
+    public function updateCoordinates(array $data): void
+    {
+        Log::debug('Received coordinates from AddressSearch component: '.json_encode($data));
+        if (isset($data['latitude'], $data['longitude'])) {
+            $this->latitude = $data['latitude'];
+            $this->longitude = $data['longitude'];
+            $this->label = $data['formatted_address'];
+        }
     }
 }

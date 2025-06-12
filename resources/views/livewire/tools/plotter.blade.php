@@ -112,6 +112,7 @@
         </div>
     </div>
 
+    <!-- Points Table -->
     <div class="mt-6">
         <flux:heading level="2" size="lg" class="mb-3 font-medium">Plotted Points</flux:heading>
         @if (count($points) > 0)
@@ -209,5 +210,7 @@
             background-color: color-mix(in oklab, var(--color-zinc-800) 90%, var(--color-white)) !important;
         }
     </style>
-    @vite('resources/js/plotter.js')
+    @push('scripts')
+        @vite(['resources/js/plotter.js'])
+    @endpush
 </div>
