@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/map.js',
                 'resources/js/echo.js',
                 'resources/js/plotter.js',
+                'resources/js/coloris.js',
             ],
             refresh: true,
         }),
