@@ -18,12 +18,12 @@
         {{-- Add custom styles to the stack --}}
         @stack('styles')
     </head>
-    <body class="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-200">
+    <body class="min-h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-200">
         <!-- Navigation -->
         <x-navbar-basic />
 
         <!-- Page Content -->
-        <main class="container mx-auto flex-grow">
+        <main class="container mx-auto max-w-6xl flex-grow">
             {{ $slot }}
             {{-- Main content area for specific pages --}}
         </main>

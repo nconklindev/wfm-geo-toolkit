@@ -15,12 +15,14 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @fluxAppearance
     </head>
-    <body class="flex min-h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-200">
+    <body
+        class="container mx-auto flex min-h-screen max-w-6xl flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-200"
+    >
         <!-- Navigation -->
         <x-navbar-basic />
 
         <!-- Hero Section -->
-        <section class="container mx-auto w-full lg:py-16">
+        <section class="lg:py-16">
             <div class="flex flex-col items-center lg:flex-row">
                 <div class="mb-10 lg:mb-0 lg:w-1/2">
                     <h1
@@ -120,10 +122,8 @@
                     class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-3 md:flex-row dark:border-zinc-700/50 dark:bg-zinc-800/30"
                     {{-- Span 3 columns --}}
                 >
-                    <div class="mb-4 w-full md:mr-6 md:mb-0 md:w-1/3 lg:w-1/4">
-                        <x-placeholder-pattern
-                            class="aspect-video w-full rounded text-zinc-400/70 dark:text-zinc-600/70"
-                        />
+                    <div class="mr-4 mb-4 md:mb-0">
+                        <flux:icon.map-pin class="mb-2 size-28 text-center" />
                     </div>
                     <div class="flex flex-1 flex-col justify-center">
                         <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
@@ -138,60 +138,36 @@
 
                 <!-- Feature 2: Punch Analysis (Wider - 2/3 Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-2 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    class="flex flex-col items-center rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-2 dark:border-zinc-700/50 dark:bg-zinc-800/30"
                     {{-- Span 2 columns --}}
                 >
-                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Punch Analysis
-                    </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
-                        Diagnose specific punch issues by analyzing individual employee location data against defined
-                        geofences.
-                    </flux:text>
-                </div>
-
-                <!-- Feature 3: Advanced Reporting (Narrower - 1/3 Width) -->
-                <div
-                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-1 dark:border-zinc-700/50 dark:bg-zinc-800/30"
-                    {{-- Span 1 column --}}
-                >
-                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Advanced Reporting
-                    </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
-                        Generate detailed reports comparing punch data with Known Places.
-                    </flux:text>
+                    <flux:icon.magnifying-glass-circle class="mb-2 size-28 text-center" />
+                    <div class="flex-start">
+                        <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                            Punch Analysis
+                        </flux:heading>
+                        <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                            Diagnose specific punch issues by analyzing individual employee location data against
+                            defined geofences.
+                        </flux:text>
+                    </div>
                 </div>
 
                 <!-- Feature 4: Automated Alerts (Narrower - 1/3 Width) -->
                 <div
-                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-1 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                    class="flex flex-col items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-1 dark:border-zinc-700/50 dark:bg-zinc-800/30"
                     {{-- Span 1 column --}}
                 >
-                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Automated Alerts
-                    </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
-                        Configure real-time notifications for critical geofence events.
-                    </flux:text>
-                </div>
-
-                <!-- Feature 5: Privacy Controls (Wider - 2/3 Width) -->
-                <div
-                    class="rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-2 dark:border-zinc-700/50 dark:bg-zinc-800/30"
-                    {{-- Span 2 columns --}}
-                >
-                    <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Privacy Controls
-                    </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
-                        Ensure employee privacy with granular controls, limiting tracking to specific work hours and
-                        locations. Respect for privacy is paramount.
-                    </flux:text>
+                    <flux:icon.bell-alert class="mb-2 size-28 text-center" />
+                    {{-- <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" /> --}}
+                    <div class="flex-start">
+                        <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
+                            Automated Alerts
+                        </flux:heading>
+                        <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                            Receive real-time notifications for critical geofence events.
+                        </flux:text>
+                    </div>
                 </div>
 
                 <!-- Feature 6: Import Known Places (Full Width) -->

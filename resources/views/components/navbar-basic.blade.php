@@ -1,4 +1,4 @@
-<header class="container mx-auto w-full py-6">
+<header class="container mx-auto max-w-6xl py-6">
     <div class="flex items-center justify-between">
         <div class="flex items-center">
             <x-app-logo-icon />
