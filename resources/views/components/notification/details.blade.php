@@ -32,7 +32,7 @@
 @endphp
 
 <div
-    class="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+    class="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
 >
     {{-- Status and Message --}}
     <div class="mb-4">

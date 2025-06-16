@@ -25,6 +25,19 @@
             @endguest
 
             @auth
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down" :current="request()->routeIs('tools.plotter')">
+                        Tools
+                    </flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:navmenu.item
+                            href="{{ route('tools.plotter') }}"
+                            :current="request()->routeIs('tools.plotter')"
+                        >
+                            Plotter
+                        </flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
                 <flux:navbar.item href="{{ url('/dashboard') }}">Dashboard</flux:navbar.item>
             @else
                 <flux:navbar.item href="{{ route('login') }}">Log in</flux:navbar.item>

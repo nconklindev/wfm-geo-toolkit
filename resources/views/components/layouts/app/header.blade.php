@@ -161,7 +161,7 @@
             </flux:dropdown>
         </flux:sidebar>
         <flux:header
-            class="block! border-b border-zinc-200 bg-white lg:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+            class="block! border-b border-zinc-200 bg-white lg:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
         >
             <flux:navbar class="w-full lg:hidden">
                 <flux:sidebar.toggle class="lg:hidden" icon="bars-3" inset="left" />

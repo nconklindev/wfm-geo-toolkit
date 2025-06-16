@@ -7,12 +7,10 @@
 @endphp
 
 <x-layouts.app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
+    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-lg">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
             <!-- Known Places Summary Card -->
-            <div
-                class="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
-            >
+            <div class="flex h-full flex-col overflow-hidden rounded-lg bg-white p-4 dark:bg-zinc-800">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Known Places</h2>
                     {{-- Count Badge --}}
@@ -47,9 +45,7 @@
             </div>
 
             <!-- Known IPs Summary Card -->
-            <div
-                class="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
-            >
+            <div class="flex h-full flex-col overflow-hidden rounded-lg bg-white p-4 dark:bg-zinc-800">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Known IP Addresses</h2>
                     {{-- Count Badge --}}
@@ -77,9 +73,7 @@
             </div>
 
             <!-- Locations Summary Card -->
-            <div
-                class="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
-            >
+            <div class="flex h-full flex-col overflow-hidden rounded-lg bg-white p-4 dark:bg-zinc-800">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Locations</h2>
                     <flux:badge variant="solid" color="teal" class="inline-flex min-w-[2rem] justify-center">
@@ -112,7 +106,7 @@
 
         <!-- Map Overview -->
         <div
-            class="relative flex min-h-[500px] flex-1 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
+            class="relative flex min-h-[500px] flex-1 flex-col overflow-hidden rounded-lg bg-white p-4 dark:bg-zinc-800"
         >
             <flux:heading level="2" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
                 Geographic Overview
