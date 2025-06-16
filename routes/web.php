@@ -22,12 +22,6 @@ Route::get('/welcome', function () {
 // Dashboard
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
-
-// Test
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('test', [TestController::class, 'index'])->name('test');
-});
-
 require __DIR__.'/auth.php';
 require __DIR__.'/known_places.php';
 require __DIR__.'/settings.php';
