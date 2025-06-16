@@ -49,7 +49,7 @@
         <flux:button icon="rotate-ccw" wire:click="refreshNotifications" class="cursor-pointer"></flux:button>
     </div>
 
-    <div class="@sm:@max-md:flex @sm:@max-md:flex-col grid grid-cols-1 gap-6 lg:grid-cols-5">
+    <div class="@max-3xl:flex @max-3xl:flex-col grid grid-cols-1 gap-6 lg:grid-cols-5">
         <!-- Filters sidebar -->
         <livewire:notifications.filters :current-filter="$this->filter" :current-status="$this->status" />
 
