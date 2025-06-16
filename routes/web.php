@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\TestController;
 use App\Livewire\Tools\Plotter;
 use Illuminate\Support\Facades\Route;
 
