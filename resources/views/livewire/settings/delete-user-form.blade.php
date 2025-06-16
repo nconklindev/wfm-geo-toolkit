@@ -8,6 +8,7 @@
         <flux:button
             variant="danger"
             x-data=""
+            class="cursor-pointer"
             x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
         >
             {{ __('Delete account') }}
@@ -31,7 +32,9 @@
                     <flux:button variant="filled">{{ __('Cancel') }}</flux:button>
                 </flux:modal.close>
 
-                <flux:button variant="danger" type="submit">{{ __('Delete account') }}</flux:button>
+                <flux:button variant="danger" type="submit" class="cursor-pointer">
+                    {{ __('Delete account') }}
+                </flux:button>
             </div>
         </form>
     </flux:modal>
