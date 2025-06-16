@@ -7,24 +7,33 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class NotificationCenter extends Component
 {
-    #[Url(keep: true)]
+    use WithPagination;
+
+    #[Url]
     public string $filter = 'all';
 
-    #[Url(keep: true)]
+    #[Url]
     public string $status = 'all';
 
+    // Lock the notification Id property so that it cannot be changed from the frontend
+    // https://livewire.laravel.com/docs/properties#locking-the-property
+    #[Locked]
     public $selectedNotificationId = null;
     public $selectedNotificationData = null;
+
+    #[Url(as: 'sort')]
     public $sortOrder = 'newest';
 
-    // Cache notifications to prevent them from disappearing when marked as read
-    public $cachedNotifications = null;
+    // Number of notifications per page
+    public int $perPage = 15;
 
     public function deleteNotification($notificationId): void
     {
@@ -42,13 +51,6 @@ class NotificationCenter extends Component
         }
 
         try {
-            // Remove from cached notifications
-            $this->cachedNotifications = $this->cachedNotifications->reject(function ($cachedNotification) use (
-                $notificationId
-            ) {
-                return $cachedNotification->id === $notificationId;
-            });
-
             // Clear selection if the deleted notification was selected
             if ($this->selectedNotificationId === $notificationId) {
                 $this->selectedNotificationId = null;
@@ -58,6 +60,9 @@ class NotificationCenter extends Component
             $notification->delete();
             session()->flash('success', 'Notification deleted.');
 
+            // Reset to first page if current page becomes empty
+            $this->resetPage();
+
         } catch (Exception $exception) {
             Log::error("NotificationCenter: notification {$notificationId} failed to be deleted: ".$exception->getMessage());
             session()->flash('error', 'Failed to delete notification.');
@@ -65,15 +70,6 @@ class NotificationCenter extends Component
     }
 
     public function getNotificationsProperty()
-    {
-        if ($this->cachedNotifications === null) {
-            $this->loadNotifications();
-        }
-
-        return $this->cachedNotifications;
-    }
-
-    public function loadNotifications(): void
     {
         $query = auth()->user()->notifications();
 
@@ -99,31 +95,30 @@ class NotificationCenter extends Component
         }
 
         // Apply sort order
+        $query->reorder();
         if ($this->sortOrder === 'oldest') {
-            $query->oldest('created_at');
+            $query->oldest();
         } else {
-            $query->latest('created_at');
+            $query->latest();
         }
 
-        $this->cachedNotifications = $query->get();
+        return $query->paginate($this->perPage);
     }
 
     public function mount(): void
     {
         $this->filter = request()->input('filter', 'all');
         $this->status = request()->input('status', 'all');
-        $this->loadNotifications();
+        $this->sortOrder = request()->input('sort', 'newest');
+        $this->perPage = request()->input('perPage', $this->perPage);
     }
 
     public function refreshNotifications(): void
     {
-        $this->cachedNotifications = null;
         $this->selectedNotificationId = null;
         $this->selectedNotificationData = null;
-        $this->loadNotifications();
+        $this->resetPage();
     }
-
-    // Reset cache when filters change
 
     #[Layout('components.layouts.app')]
     #[Title('Notifications')]
@@ -144,21 +139,6 @@ class NotificationCenter extends Component
             // Mark as read when selected
             if ($wasUnread) {
                 $notification->markAsRead();
-
-                // If we're viewing unread notifications and this notification was just marked as read,
-                // remove it from the cached notifications to make it disappear
-                if ($this->filter === 'unread') {
-                    $this->cachedNotifications = $this->cachedNotifications->reject(function ($cachedNotification) use (
-                        $notificationId
-                    ) {
-                        return $cachedNotification->id === $notificationId;
-                    });
-
-                    // Clear selection if the notification disappears
-                    $this->selectedNotificationId = null;
-                    $this->selectedNotificationData = null;
-                    return;
-                }
             }
 
             // Prepare notification data for details view
@@ -189,25 +169,28 @@ class NotificationCenter extends Component
 
     public function updatedFilter(): void
     {
-        $this->cachedNotifications = null;
         $this->selectedNotificationId = null;
         $this->selectedNotificationData = null;
-        $this->loadNotifications();
+        $this->resetPage();
     }
-
-    // Manual refresh method
 
     public function updatedSortOrder(): void
     {
-        $this->cachedNotifications = null;
-        $this->loadNotifications();
+        $this->selectedNotificationId = null;
+        $this->selectedNotificationData = null;
+        $this->resetPage();
     }
 
     public function updatedStatus(): void
     {
-        $this->cachedNotifications = null;
         $this->selectedNotificationId = null;
         $this->selectedNotificationData = null;
-        $this->loadNotifications();
+        $this->resetPage();
+    }
+
+    // Method to change items per page
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
     }
 }

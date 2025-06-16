@@ -1,25 +1,47 @@
-<div>
+<div class="@container">
     {{-- Success/Error Messages --}}
     @if (session('success'))
         <flux:callout
             variant="success"
-            :heading="session('success') ? 'Success! ' . session('success') : 'Success! Operation completed'"
             icon="check-circle"
             icon:variant="solid"
             class="m-4 p-1 text-sm"
             role="alert"
-        />
+            dismissible
+            inline
+            x-data="{ visible: true }"
+            x-show="visible"
+        >
+            <flux:callout.heading class="@max-md:flex-col flex items-start gap-2">
+                {{ session('success') ? 'Success! ' . session('success') : 'Success! Operation completed' }}
+            </flux:callout.heading>
+
+            <x-slot name="controls">
+                <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
+            </x-slot>
+        </flux:callout>
     @endif
 
     @if (session('error'))
         <flux:callout
             variant="error"
-            :heading="session('error') ? 'Error! ' . session('error') : 'Error! An error occurred'"
             icon="exclamation-circle"
             icon:variant="solid"
             class="m-4 p-1 text-sm"
             role="alert"
-        />
+            dismissible
+            inline
+            x-data="{ visible: true }"
+            x-show="visible"
+        >
+            <flux:callout.heading class="@max-md:flex-col flex items-start gap-2">
+                {{ session('error') ? 'Error! ' . session('error') : 'Error! An error occurred' }}
+            </flux:callout.heading>
+
+            <x-slot name="controls">
+                <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
+            </x-slot>
+        </flux:callout>
     @endif
 
     <div class="flex flex-row justify-between">
@@ -27,11 +49,11 @@
         <flux:button icon="rotate-ccw" wire:click="refreshNotifications" class="cursor-pointer"></flux:button>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <!-- Sidebar for filters (Column 1) -->
+    <div class="@sm:@max-md:flex @sm:@max-md:flex-col grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <!-- Filters sidebar -->
         <livewire:notifications.filters :current-filter="$this->filter" :current-status="$this->status" />
 
-        <!-- Notification List (Column 2) -->
+        <!-- Notification List -->
         <div class="lg:col-span-2">
             <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
                 {{-- Header for the list --}}
@@ -53,8 +75,23 @@
                             </flux:heading>
                         </div>
 
-                        <div>
-                            <flux:select size="sm" wire:model.live="sortOrder">
+                        <div class="flex items-center gap-3">
+                            {{-- Items per page selector --}}
+
+                            <flux:text size="sm" variant="subtle">Show:</flux:text>
+                            {{--
+                                wire:cloak prevents the select from flickering and showing 10 first
+                                since it's ordered first, but our default is 15
+                            --}}
+                            <flux:select size="sm" wire:model.live="perPage" wire:cloak>
+                                <flux:select.option value="10">10</flux:select.option>
+                                <flux:select.option value="15">15</flux:select.option>
+                                <flux:select.option value="25">25</flux:select.option>
+                                <flux:select.option value="50">50</flux:select.option>
+                            </flux:select>
+
+                            {{-- Sort order --}}
+                            <flux:select size="sm" wire:model.live="sortOrder" class="min-w-40">
                                 <flux:select.option value="newest">Newest First</flux:select.option>
                                 <flux:select.option value="oldest">Oldest First</flux:select.option>
                             </flux:select>
@@ -63,7 +100,7 @@
                 </div>
 
                 {{-- Notification List --}}
-                <div class="max-h-[70vh] overflow-y-auto">
+                <div class="max-h-[60vh] overflow-y-auto">
                     @forelse ($this->notifications as $notification)
                         <x-notification.card
                             :notification="$notification"
@@ -92,6 +129,66 @@
                         </div>
                     @endforelse
                 </div>
+
+                {{-- Pagination --}}
+                @if ($this->notifications->hasPages())
+                    <div class="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <flux:text size="sm" variant="subtle">
+                                    Showing {{ $this->notifications->firstItem() }} to
+                                    {{ $this->notifications->lastItem() }} of {{ $this->notifications->total() }}
+                                    notifications
+                                </flux:text>
+                            </div>
+
+                            <div class="flex items-center gap-1">
+                                {{-- Previous button --}}
+                                @if ($this->notifications->onFirstPage())
+                                    <flux:button size="sm" variant="ghost" icon="chevron-left" disabled>
+                                        Previous
+                                    </flux:button>
+                                @else
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="chevron-left"
+                                        wire:click="previousPage"
+                                    >
+                                        Previous
+                                    </flux:button>
+                                @endif
+
+                                {{-- Page numbers --}}
+                                @foreach ($this->notifications->getUrlRange(1, $this->notifications->lastPage()) as $page => $url)
+                                    @if ($page == $this->notifications->currentPage())
+                                        <flux:button size="sm" variant="primary">{{ $page }}</flux:button>
+                                    @else
+                                        <flux:button size="sm" variant="ghost" wire:click="gotoPage({{ $page }})">
+                                            {{ $page }}
+                                        </flux:button>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next button --}}
+                                @if ($this->notifications->hasMorePages())
+                                    <flux:button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon-trailing="chevron-right"
+                                        wire:click="nextPage"
+                                    >
+                                        Next
+                                    </flux:button>
+                                @else
+                                    <flux:button size="sm" variant="ghost" icon-trailing="chevron-right" disabled>
+                                        Next
+                                    </flux:button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -108,4 +205,7 @@
             @endif
         </div>
     </div>
+    @push('scripts')
+        @vite(['resources/js/echo.js'])
+    @endpush
 </div>
