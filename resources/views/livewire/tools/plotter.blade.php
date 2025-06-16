@@ -1,4 +1,4 @@
-<div class="">
+<div>
     <flux:heading level="1" size="xl" class="mb-1 font-semibold">Plotting Tool</flux:heading>
     <flux:text class="mb-4">
         Use the plotting tool to plot Known Places from WFM alongside employee punches. Helpful for troubleshooting
