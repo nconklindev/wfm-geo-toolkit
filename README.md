@@ -23,7 +23,7 @@ will change in the future.
 ## How do I use it?
 
 Guests can simply go to https://wfmgeotoolkit.app and get started by going to **Tools > Plotter**. Or, by going directly
-to the page at https://wfmgeotoolkit.app/plotter. This tool is a very
+to the page at https://wfmgeotoolkit.app/tools/plotter. This tool is a very
 basic coordinate
 plotter that allows for search by address as well as manual entering of latitude and longitude coordinates. Enter all
 required fields (though, it is recommended to change the color too), and click "Add to Plot." Plotted points will appear
@@ -34,7 +34,7 @@ Registered users have access to much more within the application. At a high leve
 available:
 
 - All CRUD operations are related to known places (Create, Read, Update, Delete)
-- Create,
+- Create and edit known IP addresses
 - Adding locations to known places
 - Automatically generated business structure hierarchy based on locations added to known places
 - Dashboard view that displays all created known places, known IP addresses, and locations
