@@ -31,18 +31,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Read
     Route::get('known-places/{knownPlace}', [KnownPlaceController::class, 'show'])->can('view',
-        ['knownPlace', auth()->user()])->name('known-places.show');
+        ['knownPlace', auth()->user()])->name('known-places.show')->where('knownPlace', '[0-9]+');
 
     // Update
     Route::get('known-places/{knownPlace}/edit',
         [KnownPlaceController::class, 'edit'])->name('known-places.edit')->can('update',
         ['knownPlace', auth()->user()]);
     Route::patch('known-places/{knownPlace}',
-        [KnownPlaceController::class, 'update'])->name('known-places.update')->middleware('can:update,knownPlace');
+        [
+            KnownPlaceController::class, 'update'
+        ])->name('known-places.update')->middleware('can:update,knownPlace')->where('knownPlace', '[0-9]+');
 
     // Delete
     Route::delete('known-places/{knownPlace}',
-        [KnownPlaceController::class, 'destroy'])->name('known-places.destroy')->middleware('can:delete,knownPlace');
+        [
+            KnownPlaceController::class, 'destroy'
+        ])->name('known-places.destroy')->middleware('can:delete,knownPlace')->where('knownPlace', '[0-9]+');
 });
 
 Route::get('downloads/sample-known-places',
