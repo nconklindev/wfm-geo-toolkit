@@ -3,7 +3,6 @@ import L from 'leaflet';
 let mapInitialized = false;
 let editModeCircle = null;
 let currentMapInstance = null; // Use a module-level variable for the map instance
-// Add this at the top of your file, near other global variables
 let currentMarker = null;
 
 // Function to safely remove the map
