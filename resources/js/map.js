@@ -1,4 +1,9 @@
 import L from 'leaflet';
+// Explicitly import the icons from Leaflet so Vite knows what to serve
+// Taken from https://cescobaz.com/2023/06/14/setup-leaflet-with-svelte-and-vite/
+import markerIconUrl from 'leaflet/dist/images/marker-icon.png';
+import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import markerIconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 
 let mapInitialized = false;
 let editModeCircle = null;
@@ -90,6 +95,12 @@ function setupMap() {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(currentMapInstance);
+
+        // Set the image URLs for Leaflet
+        L.Icon.Default.prototype.options.iconUrl = markerIconUrl;
+        L.Icon.Default.prototype.options.shadowUrl = markerShadowUrl;
+        L.Icon.Default.prototype.options.iconRetinaUrl = markerIconRetinaUrl;
+        L.Icon.Default.imagePath = '';
 
         const placesJson = mapElement.dataset.places;
         const bounds = [];
