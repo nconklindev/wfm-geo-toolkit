@@ -30,7 +30,14 @@
 
                     <!-- Longitude -->
                     <flux:field>
-                        <flux:label badge="Required" class="block text-sm font-medium">Longitude</flux:label>
+                        <flux:label
+                            badge="Required"
+                            for="longitude"
+                            aria-label="longitude"
+                            class="block text-sm font-medium"
+                        >
+                            Longitude
+                        </flux:label>
                         <flux:input
                             inputmode="numeric"
                             step="any"

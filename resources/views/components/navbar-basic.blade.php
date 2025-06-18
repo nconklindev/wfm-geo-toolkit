@@ -1,10 +1,10 @@
-<header class="container mx-auto max-w-6xl py-6">
+<header class="container mx-auto max-w-11/12 py-6">
     <div class="flex items-center justify-between">
         <div class="flex items-center">
             <x-app-logo-icon />
-            <span class="ml-3 text-xl font-semibold">WFM Geo Toolkit</span>
+            <span class="ml-3 hidden font-semibold text-nowrap md:flex md:text-xl">WFM Geo Toolkit</span>
         </div>
-        <flux:navbar {{ $attributes }}>
+        <flux:navbar {{ $attributes }} class="flex items-center justify-start">
             <flux:navbar.item href="{{ url('/') }}" :current="request()->is('/')">Home</flux:navbar.item>
 
             @guest

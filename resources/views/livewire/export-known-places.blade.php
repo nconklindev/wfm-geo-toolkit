@@ -1,10 +1,10 @@
-<div class="mx-auto max-w-7xl">
+<div>
     <div class="overflow-hidden rounded-lg bg-white dark:bg-zinc-800">
         <div class="p-6">
             <!-- Header -->
             <div class="mb-8">
                 <flux:heading size="xl" level="1">Export Known Places</flux:heading>
-                <flux:text variant="subtle">
+                <flux:text class="mt-1.5 text-sm">
                     Export your Known Places data in various formats. Select from the options below to customize your
                     export.
                 </flux:text>
@@ -33,7 +33,7 @@
                         <ul class="space-y-3 text-sm">
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent-content text-xs font-medium text-zinc-900"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
                                 >
                                     1
                                 </div>
@@ -43,7 +43,7 @@
                             </li>
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent-content text-xs font-medium text-zinc-900"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
                                 >
                                     2
                                 </div>
