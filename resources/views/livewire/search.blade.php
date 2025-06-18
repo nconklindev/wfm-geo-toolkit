@@ -11,8 +11,8 @@
 @endphp
 
 @props(['placeholder' => 'Search'])
-<div class="relative">
-    <div class="max-w-2xs">
+<div class="relative w-full">
+    <div class="w-full max-w-sm min-w-0">
         <flux:input
             type="text"
             wire:model.live.debounce.300ms="searchQuery"
@@ -21,7 +21,7 @@
             icon="magnifying-glass"
             size="sm"
             class="text-sm"
-            kbd="Ctrl K"
+            kbd="Ctrl+K"
             :placeholder="$placeholder"
             clearable
             wire:blur="resetSearch"

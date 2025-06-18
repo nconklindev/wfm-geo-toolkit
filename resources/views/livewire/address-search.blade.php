@@ -7,6 +7,7 @@
             wire:model="address"
             type="text"
             class="rounded-md"
+            class:input="text-sm md:text-base"
             clearable
             wire:keyup.debounce.300ms.prevent="search($wire.address)"
             wire:keydown.enter.prevent="search($wire.address)"

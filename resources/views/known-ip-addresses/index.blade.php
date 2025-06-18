@@ -13,19 +13,10 @@
         </div>
     </div>
 
-    <div
-        class="w-rounded-md mt-10 overflow-auto rounded-md border border-zinc-400 bg-zinc-900 p-4 dark:border-zinc-700"
-    >
-        <div class="mb-4 flex flex-col items-end gap-4 md:flex-row">
-            <div class="flex-grow">
-                {{-- TODO: Make a Livewire search --}}
-                <flux:input
-                    type="search"
-                    name="search"
-                    placeholder="Search by name, description or IP address..."
-                    wire:model.live.debounce.300ms="search"
-                />
-            </div>
+    <div class="w-rounded-md mt-10 overflow-auto rounded-md">
+        <div class="mb-4 flex items-end gap-4">
+            {{-- TODO: Make a Livewire search --}}
+            <flux:input type="search" name="search" placeholder="Search..." wire:model.live.debounce.300ms="search" />
             <div class="flex gap-2">
                 <flux:button variant="primary" type="button">Search</flux:button>
                 <flux:button variant="filled" type="button" @click="search = ''">Clear</flux:button>

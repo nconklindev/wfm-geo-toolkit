@@ -1,10 +1,10 @@
-<div class="mx-auto max-w-7xl">
+<div>
     <div class="overflow-hidden rounded-lg bg-white dark:bg-zinc-800">
         <div class="p-6">
             <!-- Header -->
             <div class="mb-8">
                 <flux:heading size="xl" level="1">Import Known IP Addresses</flux:heading>
-                <flux:text variant="subtle">Import Known IP Addresses from a JSON file.</flux:text>
+                <flux:text class="mt-1.5 text-sm">Import Known IP Addresses from a JSON file.</flux:text>
                 <flux:callout color="blue" class="mt-6" icon="information-circle">
                     <flux:callout.text>
                         Upload a JSON file containing IP address ranges with their names and descriptions. Each entry
@@ -20,11 +20,11 @@
                 <!-- Instructions Panel -->
                 <div class="lg:col-span-1">
                     <div class="rounded-lg bg-zinc-50 p-5 dark:bg-zinc-700">
-                        <h3 class="mb-4 text-lg font-medium text-zinc-900 dark:text-zinc-200">How it works</h3>
+                        <h3 class="mb-4 text-lg font-medium text-zinc-900 dark:text-white">How it works</h3>
                         <ul class="space-y-3 text-sm">
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-teal-600 dark:text-zinc-200"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
                                 >
                                     1
                                 </div>
@@ -32,7 +32,7 @@
                             </li>
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-teal-600 dark:text-zinc-200"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
                                 >
                                     2
                                 </div>
@@ -40,7 +40,7 @@
                             </li>
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-teal-600 dark:text-zinc-200"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-300 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
                                 >
                                     3
                                 </div>

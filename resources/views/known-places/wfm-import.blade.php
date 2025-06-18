@@ -3,7 +3,7 @@
         <div class="rounded-lg bg-white p-6 shadow-sm dark:bg-zinc-800">
             <div class="mb-6">
                 <flux:heading size="xl">{{ __('WFM Import') }}</flux:heading>
-                <flux:text variant="subtle">
+                <flux:text class="mt-1.5 text-sm">
                     {{ __('Use the form below to create a new Known Place entry directly in WFM.') }}
                 </flux:text>
             </div>
@@ -158,7 +158,7 @@
             </div>
 
             <!-- Address search overlay -->
-            <div class="absolute top-8 left-10 z-[800] w-lg px-3">
+            <div class="absolute inset-8 z-[800] w-3/4 px-3 md:inset-10 md:w-lg">
                 <livewire:address-search />
             </div>
         </div>

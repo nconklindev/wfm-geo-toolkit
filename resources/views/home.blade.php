@@ -3,15 +3,17 @@
     <section class="lg:py-16">
         <div class="flex flex-col items-center lg:flex-row">
             <div class="mb-10 lg:mb-0 lg:w-1/2">
-                <h1
-                    class="mb-6 text-4xl leading-tight font-bold text-shadow-lg text-shadow-zinc-300/50 lg:text-5xl dark:text-shadow-lg/30 dark:text-shadow-teal-500"
+                <flux:heading
+                    level="1"
+                    size="xl"
+                    class="mb-6 leading-tight font-bold! text-shadow-md md:text-4xl lg:text-5xl"
                 >
                     Known Place Geofence Plotting for Workforce Management
-                </h1>
-                <p class="mb-8 text-lg text-muted">
+                </flux:heading>
+                <flux:text class="mb-8 text-base md:text-lg">
                     Track, monitor, and optimize your workforce with our advanced geofencing technology. Real-time
                     location tracking with customizable boundaries.
-                </p>
+                </flux:text>
                 <div class="flex flex-wrap gap-4">
                     <flux:button variant="primary" href="{{ route('register') }}" class="px-6 py-6">
                         Get Started
@@ -25,7 +27,8 @@
                     </flux:button>
                 </div>
             </div>
-            <div class="lg:w-1/2 lg:pl-12">
+            <!-- Browser render window -->
+            <div class="w-full md:w-1/2 md:pl-12">
                 <div class="relative">
                     <div
                         class="overflow-hidden rounded-lg bg-white shadow-lg dark:bg-zinc-900 dark:shadow-[0px_4px_16px_rgba(255,255,255,0.08)]"
@@ -83,18 +86,18 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="container mx-auto mt-10 w-full">
+    <section id="features" class="mt-10 w-full">
         <div class="mb-16">
-            <flux:heading level="2" class="mb-4 text-[2.5rem] font-bold! tracking-tight">
-                The one-stop known places shop.
+            <flux:heading level="2" class="mb-4 text-4xl! tracking-tight">
+                The one-stop
+                <span class="block text-teal-700 dark:text-teal-500">known places shop.</span>
             </flux:heading>
-            <flux:text size="lg" class="max-w-lg">
+            <flux:text class="text-base md:text-lg">
                 Explore the powerful tools designed to streamline your workforce management and location tracking.
             </flux:text>
         </div>
 
-        <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
-            {{-- Changed to 3 columns --}}
+        <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
             <!-- Feature 1: Plotting (Full Width) -->
             <div
                 class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-3 md:flex-row dark:border-zinc-700/50 dark:bg-zinc-800/30"
@@ -107,7 +110,7 @@
                     <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
                         Plotting & Visualization
                     </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                    <flux:text>
                         Visually plot geofence areas against employee punch coordinates on an interactive map for clear
                         spatial analysis and identification of discrepancies.
                     </flux:text>
@@ -116,15 +119,15 @@
 
             <!-- Feature 2: Punch Analysis (Wider - 2/3 Width) -->
             <div
-                class="flex flex-col items-center rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-2 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                class="flex flex-col rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/50 dark:bg-zinc-800/30"
                 {{-- Span 2 columns --}}
             >
-                <flux:icon.magnifying-glass-circle class="mb-2 size-28 text-center" />
+                <flux:icon.magnifying-glass-circle class="mb-2 size-28" />
                 <div class="flex-start">
                     <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
                         Punch Analysis
                     </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                    <flux:text>
                         Diagnose specific punch issues by analyzing individual employee location data against defined
                         geofences.
                     </flux:text>
@@ -133,37 +136,32 @@
 
             <!-- Feature 4: Automated Alerts (Narrower - 1/3 Width) -->
             <div
-                class="flex flex-col items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-1 dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                class="flex flex-col rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/50 dark:bg-zinc-800/30"
                 {{-- Span 1 column --}}
             >
-                <flux:icon.bell-alert class="mb-2 size-28 text-center" />
-                {{-- <x-placeholder-pattern class="mb-4 h-32 w-full rounded text-zinc-400/70 dark:text-zinc-600/70" /> --}}
+                <flux:icon.bell-alert class="mb-2 size-28" />
                 <div class="flex-start">
                     <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
                         Automated Alerts
                     </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
-                        Receive real-time notifications for critical geofence events.
-                    </flux:text>
+                    <flux:text>Receive real-time notifications for critical geofence events.</flux:text>
                 </div>
             </div>
 
             <!-- Feature 6: Import Known Places (Full Width) -->
             <div
-                class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-3 md:flex-row dark:border-zinc-700/50 dark:bg-zinc-800/30"
+                class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/50 dark:bg-zinc-800/30"
                 {{-- Span 3 columns --}}
             >
-                <div class="flex flex-1 flex-col justify-center">
+                <flux:icon.arrow-up-on-square class="mb-2 size-28" />
+                <div class="flex-start">
                     <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
                         Import Known Places
                     </flux:heading>
-                    <flux:text variant="default" class="text-zinc-600 dark:text-zinc-400">
+                    <flux:text>
                         Seamlessly import your existing location data via the Pro WFM API for rapid setup and updates,
                         ensuring consistency across systems.
                     </flux:text>
-                </div>
-                <div class="mb-4 w-full md:mr-6 md:mb-0 md:w-1/3 lg:w-1/4">
-                    <x-placeholder-pattern class="aspect-video w-full rounded text-zinc-400/70 dark:text-zinc-600/70" />
                 </div>
             </div>
         </div>

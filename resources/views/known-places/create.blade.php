@@ -3,7 +3,7 @@
         <div class="bg-white p-6 shadow-sm sm:rounded-lg dark:bg-zinc-800">
             <div class="mb-6">
                 <flux:heading size="xl">{{ __('Create Known Place') }}</flux:heading>
-                <flux:text variant="subtle">
+                <flux:text class="mt-1.5 text-sm">
                     {{ __('Use the form below to create new Known Places. You can search for an address or drag the map marker to set the location. Once submitted, the Known Place will be saved.') }}
                 </flux:text>
                 <flux:callout color="blue" class="mt-6">

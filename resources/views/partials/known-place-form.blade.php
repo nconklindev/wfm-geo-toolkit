@@ -1,7 +1,7 @@
 <!-- Two-column layout -->
-<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+<div class="@container grid grid-cols-1 gap-6 md:grid-cols-3">
     <!-- Left column: All form inputs -->
-    <div class="space-y-6">
+    <div class="col-span-1 space-y-6">
         <!-- Known Place Name -->
         <flux:input
             name="name"
@@ -153,10 +153,10 @@
     </div>
 
     <!-- Map -->
-    <div class="relative h-full">
+    <div class="relative col-span-2 h-full w-full">
         <!-- Map container -->
-        <div class="h-full rounded-md border border-zinc-200 dark:border-zinc-700">
-            <div id="map" class="h-full w-full rounded-md"></div>
+        <div class="@container flex h-full flex-col rounded-md">
+            <div id="map" class="h-96 rounded-md md:h-full md:w-full"></div>
         </div>
 
         <!-- Address search overlay -->

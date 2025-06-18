@@ -6,12 +6,12 @@
                 <flux:heading level="1" size="xl">
                     {{ __('My Known Places') }}
                 </flux:heading>
-                <flux:text>
+                <flux:text class="mt-1.5 text-sm">
                     {{ __('Manage your saved locations and geographical points of interest') }}
                 </flux:text>
             </div>
 
-            <div class="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row">
+            <div class="mt-4 flex flex-row gap-3 sm:mt-0">
                 <flux:button
                     type="button"
                     variant="primary"
@@ -47,9 +47,9 @@
         </div>
 
         <!-- Search and Filter -->
-        <div class="mb-6 bg-white shadow-sm sm:rounded-lg dark:bg-zinc-800">
+        <div class="mb-6 rounded-lg bg-white shadow-sm dark:bg-zinc-800">
             <div class="p-6">
-                <form class="flex flex-col items-center gap-4 sm:flex-row">
+                <form class="flex flex-col gap-4 md:flex-row">
                     <div class="flex-grow items-center">
                         <livewire:search />
                     </div>
@@ -80,7 +80,7 @@
         </div>
 
         <!-- Map Overview -->
-        <div class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-zinc-800">
+        <div class="mb-6 overflow-hidden rounded-lg bg-white shadow-sm dark:bg-zinc-800">
             <div class="p-6">
                 <h2 class="mb-4 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                     {{ __('Map Overview') }}
@@ -94,7 +94,7 @@
         </div>
 
         <!-- Known Places List -->
-        <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-zinc-800">
+        <div class="overflow-hidden rounded-lg bg-white shadow-sm dark:bg-zinc-800">
             <div class="p-6">
                 <h2 class="mb-4 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                     {{ __('Known Places List') }}

@@ -1,22 +1,16 @@
 <x-layouts.app :title="$group->name">
     <div class="container mx-auto">
-        <div class="overflow-hidden bg-white shadow-lg sm:rounded-lg dark:bg-zinc-800">
+        <div class="overflow-hidden rounded-lg bg-white shadow-lg dark:bg-zinc-800">
             <div class="p-6">
-                <div class="mb-6 flex items-center justify-between">
+                <div class="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <h1 class="text-2xl font-semibold text-zinc-900 dark:text-white">{{ $group->name }}</h1>
-                    <div class="flex space-x-2">
-                        <flux:button
-                            variant="primary"
-                            size="sm"
-                            icon="pencil"
-                            href="{{ route('groups.edit', $group) }}"
-                        >
+                    <div class="flex space-x-2 md:justify-end-safe">
+                        <flux:button icon="arrow-left" href="{{ back() }}">Back</flux:button>
+                        <flux:button variant="primary" icon="pencil" href="{{ route('groups.edit', $group) }}">
                             Edit
                         </flux:button>
                         <flux:modal.trigger name="{{ 'delete-groups-' . $group->id }}">
-                            <flux:button variant="danger" size="sm" icon="trash" class="cursor-pointer">
-                                Delete
-                            </flux:button>
+                            <flux:button variant="danger" icon="trash" class="cursor-pointer">Delete</flux:button>
                         </flux:modal.trigger>
                         {{-- Delete Confirmation Modal --}}
                         <flux:modal name="{{ 'delete-groups-' . $group->id }}" class="md:w-96">
@@ -43,8 +37,6 @@
                                 </div>
                             </div>
                         </flux:modal>
-                        {{-- Back Button --}}
-                        <flux:button variant="ghost" size="sm" icon="arrow-left" href="{{ back() }}">Back</flux:button>
                     </div>
                 </div>
 
@@ -80,7 +72,7 @@
                     <!-- Left column: Group details -->
                     <div class="col-span-1 lg:col-span-2">
                         <!-- Group Details -->
-                        <div class="mb-6 rounded-lg bg-zinc-50 p-6 shadow-md dark:bg-zinc-700">
+                        <div class="rounded-lg bg-zinc-50 p-6 shadow-md dark:bg-zinc-700">
                             <flux:heading level="2" size="lg" class="mb-4">Group Information</flux:heading>
 
                             <div class="space-y-4">
