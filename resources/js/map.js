@@ -9,6 +9,7 @@ let mapInitialized = false;
 let editModeCircle = null;
 let currentMapInstance = null; // Use a module-level variable for the map instance
 let currentMarker = null;
+let isDragging = false;
 
 // Function to safely remove the map
 function removeMapInstance() {
@@ -22,6 +23,7 @@ function removeMapInstance() {
             currentMapInstance = null;
             editModeCircle = null;
             mapInitialized = false;
+            isDragging = false;
             // Also clear the Leaflet internal ID from the element if it exists
             const mapElement = document.getElementById('map');
             if (mapElement && mapElement._leaflet_id) {
@@ -212,8 +214,16 @@ function setupMap() {
             }
 
             if (currentMarker) {
-                // Add check if the currentMarker exists
+                // Track drag start/end to prevent click events during drag
+                currentMarker.on('dragstart', function () {
+                    isDragging = true;
+                });
+
                 currentMarker.on('dragend', function () {
+                    setTimeout(() => {
+                        isDragging = false;
+                    }, 50); // Small delay to prevent click events immediately after drag
+
                     const position = currentMarker.getLatLng();
                     latitudeInput.value = position.lat.toFixed(6);
                     longitudeInput.value = position.lng.toFixed(6);
@@ -222,6 +232,36 @@ function setupMap() {
                     if (editModeCircle) editModeCircle.setLatLng(position);
                 });
             }
+
+            // Add click functionality to place marker
+            currentMapInstance.on('click', function (e) {
+                // Don't process click if we're in the middle of dragging
+                if (isDragging) {
+                    console.log('Ignoring click during drag operation');
+                    return;
+                }
+
+                const clickedLatLng = e.latlng;
+                // console.log('Map clicked at:', clickedLatLng);
+
+                // Update marker position
+                if (currentMarker) {
+                    currentMarker.setLatLng(clickedLatLng);
+                }
+
+                // Update circle position
+                if (editModeCircle) {
+                    editModeCircle.setLatLng(clickedLatLng);
+                }
+
+                // Update form inputs
+                latitudeInput.value = clickedLatLng.lat.toFixed(6);
+                longitudeInput.value = clickedLatLng.lng.toFixed(6);
+
+                // Trigger input events to update any connected components
+                latitudeInput.dispatchEvent(new Event('input'));
+                longitudeInput.dispatchEvent(new Event('input'));
+            });
 
             latitudeInput.addEventListener('input', () => updateMarkerAndCircle(true)); // Keep setView true for inputs
             longitudeInput.addEventListener('input', () => updateMarkerAndCircle(true)); // Keep setView true for inputs
