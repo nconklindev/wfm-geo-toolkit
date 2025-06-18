@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let previewMarker = null;
     let previewCircle = null;
     let mapInitialized = false;
+    let isDragging = false;
 
     // --- Input Elements ---
     const latitudeInput = document.getElementById('latitude');
@@ -38,9 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Default Values ---
     const defaultLat = 40.7128;
     const defaultLng = -74.006;
-    const defaultRadius = 50;
+    const defaultRadius = 75;
     const defaultColor = '#3b82f6'; // Match Livewire component default
-    const defaultZoom = 13;
+    const defaultZoom = 15;
 
     function initializeMap() {
         if (mapInitialized) {
@@ -142,8 +143,16 @@ document.addEventListener('DOMContentLoaded', () => {
             dashArray: '5, 5', // Dashed line for preview circle
         }).addTo(plotterMap);
 
-        // Add drag listener to marker
+        // Add drag listeners to track dragging state
+        previewMarker.on('dragstart', function () {
+            isDragging = true;
+        });
+
         previewMarker.on('dragend', function () {
+            setTimeout(() => {
+                isDragging = false;
+            }, 50); // Small delay to prevent click events immediately after drag
+
             const position = previewMarker.getLatLng();
             console.log('[Plotter] Preview marker dragged to:', position);
             if (latitudeInput) latitudeInput.value = position.lat.toFixed(10); // Use more precision
@@ -155,6 +164,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update the circle position immediately
             if (previewCircle) previewCircle.setLatLng(position);
+        });
+
+        // Add click functionality to place marker
+        plotterMap.on('click', function (e) {
+            // Don't process click if we're in the middle of dragging
+            if (isDragging) {
+                console.log('[Plotter] Ignoring click during drag operation');
+                return;
+            }
+
+            const clickedLatLng = e.latlng;
+            console.log('[Plotter] Map clicked at:', clickedLatLng);
+
+            // Update preview marker position
+            if (previewMarker) {
+                previewMarker.setLatLng(clickedLatLng);
+            }
+
+            // Update preview circle position
+            if (previewCircle) {
+                previewCircle.setLatLng(clickedLatLng);
+            }
+
+            // Update form inputs
+            if (latitudeInput) latitudeInput.value = clickedLatLng.lat.toFixed(10);
+            if (longitudeInput) longitudeInput.value = clickedLatLng.lng.toFixed(10);
+
+            // Dispatch input events to trigger Livewire updates
+            if (latitudeInput) latitudeInput.dispatchEvent(new Event('input', { bubbles: true }));
+            if (longitudeInput) longitudeInput.dispatchEvent(new Event('input', { bubbles: true }));
         });
 
         // Initial map centering on preview
@@ -410,12 +449,9 @@ document.addEventListener('livewire:navigated', () => {
     const mapElement = document.getElementById('map');
     // We need a robust way to know if *this specific page's* map needs re-init
     // Checking if the map instance exists and belongs to the *current* element might work
-    if (mapElement && mapElement.dataset.mapType === 'plotter' /* && Add check if plotterMap is null or detached? */) {
+    if (mapElement && mapElement.dataset.mapType === 'plotter') {
+        /* && Add check if plotterMap is null or detached? */
         console.log('[Plotter] Re-initializing map after Livewire navigation.');
         // Potentially need cleanup logic here before re-initializing
-        // For now, just call initializeMap again. It has guards against double-init.
-        // initializeMap(); // Re-enable this cautiously if needed for SPA mode
     }
 });
-
-// --- Your other helper functions (clearMapLayers, addPointsToMap, etc.) ---

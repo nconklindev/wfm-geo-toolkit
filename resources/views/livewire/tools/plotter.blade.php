@@ -62,7 +62,7 @@
                             step="any"
                             id="radius"
                             wire:model="radius"
-                            placeholder="50"
+                            placeholder="75"
                             required
                         />
                         <flux:error name="radius" />
@@ -76,7 +76,7 @@
                             step="any"
                             id="accuracy"
                             wire:model="accuracy"
-                            placeholder="100"
+                            placeholder="50"
                             required
                         />
                         <flux:error name="accuracy" />
