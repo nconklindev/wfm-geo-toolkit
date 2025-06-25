@@ -27,7 +27,7 @@
         "chokidar": "^4.0.3",
         "laravel-echo": "^2.1.6",
         "prettier": "^3.6.1",
-        "prettier-plugin-tailwindcss": "^0.6.11",
+        "prettier-plugin-tailwindcss": "^0.6.13",
         "pusher-js": "^8.4.0"
     }
 }
