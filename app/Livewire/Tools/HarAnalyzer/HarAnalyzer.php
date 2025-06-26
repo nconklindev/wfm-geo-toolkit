@@ -9,6 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Log;
 use Storage;
 
 class HarAnalyzer extends Component
@@ -22,6 +23,8 @@ class HarAnalyzer extends Component
 
     public function uploadFile(): void
     {
+        Log::info('Upload started', ['file_size' => $this->harFile?->getSize()]);
+
         $this->validate();
 
         // Custom validation for HAR files
@@ -33,7 +36,11 @@ class HarAnalyzer extends Component
         }
 
         try {
+            Log::info('Starting file storage');
+
             $path = $this->harFile->store('har-files', 'local');
+
+            Log::info('File stored successfully', ['path' => $path]);
 
             $this->uploadedFile = [
                 'name' => $this->harFile->getClientOriginalName(),
@@ -44,7 +51,11 @@ class HarAnalyzer extends Component
 
             $this->harFile = null;
             session()->flash('success', 'File uploaded successfully. Ready for analysis.');
+
+            Log::info('Upload completed successfully');
+
         } catch (Exception $e) {
+            Log::error('Upload failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             session()->flash('error', 'Failed to upload file: '.$e->getMessage());
         }
     }
