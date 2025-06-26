@@ -5,12 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {{-- Dynamic Title --}}
-        <title>{{ $title ?? config('app.name', 'WFM Geo Toolkit') }}</title>
-
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
-        <link rel="preload" href="https://fonts.bunny.net/css?family=inter:100,200,300,400,500,600,700,800,900" />
-        <link rel="stylesheet" href="https://fonts.bunny.net/css?family=inter:100,200,300,400,500,600,700,800,900" />
+        <title>{{ $title . ' | WFM Geo Toolkit' ?? config('app.name', 'WFM Geo Toolkit') }}</title>
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/coloris.js', 'resources/css/coloris.css', 'resources/js/app.js'])
