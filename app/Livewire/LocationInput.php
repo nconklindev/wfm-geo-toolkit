@@ -10,9 +10,9 @@ class LocationInput extends Component
     #[Validate([
         'string',
         // Simple regex allowing alphanumeric, space, hyphen, underscore, ampersand, comma, parentheses, and forward slash
-        'regex:/^[a-zA-Z0-9\s\-_&(),\/]+$/'
+        'regex:/^[a-zA-Z0-9\s\-_&(),\/]+$/',
     ], message: [
-        'regex' => 'Invalid characters in location path. Only letters, numbers, spaces, slashes (/), hyphens (-), underscores (_), ampersands (&), commas (,), and parentheses () are allowed.'
+        'regex' => 'Invalid characters in location path. Only letters, numbers, spaces, slashes (/), hyphens (-), underscores (_), ampersands (&), commas (,), and parentheses () are allowed.',
     ])]
     public string $currentLocation = '';
 
@@ -42,12 +42,13 @@ class LocationInput extends Component
         // Validate the raw input string format
         $this->validate();
 
-        if (!empty($this->currentLocation)) {
+        if (! empty($this->currentLocation)) {
             $nodes = $this->parseLocationPath($this->currentLocation);
 
             // Check if parsing resulted in any valid nodes
             if (empty($nodes)) {
                 $this->addError('currentLocation', 'Location path cannot be empty or contain only slashes.');
+
                 return;
             }
 
@@ -56,6 +57,7 @@ class LocationInput extends Component
                 // Ensure both arrays have the same number of elements and the same values in the same order
                 if ($existingLocation === $nodes) {
                     $this->addError('currentLocation', 'This location path has already been added.');
+
                     return; // Stop processing if duplicate found
                 }
             }
@@ -74,7 +76,6 @@ class LocationInput extends Component
     /**
      * Parse a location path string into an array of nodes (segments).
      *
-     * @param  string  $locationPath
      * @return array<int, string> Returns an array of non-empty, trimmed path segments.
      */
     private function parseLocationPath(string $locationPath): array
@@ -86,13 +87,11 @@ class LocationInput extends Component
         $nodes = array_map('trim', $nodes);
 
         // Filter out any potentially empty nodes resulting from multiple slashes (e.g., "Acme//NC") or leading/trailing slashes
-        return array_values(array_filter($nodes, fn($node) => $node !== ''));
+        return array_values(array_filter($nodes, fn ($node) => $node !== ''));
     }
 
     /**
      * Remove a location from the list by its index.
-     *
-     * @param  int  $index
      */
     public function removeLocation(int $index): void
     {
