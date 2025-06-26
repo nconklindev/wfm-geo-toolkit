@@ -1,9 +1,7 @@
 import 'leaflet/dist/leaflet.css';
 import './coloris.js';
-// Import the map functionality
-// import './map';
-// import './echo';
-// import './coverage';
+
+import.meta.glob(['../fonts/**']);
 
 document.addEventListener('DOMContentLoaded', function () {
     // Basic configuration
