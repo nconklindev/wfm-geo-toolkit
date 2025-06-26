@@ -132,8 +132,8 @@
                     $methodCounts = collect($analysisData['largest_resources'] ?? [])
                         ->concat($analysisData['failed_requests'] ?? [])
                         ->groupBy('method')
-                        ->map->count()
-                        ->sortDesc();
+                        ->map(fn ($group) => $group->count())
+                        ->sortByDesc(fn ($count, $method) => $count);
                 @endphp
 
                 @forelse ($methodCounts as $method => $count)
@@ -277,7 +277,15 @@
                             </td>
                             <td class="px-3 py-4">
                                 <span
-                                    class="@if($resource['status'] >= 500) bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 @elseif($resource['status'] >= 400) bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 @elseif($resource['status'] >= 300) bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 @else bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 @endif inline-flex items-center rounded px-2 py-1 text-xs font-medium"
+                                    @class([
+                                        'inline-flex items-center rounded px-2 py-1 text-xs font-medium',
+                                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' => $resource['status'] >= 500,
+                                        'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' =>
+                                            $resource['status'] >= 400 && $resource['status'] < 500,
+                                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' =>
+                                            $resource['status'] >= 300 && $resource['status'] < 400,
+                                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' => $resource['status'] < 300,
+                                    ])
                                 >
                                     {{ $resource['status'] }}
                                 </span>
