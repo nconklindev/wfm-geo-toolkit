@@ -41,14 +41,27 @@
                     <flux:navbar.item icon:trailing="chevron-down" :current="request()->routeIs('tools.plotter')">
                         Tools
                     </flux:navbar.item>
-                    <flux:navmenu>
-                        <flux:navmenu.item
-                            href="{{ route('tools.plotter') }}"
-                            :current="request()->routeIs('tools.plotter')"
-                        >
-                            Plotter
-                        </flux:navmenu.item>
-                    </flux:navmenu>
+
+                    <flux:menu>
+                        <div class="flex flex-col">
+                            <flux:menu.group heading="Network">
+                                <flux:menu.item
+                                    href="{{ route('tools.har-analyzer') }}"
+                                    :current="request()->routeIs('tools.har-analyzer')"
+                                >
+                                    HAR Analyzer
+                                </flux:menu.item>
+                            </flux:menu.group>
+                            <flux:menu.group heading="Mobile">
+                                <flux:menu.item
+                                    href="{{ route('tools.plotter') }}"
+                                    :current="request()->routeIs('tools.plotter')"
+                                >
+                                    Plotter
+                                </flux:menu.item>
+                            </flux:menu.group>
+                        </div>
+                    </flux:menu>
                 </flux:dropdown>
                 <flux:navbar.item href="{{ url('/dashboard') }}">Dashboard</flux:navbar.item>
             @else

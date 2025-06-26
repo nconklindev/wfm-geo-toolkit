@@ -90,9 +90,14 @@
                             <button
                                 type="submit"
                                 wire:loading.attr="disabled"
+                                wire:target="uploadFile"
                                 class="inline-flex transform items-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <flux:icon.loading class="mr-2 size-4" wire:loading wire:target="uploadFile" />
+                                <flux:icon.loading
+                                    class="mr-2 size-4 animate-spin"
+                                    wire:loading
+                                    wire:target="uploadFile"
+                                />
                                 <flux:icon.cloud-arrow-up
                                     class="mr-2 -ml-1 h-5 w-5 text-white"
                                     wire:loading.remove
@@ -100,7 +105,7 @@
                                 />
 
                                 <span wire:loading.remove wire:target="uploadFile">Upload File</span>
-                                <span wire:loading wire:target="uploadFile">Uploading...</span>
+                                <span wire:loading wire:target="uploadFile">Uploading... Please wait</span>
                             </button>
                         </div>
                     @endif
