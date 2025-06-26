@@ -19,6 +19,9 @@ class LocationInput extends Component
     /** @var array<int, array<int, string>> */
     public array $locations = [];
 
+    public string $description = 'Enter the locations that are assigned to this place using their full path (e.g., Acme/NC/Store 01). Enter
+            one full path at a time.';
+
     /**
      * Initialise the component.
      *

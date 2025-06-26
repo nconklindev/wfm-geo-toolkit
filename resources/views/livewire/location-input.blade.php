@@ -4,8 +4,7 @@
         <flux:label badge="Optional">Locations</flux:label>
 
         <flux:description>
-            Enter the locations that are assigned to this place using their full path (e.g., Acme/NC/Store 01). Enter
-            one full path at a time and click Add.
+            {{ $description }}
         </flux:description>
         <flux:input.group>
             <flux:input
@@ -22,7 +21,7 @@
                 as="button"
                 type="button"
                 wire:click="addLocationToList"
-                wire:loading.attr="disabled"
+                :loading="false"
             >
                 Add
             </flux:button>

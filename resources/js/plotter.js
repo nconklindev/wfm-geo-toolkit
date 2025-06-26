@@ -71,14 +71,43 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             plotterMap = L.map('map', {
                 zoomControl: false, // Add zoom control manually
+                maxBounds: [
+                    [-90, -180],
+                    [90, 180],
+                ], // Prevent showing multiple worlds
+                maxBoundsViscosity: 1.0, // Make the bounds "sticky" - prevent panning outside
+                minZoom: 2.0,
             });
             mapInitialized = true; // Set flag after successful init
             console.log('[Plotter] L.map created.');
 
             L.control.zoom({ position: 'bottomleft' }).addTo(plotterMap);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            }).addTo(plotterMap);
+            });
+
+            const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+                attribution: '&copy; <a href="https://www.google.com/maps">Google</a>',
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            });
+
+            // Add default layer (OSM)
+            osmLayer.addTo(plotterMap);
+
+            // Create layer control
+            const baseLayers = {
+                OpenStreetMap: osmLayer,
+                'Google Satellite': googleSatellite,
+            };
+
+            // Add the controls
+            L.control
+                .layers(baseLayers, null, {
+                    position: 'bottomright',
+                    collapsed: false,
+                })
+                .addTo(plotterMap);
 
             // Set the image URLs for Leaflet
             L.Icon.Default.prototype.options.iconUrl = markerIconUrl;

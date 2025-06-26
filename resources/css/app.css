@@ -29,17 +29,10 @@
     --color-accent-content: var(--color-teal-600);
     --color-accent-foreground: var(--color-white);
 
-    /*--color-accent: var(--color-lime-400);*/
-    /*--color-accent-content: var(--color-lime-600);*/
-    /*--color-accent-foreground: var(--color-lime-900);*/
-    --color-warning: #f59e0b;
-    --color-warning-hover: #d97706;
-    --color-danger: #ef4444;
-    --color-danger-hover: #dc2626;
-    --color-success: #10b981;
-    --color-success-hover: #059669;
-    --color-info: #3b82f6; /* Info color */
-    --color-info-hover: #2563eb; /* Info hover color */
+    --color-warning: oklch(76.9% 0.188 70.08);
+    --color-danger: oklch(63.7% 0.237 25.331);
+    --color-success: oklch(72.3% 0.219 149.579);
+    --color-info: oklch(62.3% 0.214 259.815); /* Info color */
     --color-muted: var(--color-zinc-400);
 }
 
@@ -67,9 +60,6 @@
         --color-accent: var(--color-teal-600);
         --color-accent-content: var(--color-teal-400);
         --color-accent-foreground: var(--color-white);
-        /*--color-accent: var(--color-lime-400);*/
-        /*--color-accent-content: var(--color-lime-400);*/
-        /*--color-accent-foreground: var(--color-lime-950);*/
     }
 }
 
@@ -134,7 +124,7 @@ select:focus[data-flux-control] {
 }
 
 .leaflet-container {
-    @apply bg-zinc-800!;
+    @apply dark:bg-zinc-800! bg-zinc-300!;
 }
 
 /* Z-index override for PHP Flasher so it does not conflict with Leaflet */
