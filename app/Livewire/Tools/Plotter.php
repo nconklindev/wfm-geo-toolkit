@@ -11,22 +11,26 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-
 class Plotter extends Component
 {
     // Explicitly set the between values as floats to prevent the validation from failing
     #[Validate('required|decimal:0,10|between:-90.00,90.00')]
     public float $latitude;
+
     #[Validate('required|decimal:0,10|between:-180.00,180.00')]
     public float $longitude;
+
     #[Validate('required|integer|between:1,1000')]
     public int $radius;
+
     #[Validate('required|integer|between:1,1000')]
     public int $accuracy;
+
     #[Validate('nullable|string|max:255')]
     public ?string $label;
+
     #[Validate('nullable|hex_color')]
-    public string $color = "#3b82f6";
+    public string $color = '#3b82f6';
 
     /**
      * @var Point[]
@@ -51,7 +55,7 @@ class Plotter extends Component
         $this->dispatch('points-updated', $this->formatPointsForMap());
 
         $this->reset('latitude', 'longitude', 'label', 'radius', 'accuracy', 'color');
-        $this->color = "#3b82f6";
+        $this->color = '#3b82f6';
     }
 
     /**
@@ -62,7 +66,7 @@ class Plotter extends Component
         // Ensure this formats the points correctly for the JS update function
         return array_map(function ($index, $point) {
             // Ensure Point properties are accessed correctly
-            if (!$point instanceof Point) {
+            if (! $point instanceof Point) {
                 return null;
             } // Basic safety check
 
@@ -73,7 +77,7 @@ class Plotter extends Component
                 'label' => $point->label,
                 'radius' => $point->radius,
                 'accuracy' => $point->accuracy, // Assuming Point has accuracy
-                'color' => $point->color // Assuming Point has color
+                'color' => $point->color, // Assuming Point has color
             ];
         }, array_keys($this->points), $this->points);
 
@@ -101,7 +105,7 @@ class Plotter extends Component
     public function mount(): void
     {
         $this->points = [];
-        $this->color = "#3b82f6";
+        $this->color = '#3b82f6';
     }
 
     public function removePoint(int $index): void
@@ -121,14 +125,12 @@ class Plotter extends Component
     {
         // Send all points to the view to initialize the map with existing points
         return view('livewire.tools.plotter', [
-            'mapPoints' => $this->formatPointsForMap()
+            'mapPoints' => $this->formatPointsForMap(),
         ]);
     }
 
     /**
      * Update the coordinates when received from the AddressSearch component
-     *
-     * @param  array  $data
      */
     #[On('coordinates-updated')]
     public function updateCoordinates(array $data): void

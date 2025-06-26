@@ -13,8 +13,7 @@ class Point implements Wireable
         public int $radius = 50,
         public int $accuracy = 100,
         public string $color = '#3b82f6',
-    ) {
-    }
+    ) {}
 
     public static function fromLivewire($value): Point
     {
