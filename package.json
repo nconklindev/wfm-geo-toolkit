@@ -10,7 +10,7 @@
         "autoprefixer": "^10.4.20",
         "axios": "^1.10.0",
         "chart.js": "^4.5.0",
-        "concurrently": "^9.0.1",
+        "concurrently": "^9.2.0",
         "laravel-vite-plugin": "^1.0",
         "leaflet": "^1.9.4",
         "prettier-plugin-blade": "^2.1.21",
@@ -18,16 +18,16 @@
         "vite": "^6.0"
     },
     "optionalDependencies": {
-        "@rollup/rollup-linux-x64-gnu": "4.43.0",
+        "@rollup/rollup-linux-x64-gnu": "4.44.0",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
     },
     "devDependencies": {
         "@prettier/plugin-php": "^0.22.4",
         "chokidar": "^4.0.3",
-        "laravel-echo": "^2.1.0",
-        "prettier": "^3.5.3",
-        "prettier-plugin-tailwindcss": "^0.6.11",
+        "laravel-echo": "^2.1.6",
+        "prettier": "^3.6.1",
+        "prettier-plugin-tailwindcss": "^0.6.13",
         "pusher-js": "^8.4.0"
     }
 }
