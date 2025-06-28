@@ -11,7 +11,7 @@
             clearable
             wire:keyup.debounce.300ms.prevent="search($wire.address)"
             wire:keydown.enter.prevent="search($wire.address)"
-            placeholder="1 Apple Park Way, Cupertino, CA 95014"
+            placeholder="900 Chelmsford St, Lowell MA 01851"
         />
     </flux:field>
     <style>

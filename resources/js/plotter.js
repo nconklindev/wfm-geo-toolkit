@@ -37,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const labelInput = document.getElementById('label');
 
     // --- Default Values ---
-    const defaultLat = 40.7128;
-    const defaultLng = -74.006;
+    const defaultLat = 42.6146421515;
+    const defaultLng = -71.324701513;
     const defaultRadius = 75;
     const defaultColor = '#3b82f6'; // Match Livewire component default
     const defaultZoom = 15;
