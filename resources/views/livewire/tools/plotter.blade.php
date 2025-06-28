@@ -196,7 +196,7 @@
     <div class="mt-6">
         <flux:heading level="2" size="lg" class="mb-3 font-medium">Plotted Points</flux:heading>
         @if (count($points) > 0)
-            <div class="overflow-hidden rounded-md border border-zinc-400 dark:border-zinc-700">
+            <div class="overflow-x-auto rounded-md border border-zinc-400 dark:border-zinc-700">
                 <table class="min-w-full divide-y divide-zinc-400 dark:divide-zinc-700">
                     <thead class="bg-white dark:bg-zinc-800">
                         <tr>
