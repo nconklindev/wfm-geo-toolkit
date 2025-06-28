@@ -59,7 +59,7 @@
                                         Drop your HAR file here
                                     </flux:heading>
                                     <flux:text class="mb-4">or click to browse from your computer</flux:text>
-                                    <flux:text size="sm" variant="subtle">Supports .har files up to 10MB</flux:text>
+                                    <flux:text size="sm" variant="subtle">Supports .har files up to 20MB</flux:text>
                                 </div>
 
                                 <!-- Selected File Info -->
@@ -107,6 +107,81 @@
                                 <span wire:loading.remove wire:target="uploadFile">Upload File</span>
                                 <span wire:loading wire:target="uploadFile">Uploading... Please wait</span>
                             </button>
+                        </div>
+
+                        <!-- Upload Progress Bar -->
+                        <div class="mt-4" wire:loading wire:target="uploadFile">
+                            <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900/50">
+                                <div class="mb-2 flex items-center justify-between">
+                                    <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                        Uploading file...
+                                    </span>
+                                    <span
+                                        class="text-sm text-zinc-500 dark:text-zinc-400"
+                                        x-data="{ progress: 0 }"
+                                        x-init="
+                                            let interval
+                                            const startProgress = () => {
+                                                progress = 0
+                                                interval = setInterval(() => {
+                                                    if (progress < 95) {
+                                                        progress += Math.random() * 15
+                                                        if (progress > 95) progress = 95
+                                                    }
+                                                }, 200)
+                                            }
+
+                                            const completeProgress = () => {
+                                                clearInterval(interval)
+                                                progress = 100
+                                            }
+
+                                            // Start progress when loading begins
+                                            startProgress()
+
+                                            // Listen for Livewire events
+                                            window.addEventListener('livewire:navigated', completeProgress)
+                                            window.addEventListener('livewire:update', completeProgress)
+                                        "
+                                    >
+                                        <span x-text="Math.round(progress) + '%'"></span>
+                                    </span>
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                    <div
+                                        class="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300 ease-out"
+                                        x-data="{ progress: 0 }"
+                                        x-init="
+                                            let interval
+                                            const startProgress = () => {
+                                                progress = 0
+                                                interval = setInterval(() => {
+                                                    if (progress < 95) {
+                                                        progress += Math.random() * 15
+                                                        if (progress > 95) progress = 95
+                                                    }
+                                                }, 200)
+                                            }
+
+                                            const completeProgress = () => {
+                                                clearInterval(interval)
+                                                progress = 100
+                                            }
+
+                                            // Start progress when loading begins
+                                            startProgress()
+
+                                            // Listen for Livewire events
+                                            window.addEventListener('livewire:navigated', completeProgress)
+                                            window.addEventListener('livewire:update', completeProgress)
+                                        "
+                                        :style="'width: ' + progress + '%'"
+                                    ></div>
+                                </div>
+                                <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                    Please wait while we process your HAR file...
+                                </p>
+                            </div>
                         </div>
                     @endif
 
@@ -172,18 +247,38 @@
                     <button
                         wire:click="analyzeFile"
                         wire:loading.attr="disabled"
+                        wire:target="analyzeFile"
                         class="inline-flex transform items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                        <flux:icon.loading class="mr-2 size-4" wire:loading wire:target="analyzeFile" />
+                        <flux:icon.loading class="mr-2 size-4 animate-spin" wire:loading wire:target="analyzeFile" />
                         <flux:icon.chart-bar class="mr-2 h-5 w-5" wire:loading.remove wire:target="analyzeFile" />
 
                         <span wire:loading.remove wire:target="analyzeFile">Analyze HAR File</span>
                         <span wire:loading wire:target="analyzeFile">Analyzing...</span>
                     </button>
 
+                    <!-- Analysis Progress Bar -->
+                    <div class="w-full sm:w-auto" wire:loading wire:target="analyzeFile">
+                        <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900/50">
+                            <div class="mb-2 flex items-center justify-between">
+                                <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                    Analyzing HAR file...
+                                </span>
+                            </div>
+                            <div class="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                <div class="h-full animate-pulse bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                            </div>
+                            <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                                Processing network requests and generating insights...
+                            </p>
+                        </div>
+                    </div>
+
                     <button
                         wire:click="removeFile"
-                        class="inline-flex items-center justify-center rounded-xl bg-zinc-100 px-6 py-3 font-semibold text-zinc-700 transition-colors duration-200 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
+                        wire:loading.attr="disabled"
+                        wire:target="analyzeFile"
+                        class="inline-flex items-center justify-center rounded-xl bg-zinc-100 px-6 py-3 font-semibold text-zinc-700 transition-colors duration-200 hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-600"
                     >
                         <flux:icon.arrow-up class="mr-2 h-5 w-5" />
                         Upload New File
