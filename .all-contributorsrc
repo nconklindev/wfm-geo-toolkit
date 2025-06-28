@@ -16,6 +16,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "nconklindev",
+      "name": "nconklindev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/190518646?v=4",
+      "profile": "https://github.com/nconklindev",
+      "contributions": [
+        "ideas",
+        "infra",
+        "code"
+      ]
     }
   ]
 }
