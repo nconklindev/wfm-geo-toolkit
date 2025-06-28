@@ -72,6 +72,7 @@ not implement something that is suggested. Sorry in advance.
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bboisclair"><img src="https://avatars.githubusercontent.com/u/65306541?v=4?s=100" width="100px;" alt="Brandon Boisclair"/><br /><sub><b>Brandon Boisclair</b></sub></a><br /><a href="#bug-bboisclair" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/nconklindev"><img src="https://avatars.githubusercontent.com/u/190518646?v=4?s=100" width="100px;" alt="nconklindev"/><br /><sub><b>nconklindev</b></sub></a><br /><a href="#ideas-nconklindev" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-nconklindev" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#code-nconklindev" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
