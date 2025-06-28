@@ -1,4 +1,21 @@
 {
   "projectName": "wfm-geo-toolkit",
-  "projectOwner": "nconklindev"
+  "projectOwner": "nconklindev",
+  "files": [
+    "README.md"
+  ],
+  "commitType": "docs",
+  "commitConvention": "angular",
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "bboisclair",
+      "name": "Brandon Boisclair",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65306541?v=4",
+      "profile": "https://github.com/bboisclair",
+      "contributions": [
+        "bug"
+      ]
+    }
+  ]
 }
