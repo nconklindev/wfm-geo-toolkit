@@ -36,7 +36,7 @@
                             step="0.0000000001"
                             id="latitude"
                             wire:model="latitude"
-                            placeholder="40.7128"
+                            placeholder="42.6146421515"
                             required
                             autofocus
                         />
@@ -50,7 +50,7 @@
                             step="any"
                             id="longitude"
                             wire:model="longitude"
-                            placeholder="-74.0060"
+                            placeholder="-71.324701513"
                             required
                         />
                         <flux:error name="longitude" />
