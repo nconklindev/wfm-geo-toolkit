@@ -2,18 +2,18 @@
 
 ## Disclaimer ❗
 
-This is an unofficial tool created to aid in the troubleshooting of geofencing issues that customers have while using
-the Pro WFM mobile app. Since a plotting functionality has yet to be implemented, I created this tool as a way for
-support technicians and consultants to work through issues while implementing or working with known places.
+This project is an independent, unofficial tool developed by community members. It is not affiliated with, endorsed, sponsored, or supported by Ultimate Kronos Group (UKG) or any of its subsidiaries. 
 
-I am not a software developer and do this as a hobby. I do my best to make sure that everything works before pushing to
-the main, but I'm only one person and cannot catch everything. That being said...**there will be bugs**.
+- This tool is provided "as is" without warranty of any kind
+- UKG is not responsible for any issues arising from its use
+- The tool is supported and maintained by aforementioned community members
+- All trademarks belong to their respective owners
 
 With that out of the way, keep reading to learn more about what this is.
 
 ## What is this? 🤔
 
-This is a Known Place Geofencing web application for plotting employee punches in the UKG Pro WFM mobile application.
+This started as a tool to aid in the troubleshooting of geofencing issues that users of Pro WFM face while using the companion mobile app. Since then, it has evolved to be a broader toolkit that includes other functionality to help make the user experience smoother and easier to troubleshoot. 
 
 ## Who is this for? 🧩
 
@@ -44,24 +44,21 @@ available:
 A registered user can get their bearings by going to the `/welcome` page. Also, any page that requires authentication
 will have a sidebar for easy navigation.
 
-## I found a bug! 🪲
+## Can I help? 🤝
 
-Fantastic. You can submit a bug over on the [Issues](https://github.com/nconklindev/wfm-geo-toolkit/issues) page. Click
+Sure! Follow the guidelines for the corresponding thing you want to help with.
+
+### Bugs 🐛
+
+You can submit a bug over on the [Issues](https://github.com/nconklindev/wfm-geo-toolkit/issues) page. Click
 the "New issue" button at the top and select "Bug Report." Fill out the required fields and submit the issue. I do not
 guarantee any sort of response time with bug reports.
 
-## I have an idea for a feature! ✨
+### Features ✨
 
-Awesome! There's always room for improvement! I tried to consider everything and make this as feature-complete as
-possible for a normal use-case, but if there's something you really want, then head over to
-the [issues](https://github.com/nconklindev/wfm-geo-toolkit/issues) page and click "New issue" and select "Feature
-Request." Fill out the required fields and submit the issue. I do not guarantee any response time with feature requests,
-nor can I guarantee the feature will be accepted. Depending on scope, feasibility, and time commitment required, I may
-not implement something that is suggested. Sorry in advance.
+You can submit a Feature Request using the provided [form](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=feature_request.yml).
 
-## Maintainers
-
-@nconklindev
+If you want to work on a suggested feature, please see the [contribution guidelines](/.github/CONTRIBUTING.md).
 
 ## Contributors
 
