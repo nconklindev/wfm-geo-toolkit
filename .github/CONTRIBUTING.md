@@ -10,14 +10,6 @@ A security policy is to come. Stay tuned!
 
 * If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=bug_report.yml). Fill out the provided form, and your bug will be submitted. We can't guarantee a turnaround time of any kind but we try to address issues as soon as possible by level of priority. 
 
-#### **Did you write a patch that fixes a bug?**
-
-* Open a new GitHub pull request with the patch.
-
-* Ensure the PR description clearly describes the problem and solution. Include the relevant issue number if applicable.
-
-* Before submitting, please read the [Contributing to Ruby on Rails](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) guide to know more about coding conventions and benchmarks.
-
 ### **Want to add a feature or contribute to the project?**
 
 * All changes must be linked to an open Issue first, using the [Feature Request](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=feature_request.yml) form. 
