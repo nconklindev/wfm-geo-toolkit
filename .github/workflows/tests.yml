@@ -14,6 +14,13 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     environment: Testing
+    env:
+      ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
+      ALGOLIA_SECRET: ${{ secrets.ALGOLIA_SECRET }}
+      GOOGLE_MAPS_GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
+      RESEND_KEY: ${{ secrets.RESEND_KEY }}
+      WFM_EVAL_TOKEN_URL: ${{ secrets.WFM_EVAL_TOKEN_URL }}
+      WFM_PROD_TOKEN_URL: ${{ secrets.WFM_PROD_TOKEN_URL }}
 
     steps:
       - name: Checkout
