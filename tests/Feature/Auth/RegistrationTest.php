@@ -15,17 +15,14 @@ test('registration screen can be rendered', function () {
 
 test('new user can register with a UKG email address', function () {
     $password = Factory::create()->password(10, 25);
+    $email = 'test@ukg.com';
+
     $responseUkgEmail = Livewire::test(Register::class)
         ->set('username', 'test_ukg_user')
-        ->set('email', 'test@ukg.com')
+        ->set('email', $email)
         ->set('password', $password)
         ->set('password_confirmation', $password)
         ->call('register');
-
-    // Debug the errors if registration failed
-    if (count($errors = $responseUkgEmail->errors()) > 0) {
-        dump('Registration validation errors:', $errors);
-    }
 
     $responseUkgEmail
         ->assertHasNoErrors()
@@ -42,11 +39,6 @@ test('non-UKG domain user cannot register', function () {
         ->set('password', $password)
         ->set('password_confirmation', $password)
         ->call('register');
-
-    // Debug the errors if registration failed
-    if (count($errors = $responseNonUkgEmail->errors()) > 0) {
-        dump('Registration validation errors:', $errors);
-    }
 
     $responseNonUkgEmail
         ->assertHasErrors(['email']);

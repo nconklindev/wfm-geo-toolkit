@@ -12,9 +12,26 @@ class UkgEmailDomainRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $domain = explode('@', $value)[1] ?? '';
+        // Check if the value contains an @ symbol
+        if (! str_contains($value, '@')) {
+            $fail("The {$attribute} must be a valid email address.");
 
-        if (strtolower($domain) !== 'ukg.com') {
+            return;
+        }
+
+        // Split the email and get the domain part
+        $parts = explode('@', $value);
+
+        // Ensure we have exactly 2 parts (local and domain)
+        if (count($parts) !== 2) {
+            $fail("The {$attribute} must be a valid email address.");
+
+            return;
+        }
+
+        $domain = strtolower(trim($parts[1]));
+
+        if ($domain !== 'ukg.com') {
             $fail("The {$attribute} must be a UKG company email address (@ukg.com).");
         }
     }
