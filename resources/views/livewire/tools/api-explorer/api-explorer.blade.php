@@ -139,8 +139,8 @@
                         Retrieve All Known Places
                     </x-api-endpoint-item>
 
-                    <x-api-endpoint-item value="places.create" label="Create Known Places" method="POST">
-                        Create Known Places
+                    <x-api-endpoint-item value="places.create" label="Create Known Place" method="POST">
+                        Create Known Place
                     </x-api-endpoint-item>
 
                     <x-api-endpoint-item value="places.delete" label="Delete Known Places" method="POST">
@@ -172,6 +172,7 @@
                     // Convert endpoint to Livewire component name: places.create -> tools.api-explorer.endpoints.places-create
                     $livewireComponentName = 'tools.api-explorer.endpoints.' . str_replace('.', '-', $selectedEndpoint);
                     $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
+                    '';
                     '';
                 @endphp
 
