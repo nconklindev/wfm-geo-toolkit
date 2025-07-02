@@ -52,15 +52,13 @@ class WfmService
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
 
-
         Log::info('Authenticating with WFM', [
             'tokenUrl' => $tokenUrl,
             'hostname' => $this->hostname,
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
-            'client_username' => $username
+            'client_username' => $username,
         ]);
-
 
         try {
             $response = Http::asForm()->withHeaders([
@@ -81,7 +79,7 @@ class WfmService
 
                 Log::info('WFM Authentication successful', [
                     'app_user' => $appUsername,
-                    'ip_address' => $ipAddress
+                    'ip_address' => $ipAddress,
                 ]);
 
                 return true;
@@ -91,7 +89,7 @@ class WfmService
                 'status' => $response->status(),
                 'body' => $response->body(),
                 'app_user' => $appUsername,
-                'ip_address' => $ipAddress
+                'ip_address' => $ipAddress,
             ]);
 
             return false;
@@ -99,7 +97,7 @@ class WfmService
             Log::error('WFM Authentication exception', [
                 'message' => $e->getMessage(),
                 'app_user' => $appUsername,
-                'ip_address' => $ipAddress
+                'ip_address' => $ipAddress,
             ]);
 
             return false;
@@ -108,8 +106,6 @@ class WfmService
 
     /**
      * Get the appropriate token URL based on the hostname
-     *
-     * @return string
      */
     public function getTokenUrl(): string
     {
@@ -119,7 +115,7 @@ class WfmService
 
         // Extract the base URL (scheme + host)
         $parsedUrl = parse_url($this->hostname);
-        if (!$parsedUrl || !isset($parsedUrl['scheme']) || !isset($parsedUrl['host'])) {
+        if (! $parsedUrl || ! isset($parsedUrl['scheme']) || ! isset($parsedUrl['host'])) {
             return $this->getEvalTokenUrl();
         }
 
@@ -134,8 +130,6 @@ class WfmService
 
     /**
      * Get the Eval Token URL from Config
-     *
-     * @return string
      */
     private function getEvalTokenUrl(): string
     {
@@ -144,8 +138,6 @@ class WfmService
 
     /**
      * Get the Prod Token URL from Config
-     *
-     * @return string
      */
     private function getProdTokenUrl(): string
     {
@@ -162,8 +154,68 @@ class WfmService
      */
     public function createKnownPlace(array $placeData): Response
     {
-        return Http::withToken($this->accessToken)
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        // Log the request details for debugging
+        Log::info('WFM Create Known Place - Request Debug', [
+            'hostname' => $this->hostname,
+            'endpoint' => "{$this->hostname}/api/v1/commons/known_places",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $placeData,
+            'request_data_json' => json_encode($placeData, JSON_PRETTY_PRINT),
+            'data_types' => $this->getDataTypes($placeData),
+            'has_token' => ! empty($this->accessToken),
+            'token_length' => strlen($this->accessToken),
+        ]);
+
+        $response = Http::withToken($this->accessToken)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])
             ->post("{$this->hostname}/api/v1/commons/known_places", $placeData);
+
+        // Log the response for debugging
+        Log::info('WFM Create Known Place - Response Debug', [
+            'status' => $response->status(),
+            'headers' => $response->headers(),
+            'body' => $response->body(),
+            'json' => $response->json(),
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+        ]);
+
+        return $response;
+    }
+
+    /**
+     * Helper method to analyze data types in the request
+     */
+    private function getDataTypes(array $data): array
+    {
+        $types = [];
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $types[$key] = 'array';
+                foreach ($value as $index => $item) {
+                    if (is_array($item)) {
+                        foreach ($item as $subKey => $subValue) {
+                            $types[$key."[$index][$subKey]"] = gettype($subValue).' ('.json_encode($subValue).')';
+                        }
+                    } else {
+                        $types[$key."[$index]"] = gettype($item).' ('.json_encode($item).')';
+                    }
+                }
+            } else {
+                $types[$key] = gettype($value).' ('.json_encode($value).')';
+            }
+        }
+
+        return $types;
     }
 
     /**
@@ -191,20 +243,23 @@ class WfmService
             $response = Http::withToken($this->accessToken)
                 ->get("{$this->hostname}/api/v1/commons/known_places");
 
+            Log::debug('WFM API response', [$response]);
+
             if ($response->successful()) {
                 return $response->json();
             }
 
             Log::error('Failed to get known places', [
                 'status' => $response->status(),
-                'body' => $response->body()
+                'body' => $response->body(),
             ]);
 
             return [];
         } catch (Throwable $e) {
             Log::error('Exception when getting known places', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
@@ -251,7 +306,7 @@ class WfmService
             'body' => $body,
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
-            'hostname' => $this->hostname
+            'hostname' => $this->hostname,
         ]);
 
         // Return a structured error result
@@ -259,7 +314,7 @@ class WfmService
             'success' => false,
             'message' => $message,
             'code' => $errorCode,
-            'details' => $errorData
+            'details' => $errorData,
         ];
     }
 
@@ -269,5 +324,21 @@ class WfmService
     public function setHostname(string $hostname): void
     {
         $this->hostname = $hostname;
+    }
+
+    /**
+     * Get the current access token
+     */
+    public function getAccessToken(): string
+    {
+        return $this->accessToken;
+    }
+
+    /**
+     * Set the access token (useful for restoring from session)
+     */
+    public function setAccessToken(string $token): void
+    {
+        $this->accessToken = $token;
     }
 }
