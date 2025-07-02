@@ -3,6 +3,16 @@
     'color' => 'default',
 ])
 
+@php
+    $color = match (strtolower($method)) {
+        'get' => 'green',
+        'post' => 'amber',
+        'delete' => 'red',
+        'put' => 'purple',
+        default => 'zinc',
+    };
+@endphp
+
 <flux:badge
     variant="solid"
     size="sm"
