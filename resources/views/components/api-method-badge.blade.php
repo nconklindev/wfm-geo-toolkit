@@ -1,12 +1,11 @@
 @props([
     'method' => 'GET',
-    'size' => 'sm',
     'color' => 'default',
 ])
 
 <flux:badge
     variant="solid"
-    size="{{ $size }}"
+    size="sm"
     :color="$color"
     {{ $attributes->merge(['class' => 'mr-3']) }}
 >
