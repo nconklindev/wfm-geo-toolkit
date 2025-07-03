@@ -1,10 +1,27 @@
 <div class="flex flex-col space-y-6 overflow-hidden">
     <!-- Credentials Section - Compact -->
     <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-zinc-800">
-        <div class="mb-4 flex items-center space-x-2">
-            <flux:icon.key class="h-5 w-5 text-amber-500" />
-            <flux:heading size="lg" class="text-amber-700 dark:text-amber-400">Global Configuration</flux:heading>
-            <flux:badge variant="warning" size="sm">Required for all endpoints</flux:badge>
+        <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <flux:icon.key class="h-5 w-5 text-amber-500" />
+                <flux:heading size="lg" class="text-amber-700 dark:text-amber-400">Global Configuration</flux:heading>
+                <flux:badge variant="warning" size="sm">Required for all endpoints</flux:badge>
+            </div>
+
+            <!-- Authentication Status Badge -->
+            <div class="flex items-center space-x-2">
+                @if ($isAuthenticated)
+                    <flux:badge variant="success" size="sm">
+                        <flux:icon.check-circle class="mr-1 h-3 w-3" />
+                        Authenticated
+                    </flux:badge>
+                @else
+                    <flux:badge variant="danger" size="sm">
+                        <flux:icon.exclamation-circle class="mr-1 h-3 w-3" />
+                        Not Authenticated
+                    </flux:badge>
+                @endif
+            </div>
         </div>
 
         <form class="space-y-4">
@@ -90,13 +107,45 @@
 
             <!-- Save Credentials Button -->
             <div class="flex items-center justify-between border-t pt-3 dark:border-zinc-700">
-                <flux:text size="sm" variant="subtle">
-                    <flux:icon.information-circle class="mr-1 inline h-4 w-4" />
-                    Credentials are cached for this session
-                </flux:text>
-                <flux:button size="sm" class="cursor-pointer" wire:click="saveCredentials" icon="check">
-                    Save Credentials
-                </flux:button>
+                <div class="flex items-center space-x-4">
+                    <flux:text size="sm" variant="subtle">
+                        <flux:icon.information-circle class="mr-1 inline h-4 w-4" />
+                        Credentials are cached for this session
+                    </flux:text>
+
+                    @if ($isAuthenticated)
+                        <flux:text size="sm" class="text-green-600 dark:text-green-400">
+                            <flux:icon.wifi class="mr-1 inline h-4 w-4" />
+                            Connected to {{ parse_url($hostname, PHP_URL_HOST) ?? 'API' }}
+                        </flux:text>
+                    @endif
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    @if ($isAuthenticated)
+                        <flux:button
+                            size="sm"
+                            variant="ghost"
+                            icon="arrow-right-start-on-rectangle"
+                            wire:click="logout"
+                        >
+                            Logout
+                        </flux:button>
+                    @endif
+
+                    <flux:button
+                        size="sm"
+                        class="cursor-pointer"
+                        wire:click="saveCredentials"
+                        icon="check"
+                        :disabled="$isLoading"
+                    >
+                        <span wire:loading.remove wire:target="saveCredentials">
+                            {{ $isAuthenticated ? 'Re-authenticate' : 'Save Credentials' }}
+                        </span>
+                        <span wire:loading wire:target="saveCredentials">Authenticating...</span>
+                    </flux:button>
+                </div>
             </div>
         </form>
     </div>
@@ -104,10 +153,29 @@
     <!-- Main API Explorer Content -->
     <div class="rounded-lg bg-white p-6 shadow-sm dark:bg-zinc-800">
         <div class="mb-6">
-            <flux:heading size="xl">WFM API Explorer</flux:heading>
-            <flux:text class="mt-1.5 text-sm">
-                Select an endpoint below to explore and test WFM API functionality.
-            </flux:text>
+            <div class="flex items-center justify-between">
+                <div>
+                    <flux:heading size="xl">WFM API Explorer</flux:heading>
+                    <flux:text class="mt-1.5 text-sm">
+                        Select an endpoint below to explore and test WFM API functionality.
+                    </flux:text>
+                </div>
+
+                <!-- Secondary Authentication Status -->
+                <div class="hidden md:block">
+                    @if ($isAuthenticated)
+                        <div class="flex items-center space-x-2 text-sm text-green-600 dark:text-green-400">
+                            <flux:icon.shield-check class="h-4 w-4" />
+                            <span>Ready to make API calls</span>
+                        </div>
+                    @else
+                        <div class="flex items-center space-x-2 text-sm text-red-600 dark:text-red-400">
+                            <flux:icon.shield-exclamation class="h-4 w-4" />
+                            <span>Authentication required</span>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
         <!-- Basic Custom Dropdown -->
@@ -189,10 +257,6 @@
                     // Convert endpoint to Livewire component name: places.create -> tools.api-explorer.endpoints.places-create
                     $livewireComponentName = 'tools.api-explorer.endpoints.' . str_replace('.', '-', $selectedEndpoint);
                     $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
-                    '';
-                    '';
-                    '';
-                    '';
                     '';
                     '';
                     '';
