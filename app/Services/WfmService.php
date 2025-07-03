@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Livewire\Tools\ApiExplorer\Endpoints\LaborCategoriesPaginatedList;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
@@ -28,14 +29,6 @@ class WfmService
 
     /**
      * Authenticate with WFM API via Auth0
-     *
-     * @param  string  $clientId
-     * @param  string  $clientSecret
-     * @param  string  $orgId
-     * @param  string  $username
-     * @param  string  $password
-     *
-     * @return bool
      */
     public function authenticate(
         string $clientId,
@@ -147,9 +140,7 @@ class WfmService
     /**
      * Create a new known place in WFM using its API
      *
-     * @param  array  $placeData
      *
-     * @return Response
      * @throws ConnectionException
      */
     public function createKnownPlace(array $placeData): Response
@@ -220,10 +211,6 @@ class WfmService
 
     /**
      * Extract place IDs from a list of places
-     *
-     * @param  array  $places
-     *
-     * @return array
      */
     public function extractPlaceIds(array $places): array
     {
@@ -234,8 +221,6 @@ class WfmService
 
     /**
      * Get all known places from the WFM using its API
-     *
-     * @return array
      */
     public function getKnownPlaces(): array
     {
@@ -340,5 +325,124 @@ class WfmService
     public function setAccessToken(string $token): void
     {
         $this->accessToken = $token;
+    }
+
+    /**
+     * Gets the paginated list of Labor Category Entries using the provided Labor Category name
+     *
+     * @param  array  $requestData  request parameters
+     * @return Response the JSON response from the WFM API
+     *
+     * @see https://developer.ukg.com/wfm/reference/retrieve-paginated-list-of-labor-category-entries
+     */
+    public function getLaborCategoryEntriesPaginated(array $requestData = []): Response
+    {
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        $apiPath = '/api/v1/commons/labor_entries/apply_read';
+
+        // Log the request details for debugging
+        Log::info('WFM Labor Category Entries Paginated - Request Debug', [
+            'hostname' => $this->hostname,
+            'endpoint' => "{$this->hostname}{$apiPath}",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $requestData,
+        ]);
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->post("$this->hostname{$apiPath}", $requestData);
+        } catch (ConnectionException $e) {
+            Log::error('WFM Connection Error', [
+                'error' => $e->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get labor category entries from WFM using its API
+     *
+     * @param  array  $requestData  Optional request parameters/filters
+     *
+     * @throws ConnectionException
+     */
+    public function getLaborCategoryEntries(array $requestData = []): Response
+    {
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        $apiPath = '/api/v1/commons/labor_entries/multi_read';
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->post("$this->hostname{$apiPath}", $requestData);
+        } catch (ConnectionException $e) {
+            Log::error('WFM Connection Error', [
+                'error' => $e->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            throw $e;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get the list of available Labor Categories from WFM
+     *
+     * Used to populate the list of available Labor Categories in other endpoints
+     *
+     * @see LaborCategoriesPaginatedList
+     * @see https://developer.ukg.com/wfm/reference/retrieve-all-labor-categories-or-by-criteria
+     *
+     * @return Response the JSON response from the API
+     *
+     * @throws ConnectionException
+     */
+    public function getLaborCategories(): Response
+    {
+        // Get the authenticated user and IP Address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("{$this->hostname}/api/v1/commons/labor_categories");
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            // Re-throw the exception so it cna be caught by the parent calling method
+            throw $ce;
+        }
+
+        return $response;
     }
 }
