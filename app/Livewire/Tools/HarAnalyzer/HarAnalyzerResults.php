@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Tools\HarAnalyzer;
 
-use App\Concerns\FormatsHarData;
+use App\Traits\FormatsHarData;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;

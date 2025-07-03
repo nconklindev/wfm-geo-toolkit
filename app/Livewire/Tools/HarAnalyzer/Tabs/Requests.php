@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Tools\HarAnalyzer\Tabs;
 
-use App\Concerns\FormatsHarData;
+use App\Traits\FormatsHarData;
 use Livewire\Component;
 
 class Requests extends Component
