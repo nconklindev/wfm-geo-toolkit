@@ -2,23 +2,18 @@
 
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
-use App\Services\WfmService;
+use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
 use Exception;
+use Illuminate\Http\Client\ConnectionException;
 use Livewire\Attributes\Validate;
-use Livewire\Component;
-use Log;
-use Throwable;
 
-class PlacesCreate extends Component
+class PlacesCreate extends BaseApiEndpoint
 {
-    // Input mode toggle
-    public string $inputMode = 'form'; // 'form' or 'json'
-
-    // JSON mode
+    // Rename for consistency with base class
     #[Validate('required_if:inputMode,json|json')]
-    public string $placesJson = '';
+    public string $jsonInput = '';
 
-    // Form mode - single place
+    // Form-specific properties
     #[Validate('required_if:inputMode,form|string|max:255')]
     public string $name = '';
 
@@ -40,67 +35,18 @@ class PlacesCreate extends Component
     #[Validate([
         'array',
         'required_if:inputMode,form',
-        'validationOrder.*' => [
-            'required',
-            'in:GPS,WIFI',
-        ],
+        'validationOrder.*' => ['required', 'in:GPS,WIFI'],
     ])]
     public array $validationOrder = [];
 
-    // Response data
-    public ?array $apiResponse = null;
-
-    public ?string $errorMessage = null;
-
-    public bool $isLoading = false;
-
-    // Props passed from parent
-    public bool $isAuthenticated = false;
-
-    public string $hostname = '';
-
-    protected WfmService $wfmService;
-
-    public function boot(WfmService $wfmService)
+    public function render()
     {
-        $this->wfmService = $wfmService;
-
-        // Set up authentication from session if available
-        $this->setupAuthenticationFromSession();
+        return view('livewire.tools.api-explorer.endpoints.places-create');
     }
 
-    private function setupAuthenticationFromSession(): void
+    protected function initializeEndpoint(): void
     {
-        // Get authentication state from session
-        if (session('wfm_authenticated') && session('wfm_access_token')) {
-            $this->isAuthenticated = true;
-
-            // Set up the WfmService with session data
-            if ($this->wfmService) {
-                $this->wfmService->setAccessToken(session('wfm_access_token'));
-
-                if (! empty($this->hostname)) {
-                    $this->wfmService->setHostname($this->hostname);
-                } elseif (session('wfm_credentials.hostname')) {
-                    $this->wfmService->setHostname(session('wfm_credentials.hostname'));
-                    $this->hostname = session('wfm_credentials.hostname');
-                }
-            }
-        } else {
-            $this->isAuthenticated = false;
-        }
-    }
-
-    public function mount(bool $isAuthenticated = false, string $hostname = '')
-    {
-        $this->isAuthenticated = $isAuthenticated;
-        $this->hostname = $hostname;
         $this->validationOrder = ['GPS'];
-
-        // Set up the WfmService from session data
-        $this->setupAuthenticationFromSession();
-
-        // Generate sample data on mount
         $this->generateSampleData();
     }
 
@@ -119,160 +65,76 @@ class PlacesCreate extends Component
             ],
         ];
 
-        $this->placesJson = json_encode($sampleData, JSON_PRETTY_PRINT);
+        $this->jsonInput = json_encode($sampleData, JSON_PRETTY_PRINT);
         $this->resetValidation();
     }
 
-    public function switchInputMode(string $mode): void
+    protected function validateJsonData($data): void
     {
-        if (in_array($mode, ['form', 'json'])) {
-            $this->inputMode = $mode;
-            $this->resetErrorBag();
-            $this->resetValidation();
+        if (! is_array($data)) {
+            throw new Exception('Data must be an array');
         }
     }
 
-    public function validateJson(): void
+    /**
+     * @throws ConnectionException
+     * @throws Exception
+     */
+    protected function makeApiCall()
     {
-        try {
-            $data = json_decode($this->placesJson, true);
+        $placeData = $this->preparePlaceData();
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid JSON: '.json_last_error_msg());
+        return $this->wfmService->createKnownPlace($placeData);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private function preparePlaceData(): array
+    {
+        if ($this->inputMode === 'json') {
+            $data = $this->getJsonData();
+
+            // API expects a single place object, not an array
+            if (isset($data[0]) && is_array($data[0])) {
+                return $data[0];
             }
 
-            if (! is_array($data)) {
-                throw new Exception('Data must be an array');
-            }
-
-            $this->errorMessage = null;
-            $this->dispatch('json-validated', ['message' => 'JSON is valid!']);
-
-        } catch (Exception $e) {
-            $this->errorMessage = $e->getMessage();
+            return $data;
         }
+
+        // Form mode
+        $wfmPlaces = $this->wfmService->getKnownPlaces();
+        if (empty($wfmPlaces)) {
+            throw new Exception('Failed to retrieve existing known places from WFM.');
+        }
+
+        $placeIds = $this->wfmService->extractPlaceIds($wfmPlaces);
+        $nextId = $this->wfmService->getNextAvailableId($placeIds);
+
+        return [
+            'id' => $nextId,
+            'name' => $this->name,
+            'description' => $this->description ?: '',
+            'latitude' => (float) $this->latitude,
+            'longitude' => (float) $this->longitude,
+            'radius' => (int) $this->radius,
+            'accuracy' => (int) $this->accuracy,
+            'active' => true,
+            'validationOrder' => array_map('strtoupper', $this->validationOrder) ?: ['GPS'],
+        ];
     }
 
     public function createKnownPlace(): void
     {
-        // Always refresh authentication state from session before making API calls
-        $this->setupAuthenticationFromSession();
+        $this->executeApiCall();
+    }
 
-        if (! $this->isAuthenticated) {
-            $this->errorMessage = 'Please authenticate first using the credentials form above.';
-
-            return;
-        }
-
-        if (! $this->wfmService) {
-            $this->errorMessage = 'WFM Service not available.';
-
-            return;
-        }
-
-        // Ensure hostname is set on the service
-        if (! empty($this->hostname)) {
-            $this->wfmService->setHostname($this->hostname);
-        }
-
-        $this->isLoading = true;
-        $this->errorMessage = null;
-        $this->apiResponse = null;
-        $warningMessage = null; // Track warnings separately from errors
-
-        try {
-            // Validate the form using Livewire's built-in validation
-            $this->validate();
-
-            $placeData = [];
-
-            if ($this->inputMode === 'json') {
-                // Decode and basic validation for JSON
-                $data = json_decode($this->placesJson, true);
-
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    throw new Exception('Invalid JSON: '.json_last_error_msg());
-                }
-
-                if (! is_array($data)) {
-                    throw new Exception('Data must be an object or array');
-                }
-
-                // API expects a single place object, not an array
-                // If user provides an array, take the first item
-                if (isset($data[0]) && is_array($data[0])) {
-                    $placeData = $data[0];
-                    Log::info('Taking first item from JSON array');
-                } else {
-                    // User provided a single object
-                    $placeData = $data;
-                }
-
-            } else {
-                // Form mode - create single place
-                // Get existing places to determine next ID
-                $wfmPlaces = $this->wfmService->getKnownPlaces();
-
-                if (empty($wfmPlaces)) {
-                    $token = $this->wfmService->getAccessToken();
-                    if (empty($token)) {
-                        throw new Exception('No access token available. Please re-authenticate.');
-                    }
-
-                    if (empty($this->hostname)) {
-                        throw new Exception('No hostname configured for API calls.');
-                    }
-
-                    throw new Exception('Failed to retrieve existing known places from WFM. This could be due to API permissions, network issues, or the WFM instance not having any places yet.');
-                }
-
-                $placeIds = $this->wfmService->extractPlaceIds($wfmPlaces);
-                $nextId = $this->wfmService->getNextAvailableId($placeIds);
-
-                $placeData = [
-                    'id' => $nextId,
-                    'name' => $this->name,
-                    'description' => $this->description ?: '',
-                    'latitude' => (float) $this->latitude,
-                    'longitude' => (float) $this->longitude,
-                    'radius' => (int) $this->radius,
-                    'accuracy' => (int) $this->accuracy,
-                    'active' => true,
-                    'validationOrder' => array_map('strtoupper', $this->validationOrder) ?: ['GPS'],
-                ];
-            }
-
-            // Make the API call using the service's token
-            $response = $this->wfmService->createKnownPlace($placeData);
-
-            $this->apiResponse = [
-                'status' => $response->status(),
-                'data' => $response->json(),
-            ];
-
-            if (! $response->successful()) {
-                $errorData = $response->json();
-                $this->errorMessage = "API Error {$response->status()}: ".
-                    ($errorData['message'] ?? $errorData['error'] ?? 'Unknown error');
-            } else {
-                // Success! Only show warning message if we have one, not error
-                if ($warningMessage) {
-                    $this->errorMessage = $warningMessage; // This is actually a warning, not an error
-                }
-
-                if ($this->inputMode === 'form') {
-                    // Clear form on success
-                    $this->reset(['name', 'description', 'latitude', 'longitude', 'radius', 'accuracy']);
-                    $this->loadFormSample(); // Load sample data for next entry
-                }
-            }
-
-        } catch (Exception $e) {
-            $this->errorMessage = $e->getMessage();
-        } catch (Throwable $e) {
-            $this->errorMessage = 'An unexpected error occurred: '.$e->getMessage();
-        } finally {
-            $this->isLoading = false;
+    protected function handleSuccessfulResponse($response): void
+    {
+        if ($this->inputMode === 'form') {
+            $this->reset(['name', 'description', 'latitude', 'longitude', 'radius', 'accuracy']);
+            $this->loadFormSample();
         }
     }
 
@@ -285,10 +147,5 @@ class PlacesCreate extends Component
         $this->radius = '100';
         $this->accuracy = '100';
         $this->resetValidation();
-    }
-
-    public function render()
-    {
-        return view('livewire.tools.api-explorer.endpoints.places-create');
     }
 }
