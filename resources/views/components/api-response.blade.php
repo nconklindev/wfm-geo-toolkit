@@ -15,6 +15,9 @@
         $statusCode >= 500 => 'red',
         default => 'zinc',
     };
+
+    // Generate unique ID for this response component
+    $responseId = 'response-' . uniqid();
 @endphp
 
 @if ($response || $error)
@@ -46,7 +49,7 @@
                 <!-- Response Headers -->
                 <div class="border-b border-zinc-200 px-4 py-2 dark:border-zinc-700">
                     <div class="flex items-center justify-between">
-                        <flux:text size="sm" variant="subtle">Response</flux:text>
+                        <flux:text size="sm" variant="subtle">Raw JSON Response</flux:text>
                         <div class="flex items-center space-x-2">
                             @if (isset($response['status']))
                                 <flux:badge :color="$color" size="sm">
@@ -64,16 +67,21 @@
                 </div>
 
                 <!-- Response Body -->
-                <div class="p-4">
-                    @if (isset($response['data']) || isset($response['body']))
-                        <pre
-                            class="overflow-x-auto text-xs break-words whitespace-pre-wrap"
-                        ><code>{{ json_encode($response['data'] ?? ($response['body'] ?? $response), JSON_PRETTY_PRINT) }}</code></pre>
-                    @else
-                        <pre
-                            class="overflow-x-auto text-xs break-words whitespace-pre-wrap"
-                        ><code>{{ json_encode($response, JSON_PRETTY_PRINT) }}</code></pre>
-                    @endif
+                <div class="relative p-4">
+                    <pre
+                        id="{{ $responseId }}"
+                        class="overflow-x-auto text-xs break-words whitespace-pre-wrap"
+                    ><code>{{ json_encode($response['data'] ?? ($response['body'] ?? $response), JSON_PRETTY_PRINT) }}</code></pre>
+
+                    <flux:tooltip content="Copy to clipboard">
+                        <flux:button
+                            icon="copy"
+                            variant="ghost"
+                            size="sm"
+                            class="absolute! top-2 right-2 opacity-70 transition-opacity hover:opacity-100"
+                            onclick="copyToClipboard('{{ $responseId }}', this)"
+                        />
+                    </flux:tooltip>
                 </div>
 
                 <!-- Additional Response Info -->
