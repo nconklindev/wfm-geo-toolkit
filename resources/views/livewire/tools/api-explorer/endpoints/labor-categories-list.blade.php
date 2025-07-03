@@ -45,9 +45,8 @@
             <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
                 <flux:heading size="sm" class="mb-2">About This Endpoint</flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm">
-                    <li>Retrieves labor category entries from the system</li>
-                    <li>Filter by labor category entry name</li>
-                    <li>Returns the matching Labor Category Entry from the system</li>
+                    <li>Retrieves Labor Category Entries from WFM</li>
+                    <li>Enter a Labor Category Entry Name to retrieve its data</li>
                 </ul>
             </div>
 
@@ -57,7 +56,6 @@
                     Response Format
                 </flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                    <li>Returns an array of labor category objects</li>
                     <li>Each entry includes ID, name, description, and Labor Category it belongs to</li>
                     <li>Status codes: 200 (success), 401 (unauthorized)</li>
                 </ul>
