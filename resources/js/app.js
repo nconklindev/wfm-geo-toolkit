@@ -1,5 +1,6 @@
 import 'leaflet/dist/leaflet.css';
 import './coloris.js';
+import './clipboard.js';
 
 import.meta.glob(['../fonts/**']);
 
