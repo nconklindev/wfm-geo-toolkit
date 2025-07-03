@@ -152,6 +152,23 @@
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
 
+                <x-api-endpoint-group title="Labor Category Entries" name="briefcase">
+                    <x-api-endpoint-item
+                        value="labor-categories.list"
+                        label="Retrieve Labor Category Entries"
+                        method="POST"
+                    >
+                        Retrieve Labor Category Entries
+                    </x-api-endpoint-item>
+                    <x-api-endpoint-item
+                        value="labor-categories-paginated.list"
+                        label="Retrieve Paginated List of Labor Category Entries"
+                        method="POST"
+                    >
+                        Retrieve Paginated List of Labor Category Entries
+                    </x-api-endpoint-item>
+                </x-api-endpoint-group>
+
                 <!-- Locations Group -->
                 <x-api-endpoint-group title="Data Dictionary" name="book-open">
                     <x-api-endpoint-item
@@ -174,10 +191,16 @@
                     $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
                     '';
                     '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
                 @endphp
 
                 @if (class_exists($livewireComponentClass))
                     <livewire:dynamic-component
+                        lazy
                         :component="$livewireComponentName"
                         :isAuthenticated="$isAuthenticated"
                         :hostname="$hostname"
