@@ -228,8 +228,6 @@ class WfmService
             $response = Http::withToken($this->accessToken)
                 ->get("{$this->hostname}/api/v1/commons/known_places");
 
-            Log::debug('WFM API response', [$response]);
-
             if ($response->successful()) {
                 return $response->json();
             }
