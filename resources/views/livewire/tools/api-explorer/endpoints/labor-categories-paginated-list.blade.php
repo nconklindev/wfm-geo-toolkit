@@ -18,21 +18,38 @@
                         <select
                             wire:model.live="selectedLaborCategories"
                             multiple
-                            class="min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                            class="{{ ! $isAuthenticated || empty($laborCategories) ? 'opacity-50' : '' }} min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                            {{ ! $isAuthenticated || empty($laborCategories) ? 'disabled' : '' }}
                         >
-                            @foreach ($laborCategories as $category)
-                                <option
-                                    value="{{ $category }}"
-                                    wire:key="{{ Str::kebab($category) }}"
-                                    class="selected:bg-blue-700/50"
-                                >
-                                    {{ $category }}
+                            @if ($isAuthenticated && ! empty($laborCategories))
+                                @foreach ($laborCategories as $category)
+                                    <option
+                                        value="{{ $category }}"
+                                        wire:key="{{ Str::kebab($category) }}"
+                                        class="selected:bg-blue-700/50"
+                                    >
+                                        {{ $category }}
+                                    </option>
+                                @endforeach
+                            @else
+                                <option disabled>
+                                    @if (! $isAuthenticated)
+                                        Please authenticate to load categories
+                                    @elseif (empty($laborCategories))
+                                        No categories available - check authentication
+                                    @endif
                                 </option>
-                            @endforeach
+                            @endif
                         </select>
                     </div>
                     <flux:description class="text-xs">
-                        Hold Ctrl (Windows) or Cmd (Mac) to select multiple categories
+                        @if ($isAuthenticated && ! empty($laborCategories))
+                            Hold Ctrl (Windows) or Cmd (Mac) to select multiple categories
+                        @elseif (! $isAuthenticated)
+                            Authentication required to load labor categories
+                        @else
+                                Unable to load categories - re-authentication may be required
+                        @endif
                     </flux:description>
                 </flux:field>
 
@@ -75,6 +92,12 @@
 
                 @if (! $isAuthenticated)
                     <flux:error>Please authenticate first using the credentials form above.</flux:error>
+                @elseif ($isAuthenticated && empty($laborCategories))
+                    <flux:error>
+                        <flux:icon.exclamation-triangle class="mr-2 inline h-4 w-4" />
+                        Labor categories could not be loaded. Your session may have expired. Please re-enter your
+                        credentials above.
+                    </flux:error>
                 @endif
             </div>
         </section>
@@ -87,7 +110,7 @@
                 <flux:heading size="sm" class="mb-2">About This Endpoint</flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm">
                     <li>Retrieves labor category entries from the system</li>
-                    <li>Filter by labor category entry name</li>
+                    <li>Select from the populated list of Labor Categories to load only those entries</li>
                     <li>Returns the matching Labor Category Entry from the system</li>
                 </ul>
             </div>
@@ -103,6 +126,20 @@
                     <li>Large datasets (50k+ records) may take longer to load</li>
                 </ul>
             </div>
+
+            @if ($isAuthenticated && empty($laborCategories))
+                <div class="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
+                    <flux:heading size="sm" class="mb-2 text-amber-800 dark:text-amber-200">
+                        <flux:icon.exclamation-triangle class="mr-1 inline h-4 w-4" />
+                        Authentication Notice
+                    </flux:heading>
+                    <p class="text-sm text-amber-700 dark:text-amber-300">
+                        If the labor categories selector appears empty but you're authenticated, your session may have
+                        expired. Please re-enter your credentials in the authentication form above to reload the
+                        categories.
+                    </p>
+                </div>
+            @endif
         </div>
     </div>
 

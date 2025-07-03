@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LaborCategoriesPaginatedList extends BaseApiEndpoint
 {
-    // REVIEW: All the Pagination methods in here can be extracted out to a Trait or Base Class or something
     use ExportsCsvData;
     use WithPagination;
 
@@ -116,7 +115,9 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             'index' => 0,
         ];
 
-        $response = $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+        $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+            return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+        });
 
         if ($response && $response->successful()) {
             $data = $response->json();
@@ -152,12 +153,19 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 ],
             ];
 
-            $response = $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+                return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+            });
 
             if ($response && $response->successful()) {
                 $data = $response->json();
                 if (isset($data['records']) && is_array($data['records'])) {
                     $allRecords = array_merge($allRecords, $data['records']);
+                }
+            } else {
+                // If any category fails due to auth, stop and let user know
+                if (! $this->isAuthenticated) {
+                    break;
                 }
             }
         }
@@ -184,21 +192,55 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         ]);
     }
 
-    public function exportCsv(): StreamedResponse
+    /**
+     * Export all available data (respects current search/sort but not category filters)
+     */
+    public function exportAllToCsv(): StreamedResponse
     {
-        // Use the already loaded data for export
-        $exportData = $this->getFilteredAndSortedData()->toArray();
+        // Get ALL data regardless of category selections
+        $allDataForExport = $this->getAllDataForExport();
 
-        return $this->exportDataAsCsv($exportData, 'labor-category-entries_'.now()->format('Y-m-d_H-i-s'));
+        // Apply current search and sort to the full dataset
+        $filteredData = $this->applySearchAndSort($allDataForExport);
+
+        $filename = 'labor-category-entries-all_'.now()->format('Y-m-d_H-i-s');
+
+        return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
     }
 
     /**
-     * Get filtered and sorted data collection
+     * Get ALL data for export (bypassing category filters)
      */
-    protected function getFilteredAndSortedData(): Collection
+    protected function getAllDataForExport(): Collection
     {
-        $data = $this->allData;
+        if (! $this->isAuthenticated) {
+            return collect();
+        }
 
+        $requestData = [
+            'count' => 50000,
+            'index' => 0,
+        ];
+
+        $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+            return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+        });
+
+        if ($response && $response->successful()) {
+            $data = $response->json();
+            $records = $data['records'] ?? [];
+
+            return collect($records);
+        }
+
+        return collect();
+    }
+
+    /**
+     * Apply search and sort to a data collection
+     */
+    protected function applySearchAndSort(Collection $data): Collection
+    {
         // Apply search filter
         if (! empty($this->search)) {
             $searchTerm = strtolower($this->search);
@@ -232,34 +274,38 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         $this->resetPage();
     }
 
-    protected function exportDataAsCsv(array $data, string $filename): StreamedResponse
+    /**
+     * Export only data from selected categories (respects search/sort/category filters)
+     */
+    public function exportSelectionsToCsv(): StreamedResponse
     {
-        return response()->streamDownload(function () use ($data) {
-            $handle = fopen('php://output', 'w');
+        if (empty($this->selectedLaborCategories)) {
+            // If no categories selected, export current filtered view
+            $exportData = $this->getFilteredAndSortedData();
+        } else {
+            // Export only data from selected categories
+            $exportData = $this->getFilteredAndSortedData();
+        }
 
-            // Add CSV headers
-            if (! empty($data)) {
-                $headers = [];
-                foreach ($this->tableColumns as $column) {
-                    $headers[] = $column['label'];
-                }
-                fputcsv($handle, $headers);
+        $categoryNames = empty($this->selectedLaborCategories)
+            ? 'current-view'
+            : implode('-', array_slice($this->selectedLaborCategories, 0, 3));
 
-                // Add data rows
-                foreach ($data as $row) {
-                    $csvRow = [];
-                    foreach ($this->tableColumns as $column) {
-                        $csvRow[] = data_get($row, $column['field'], '');
-                    }
-                    fputcsv($handle, $csvRow);
-                }
-            }
+        if (count($this->selectedLaborCategories) > 3) {
+            $categoryNames .= '-and-'.(count($this->selectedLaborCategories) - 3).'-more';
+        }
 
-            fclose($handle);
-        }, $filename.'.csv', [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'.csv"',
-        ]);
+        $filename = 'labor-category-entries-'.$categoryNames.'_'.now()->format('Y-m-d_H-i-s');
+
+        return $this->exportAsCsv($exportData->toArray(), $this->tableColumns, $filename);
+    }
+
+    /**
+     * Get filtered and sorted data collection (current view)
+     */
+    protected function getFilteredAndSortedData(): Collection
+    {
+        return $this->applySearchAndSort($this->allData);
     }
 
     public function render()
@@ -326,17 +372,22 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return;
         }
 
-        try {
-            $response = $this->wfmService->getLaborCategories();
-            if ($response->successful()) {
-                $data = $response->json();
-                $this->laborCategories = array_column($data, 'name');
-            }
-        } catch (ConnectionException $e) {
+        // Use the new authenticated API call method
+        $response = $this->makeAuthenticatedApiCall(function () {
+            return $this->wfmService->getLaborCategories();
+        });
+
+        if ($response && $response->successful()) {
+            $data = $response->json();
+            $this->laborCategories = array_column($data, 'name');
+        } elseif (! $this->isAuthenticated) {
+            // Authentication was invalid, laborCategories will remain empty
+            // Error message already set by authentication handler
+        } else {
             $this->errorMessage = 'Unable to load labor categories. Please check your network connection and try again.';
-            Log::error('Connection error in LaborCategoriesPaginatedList during component initialization', [
-                'error' => $e->getMessage(),
+            Log::error('Failed to load labor categories in initializeEndpoint', [
                 'component' => get_class($this),
+                'hostname' => $this->hostname,
             ]);
         }
     }
