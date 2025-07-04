@@ -149,6 +149,29 @@ class ApiExplorer extends Component
         }
     }
 
+    public function logout(): void
+    {
+        // Clear authentication state
+        $this->isAuthenticated = false;
+
+        // Clear sensitive form data
+        $this->clientSecret = '';
+        $this->password = '';
+
+        // Clear session authentication data
+        session()->forget(['wfm_authenticated', 'wfm_access_token']);
+
+        // Clear the access token from the service
+        $this->wfmService->clearAccessToken();
+
+        // Clear any API responses or error messages
+        $this->apiResponse = null;
+        $this->errorMessage = null;
+
+        // Optionally dispatch an event to notify other components
+        $this->dispatch('wfm-logged-out');
+    }
+
     public function selectEndpoint(string $endpoint, string $label): void
     {
         $this->selectedEndpoint = $endpoint;

@@ -370,6 +370,14 @@ class WfmService
     }
 
     /**
+     * Clear the access token (used for logout)
+     */
+    public function clearAccessToken(): void
+    {
+        $this->accessToken = '';
+    }
+
+    /**
      * Get labor category entries from WFM using its API
      *
      * @param  array  $requestData  Optional request parameters/filters
