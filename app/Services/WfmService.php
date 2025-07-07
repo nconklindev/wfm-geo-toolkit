@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Livewire\Tools\ApiExplorer\Endpoints\LaborCategoriesPaginatedList;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
@@ -446,6 +447,35 @@ class WfmService
             ]);
 
             // Re-throw the exception so it cna be caught by the parent calling method
+            throw $ce;
+        }
+
+        return $response;
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    public function getDataElementsPaginated(array $requestData): PromiseInterface|Response
+    {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("{$this->hostname}/api/v1/commons/data_dictionary/data_elements");
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
             throw $ce;
         }
 
