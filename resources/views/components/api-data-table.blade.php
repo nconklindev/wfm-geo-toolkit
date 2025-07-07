@@ -10,13 +10,11 @@
     'perPage' => 15,
 ])
 
-@if (! empty($paginatedData) && ! empty($columns))
-    <div
-        @class([
-            'border-t border-zinc-200 pt-6 dark:border-zinc-700' => $showBorder,
-            'space-y-4',
-        ])
-    >
+<div @class([
+    'border-t border-zinc-200 pt-6 dark:border-zinc-700' => $showBorder,
+    'space-y-4',
+])>
+    @if (! empty($columns))
         <div class="flex items-center justify-between">
             <flux:heading size="md">{{ $title }} ({{ $totalRecords }} total)</flux:heading>
 
@@ -80,15 +78,17 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-800">
-                    @forelse ($paginatedData->items() as $row)
-                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                            @foreach ($columns as $column)
-                                <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-900 dark:text-zinc-100">
-                                    {{ data_get($row, $column['field'], '-') }}
-                                </td>
-                            @endforeach
-                        </tr>
-                    @empty
+                    @if ($paginatedData && $paginatedData->count() > 0)
+                        @foreach ($paginatedData->items() as $row)
+                            <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
+                                @foreach ($columns as $column)
+                                    <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                                        {{ data_get($row, $column['field'], '-') }}
+                                    </td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    @else
                         <tr>
                             <td
                                 colspan="{{ count($columns) }}"
@@ -101,23 +101,16 @@
                                 @endif
                             </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
 
         <!-- Pagination -->
-        {{-- @dump($paginatedData) --}}
-        @if ($paginatedData->hasPages())
-            {{-- <flux:text size="sm" variant="subtle"> --}}
-            {{-- Showing {{ $paginatedData->firstItem() }} to {{ $paginatedData->lastItem() }} of --}}
-            {{-- {{ $paginatedData->total() }} results --}}
-            {{-- </flux:text> --}}
+        @if ($paginatedData && $paginatedData->hasPages())
             {{ $paginatedData->links(data: ['scrollTo' => false]) }}
         @endif
-    </div>
-@elseif (empty($columns))
-    <div class="py-8 text-center text-zinc-500 dark:text-zinc-400">No table columns defined</div>
-@elseif (empty($paginatedData) || $paginatedData->isEmpty())
-    <div class="py-8 text-center text-zinc-500 dark:text-zinc-400">No data available</div>
-@endif
+    @else
+        <div class="py-8 text-center text-zinc-500 dark:text-zinc-400">No table columns defined</div>
+    @endif
+</div>
