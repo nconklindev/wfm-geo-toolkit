@@ -4,68 +4,23 @@ namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
 use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
 use App\Traits\ExportsCsvData;
+use App\Traits\PaginatesApiData;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Livewire\Attributes\Url;
 use Livewire\Attributes\Validate;
-use Livewire\WithPagination;
 use Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LaborCategoriesPaginatedList extends BaseApiEndpoint
 {
     use ExportsCsvData;
-    use WithPagination;
+    use PaginatesApiData;
 
     #[Validate('array')]
     public array $laborCategories = [];
 
     #[Validate('array')]
     public array $selectedLaborCategories = [];
-
-    // Store all data as a collection
-    public Collection $allData;
-
-    public int $totalRecords = 0;
-
-    #[Url(except: 15)]
-    public int $perPage = 15;
-
-    public string $search = '';
-
-    public string $sortField = 'name';
-
-    public string $sortDirection = 'asc';
-
-    public array $tableColumns = [
-        [
-            'field' => 'name',
-            'label' => 'Name',
-        ],
-        [
-            'field' => 'description',
-            'label' => 'Description',
-        ],
-        [
-            'field' => 'inactive',
-            'label' => 'Inactive',
-        ],
-        [
-            'field' => 'laborCategory.name',
-            'label' => 'Labor Category',
-        ],
-    ];
-
-    public function updatedPerPage()
-    {
-        $this->resetPage();
-    }
-
-    public function updatedSearch()
-    {
-        $this->resetPage();
-    }
 
     public function removeCategory(string $category): void
     {
@@ -119,23 +74,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
         });
 
-        if ($response && $response->successful()) {
-            $data = $response->json();
-            $records = $data['records'] ?? [];
-
-            // Convert to collection for easier manipulation
-            $this->allData = collect($records);
-            $this->totalRecords = $data['totalRecords'] ?? count($records);
-
-            Log::info('All Data Loaded', [
-                'total_records_available' => $this->totalRecords,
-                'records_fetched' => count($records),
-                'memory_usage_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
-            ]);
-        } else {
-            $this->allData = collect();
-            $this->totalRecords = 0;
-        }
+        $this->processApiResponseData($response, 'LaborCategoriesPaginatedList');
     }
 
     protected function loadFilteredData()
@@ -237,44 +176,6 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
     }
 
     /**
-     * Apply search and sort to a data collection
-     */
-    protected function applySearchAndSort(Collection $data): Collection
-    {
-        // Apply search filter
-        if (! empty($this->search)) {
-            $searchTerm = strtolower($this->search);
-            $data = $data->filter(function ($item) use ($searchTerm) {
-                return str_contains(strtolower(data_get($item, 'name', '')), $searchTerm) ||
-                       str_contains(strtolower(data_get($item, 'description', '')), $searchTerm) ||
-                       str_contains(strtolower(data_get($item, 'laborCategory.name', '')), $searchTerm);
-            });
-        }
-
-        // Apply sorting
-        if ($this->sortField) {
-            $data = $data->sortBy(function ($item) {
-                $value = data_get($item, $this->sortField, '');
-
-                return is_string($value) ? strtolower($value) : $value;
-            }, SORT_REGULAR, $this->sortDirection === 'desc');
-        }
-
-        return $data;
-    }
-
-    public function sortBy($field)
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
-        $this->resetPage();
-    }
-
-    /**
      * Export only data from selected categories (respects search/sort/category filters)
      */
     public function exportSelectionsToCsv(): StreamedResponse
@@ -300,14 +201,6 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         return $this->exportAsCsv($exportData->toArray(), $this->tableColumns, $filename);
     }
 
-    /**
-     * Get filtered and sorted data collection (current view)
-     */
-    protected function getFilteredAndSortedData(): Collection
-    {
-        return $this->applySearchAndSort($this->allData);
-    }
-
     public function render()
     {
         $paginatedData = $this->getPaginatedData();
@@ -317,54 +210,30 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         ]);
     }
 
-    protected function getPaginatedData()
-    {
-        if ($this->allData->isEmpty()) {
-            return new LengthAwarePaginator(
-                collect(),
-                0,
-                $this->perPage,
-                $this->getPage(),
-                [
-                    'path' => request()->url(),
-                    'pageName' => 'page',
-                ]
-            );
-        }
-
-        // Get filtered and sorted data
-        $filteredData = $this->getFilteredAndSortedData();
-
-        // Update total records based on filtered data
-        $totalFilteredRecords = $filteredData->count();
-
-        // Calculate pagination
-        $currentPage = $this->getPage();
-        $offset = ($currentPage - 1) * $this->perPage;
-        $currentPageItems = $filteredData->slice($offset, $this->perPage)->values();
-
-        return new LengthAwarePaginator(
-            $currentPageItems,
-            $totalFilteredRecords,
-            $this->perPage,
-            $currentPage,
-            [
-                'path' => request()->url(),
-                'pageName' => 'page',
-            ]
-        );
-    }
-
-    public function executeRequest(): void
-    {
-        $this->resetPage();
-        $this->executeApiCall();
-    }
-
     protected function initializeEndpoint(): void
     {
-        // Initialize the collection first
-        $this->allData = collect();
+        // Set table columns specific to labor categories
+        $this->tableColumns = [
+            [
+                'field' => 'name',
+                'label' => 'Name',
+            ],
+            [
+                'field' => 'description',
+                'label' => 'Description',
+            ],
+            [
+                'field' => 'inactive',
+                'label' => 'Inactive',
+            ],
+            [
+                'field' => 'laborCategory.name',
+                'label' => 'Labor Category',
+            ],
+        ];
+
+        // Initialize pagination data
+        $this->initializePaginationData();
 
         $this->setupAuthenticationFromSession();
 
@@ -392,14 +261,14 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         }
     }
 
-    protected function makeApiCall()
+    protected function makeApiCall(): object
     {
         $this->loadAllData();
 
         return $this->createMockResponse();
     }
 
-    private function createMockResponse()
+    private function createMockResponse(): object
     {
         // Return a mock response for the parent class
         return new class($this->allData->toArray())
@@ -426,11 +295,5 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 return $this->data;
             }
         };
-    }
-
-    protected function processApiResponse($response): void
-    {
-        parent::processApiResponse($response);
-        // Data is already processed in loadAllData()
     }
 }
