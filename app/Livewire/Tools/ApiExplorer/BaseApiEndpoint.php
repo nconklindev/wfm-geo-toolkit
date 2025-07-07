@@ -29,6 +29,12 @@ abstract class BaseApiEndpoint extends Component
     #[Validate('nullable|json')]
     public string $jsonInput = '';
 
+    // Track if user wants to see raw JSON (lazy load)
+    public bool $showRawJson = false;
+
+    // Store response metadata without full data
+    public ?array $responseMetadata = null;
+
     protected WfmService $wfmService;
 
     public function boot(WfmService $wfmService)
@@ -82,84 +88,152 @@ abstract class BaseApiEndpoint extends Component
         }
     }
 
-    public function validateJson(): void
+    /**
+     * Toggle raw JSON display and load data if needed
+     */
+    public function toggleRawJson(): void
     {
-        try {
-            if (empty($this->jsonInput)) {
-                $this->errorMessage = null;
-                $this->dispatch('json-validated', ['message' => 'Empty JSON is valid for this endpoint']);
+        $this->showRawJson = ! $this->showRawJson;
 
-                return;
-            }
-
-            $data = json_decode($this->jsonInput, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception('Invalid JSON: '.json_last_error_msg());
-            }
-
-            // Allow child classes to perform additional validation
-            $this->validateJsonData($data);
-
-            $this->errorMessage = null;
-            $this->dispatch('json-validated', ['message' => 'JSON is valid!']);
-        } catch (Exception $e) {
-            $this->errorMessage = $e->getMessage();
+        // If showing raw JSON, load the data
+        if ($this->showRawJson) {
+            $this->loadRawJsonData();
+        } else {
+            // If hiding raw JSON, reset to summary view
+            $this->resetToSummaryView();
         }
     }
 
     /**
-     * Override in child classes for endpoint-specific JSON validation
+     * Load the full raw JSON data from cache for display
      */
-    protected function validateJsonData($data): void
-    {
-        // Base implementation - can be overridden
-    }
-
-    /**
-     * Method to set placeholder in all child classes that extend this
-     */
-    public function placeholder(): string
-    {
-        return <<<'HTML'
-        <div class="flex items-center justify-center h-12 mx-auto w-full">
-            <!-- Loading spinner... -->
-            <flux:icon.loading class="w-6 h-6 text-gray-400 animate-spin" />
-        </div>
-        HTML;
-    }
-
-    /**
-     * Safely make an API call with authentication validation
-     *
-     * @param  callable  $apiCallFunction  The function that makes the API call
-     * @return mixed The response or null if authentication failed
-     */
-    protected function makeAuthenticatedApiCall(callable $apiCallFunction)
+    public function loadRawJsonData(): void
     {
         if (! $this->isAuthenticated) {
-            return null;
+            $this->apiResponse = [
+                'status' => 401,
+                'data' => ['message' => 'Authentication required'],
+            ];
+
+            return;
         }
 
-        try {
-            $response = $apiCallFunction();
+        // Get data from cache if using PaginatesApiData trait
+        if (method_exists($this, 'getAllData')) {
+            $cachedData = $this->getAllData();
 
-            if (! $this->validateAuthenticationState($response)) {
-                return null;
+            if ($cachedData->isNotEmpty()) {
+                $this->apiResponse = [
+                    'status' => $this->responseMetadata['status'] ?? 200,
+                    'data' => $cachedData->toArray(),
+                    'total_records' => $cachedData->count(),
+                    'loaded_from' => 'cache',
+                ];
+            } else {
+                // Re-fetch if cache is empty
+                $this->executeApiCall();
             }
-
-            return $response;
-        } catch (ConnectionException $e) {
-            $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
-            Log::error('Connection error in API call', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-                'hostname' => $this->hostname,
-            ]);
-
-            return null;
+        } else {
+            // For non-paginated components, re-fetch the data
+            $this->executeApiCall();
         }
     }
+
+    protected function executeApiCall(): void
+    {
+        $this->setupAuthenticationFromSession();
+
+        if (! $this->isAuthenticated) {
+            $this->errorMessage = 'Please authenticate first using the credentials form above.';
+
+            return;
+        }
+
+        if (! $this->wfmService) {
+            $this->errorMessage = 'WFM Service not available.';
+
+            return;
+        }
+
+        if (! empty($this->hostname)) {
+            $this->wfmService->setHostname($this->hostname);
+        }
+
+        $this->isLoading = true;
+        $this->errorMessage = null;
+
+        try {
+            $this->validate();
+
+            // Let child class handle the actual API call
+            $response = $this->makeApiCall();
+
+            if ($response) {
+                // Validate authentication state first
+                if (! $this->validateAuthenticationState($response)) {
+                    return; // Authentication failed, error message already set
+                }
+
+                // Store basic response metadata
+                $this->responseMetadata = [
+                    'status' => $response->status(),
+                    'successful' => $response->successful(),
+                    'headers' => $response->headers(),
+                    'timestamp' => now()->toISOString(),
+                ];
+
+                if (! $response->successful()) {
+                    $errorData = $response->json();
+                    $this->errorMessage = "API Error {$response->status()}: ".
+                        ($errorData['message'] ?? $errorData['error'] ?? 'Unknown error');
+
+                    // For errors, always show the response data
+                    $this->apiResponse = [
+                        'status' => $response->status(),
+                        'data' => $errorData,
+                    ];
+                } else {
+                    $this->handleSuccessfulResponse($response);
+
+                    // Set appropriate response based on toggle state
+                    if ($this->showRawJson) {
+                        // Show full raw JSON data
+                        $this->apiResponse = [
+                            'status' => $response->status(),
+                            'data' => $response->json(),
+                        ];
+                    } else {
+                        // Provide summary response
+                        $data = $response->json();
+                        $recordCount = is_array($data) ? count($data) : (isset($data['records']) ? count($data['records']) : 0);
+
+                        $this->apiResponse = [
+                            'status' => $response->status(),
+                            'data' => [
+                                'message' => "Data loaded successfully - {$recordCount} records",
+                                'record_count' => $recordCount,
+                                'click_to_view' => 'Click "Show Raw JSON" to view full response',
+                            ],
+                        ];
+                    }
+                }
+
+                // Allow child classes to process the response for table data, etc.
+                $this->processApiResponse($response);
+            }
+        } catch (Exception $e) {
+            $this->errorMessage = $e->getMessage();
+        } catch (Throwable $e) {
+            $this->errorMessage = 'An unexpected error occurred: '.$e->getMessage();
+        } finally {
+            $this->isLoading = false;
+        }
+    }
+
+    /**
+     * Child classes must implement this to make their specific API call
+     */
+    abstract protected function makeApiCall();
 
     /**
      * Validate that the current authentication is still valid by testing it
@@ -226,72 +300,6 @@ abstract class BaseApiEndpoint extends Component
         ]);
     }
 
-    protected function executeApiCall(): void
-    {
-        $this->setupAuthenticationFromSession();
-
-        if (! $this->isAuthenticated) {
-            $this->errorMessage = 'Please authenticate first using the credentials form above.';
-
-            return;
-        }
-
-        if (! $this->wfmService) {
-            $this->errorMessage = 'WFM Service not available.';
-
-            return;
-        }
-
-        if (! empty($this->hostname)) {
-            $this->wfmService->setHostname($this->hostname);
-        }
-
-        $this->isLoading = true;
-        $this->errorMessage = null;
-        $this->apiResponse = null;
-
-        try {
-            $this->validate();
-
-            // Let child class handle the actual API call
-            $response = $this->makeApiCall();
-
-            if ($response) {
-                // Validate authentication state first
-                if (! $this->validateAuthenticationState($response)) {
-                    return; // Authentication failed, error message already set
-                }
-
-                $this->apiResponse = [
-                    'status' => $response->status(),
-                    'data' => $response->json(),
-                ];
-
-                if (! $response->successful()) {
-                    $errorData = $response->json();
-                    $this->errorMessage = "API Error {$response->status()}: ".
-                        ($errorData['message'] ?? $errorData['error'] ?? 'Unknown error');
-                } else {
-                    $this->handleSuccessfulResponse($response);
-                }
-
-                // Allow child classes to process the response for table data, etc.
-                $this->processApiResponse($response);
-            }
-        } catch (Exception $e) {
-            $this->errorMessage = $e->getMessage();
-        } catch (Throwable $e) {
-            $this->errorMessage = 'An unexpected error occurred: '.$e->getMessage();
-        } finally {
-            $this->isLoading = false;
-        }
-    }
-
-    /**
-     * Child classes must implement this to make their specific API call
-     */
-    abstract protected function makeApiCall();
-
     /**
      * Override in child classes to handle successful responses
      */
@@ -307,6 +315,76 @@ abstract class BaseApiEndpoint extends Component
     protected function processApiResponse($response): void
     {
         // Base implementation - can be overridden by child classes
+    }
+
+    /**
+     * Reset the API response to summary view
+     */
+    private function resetToSummaryView(): void
+    {
+        if ($this->responseMetadata && $this->responseMetadata['successful']) {
+            // Get record count from cache if available
+            $recordCount = 0;
+            if (method_exists($this, 'getAllData')) {
+                $cachedData = $this->getAllData();
+                $recordCount = $cachedData->count();
+            }
+
+            // Set summary response
+            $this->apiResponse = [
+                'status' => $this->responseMetadata['status'] ?? 200,
+                'data' => [
+                    'message' => "Data loaded successfully - {$recordCount} records",
+                    'record_count' => $recordCount,
+                    'click_to_view' => 'Click "Show Raw JSON" to view full response',
+                ],
+            ];
+        }
+    }
+
+    /**
+     * Method to set placeholder in all child classes that extend this
+     */
+    public function placeholder(): string
+    {
+        return <<<'HTML'
+        <div class="flex items-center justify-center h-12 mx-auto w-full">
+            <!-- Loading spinner... -->
+            <flux:icon.loading class="w-6 h-6 text-gray-400 animate-spin" />
+        </div>
+        HTML;
+    }
+
+    /**
+     * Safely make an API call with authentication validation
+     *
+     * @param  callable  $apiCallFunction  The function that makes the API call
+     * @return mixed The response or null if authentication failed
+     */
+    protected function makeAuthenticatedApiCall(callable $apiCallFunction)
+    {
+        if (! $this->isAuthenticated) {
+            return null;
+        }
+
+        try {
+            $response = $apiCallFunction();
+
+            if (! $this->validateAuthenticationState($response)) {
+                return null;
+            }
+
+            return $response;
+        } catch (ConnectionException $e) {
+            $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
+            Log::error('Connection error in API call', [
+                'error' => $e->getMessage(),
+                'component' => get_class($this),
+                'hostname' => $this->hostname,
+            ]);
+
+            return null;
+        }
     }
 
     /**
