@@ -186,7 +186,7 @@
             <button
                 type="button"
                 @click="open = !open"
-                class="flex w-full items-center justify-between rounded-lg border border-zinc-300 bg-white px-3 py-2 text-left shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
+                class="flex w-full items-center justify-between rounded-lg border border-zinc-300 bg-white px-3 py-2 text-left shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none md:w-md dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
             >
                 <span
                     x-text="selected ? selected.label : 'Choose an endpoint...'"
@@ -199,7 +199,7 @@
             <div
                 x-show="open"
                 @click.away="open = false"
-                class="absolute z-10 mt-1 w-full rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
+                class="absolute z-10 mt-1 max-h-96 max-w-64 min-w-96 overflow-y-auto rounded-lg border border-zinc-200 bg-white text-wrap shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
             >
                 <!-- GPS Known Places Group -->
                 <x-api-endpoint-group title="GPS Known Places" name="map-pin">
@@ -240,11 +240,17 @@
                 <!-- Locations Group -->
                 <x-api-endpoint-group title="Data Dictionary" name="book-open">
                     <x-api-endpoint-item
-                        value="data_elements.list"
+                        value="data-elements.list"
                         label="Retrieve Data Element Definitions"
                         method="GET"
                     >
                         Retrieve Data Element Definitions
+                    </x-api-endpoint-item>
+                </x-api-endpoint-group>
+
+                <x-api-endpoint-group title="Timekeeping" name="clock">
+                    <x-api-endpoint-item value="paycodes-list" label="Retrieve Paycodes as a Manager" method="GET">
+                        Retrieve Paycodes as Manager
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
             </div>
@@ -257,12 +263,34 @@
                     // Convert endpoint to Livewire component name: places.create -> tools.api-explorer.endpoints.places-create
                     $livewireComponentName = 'tools.api-explorer.endpoints.' . str_replace('.', '-', $selectedEndpoint);
                     $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
+                    // I literally cannot get the IDE to NOT add these in
+
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
+                    '';
                     '';
                     '';
                     '';
                 @endphp
 
                 @if (class_exists($livewireComponentClass))
+                    {{-- Lazy load the components for the endpoints which displays a nice loading indicator --}}
                     <livewire:dynamic-component
                         lazy
                         :component="$livewireComponentName"
