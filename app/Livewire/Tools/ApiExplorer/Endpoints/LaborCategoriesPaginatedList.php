@@ -3,8 +3,10 @@
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
 use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
+use App\Traits\CombinesMultipleApiCalls;
 use App\Traits\ExportsCsvData;
 use App\Traits\PaginatesApiData;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Validate;
@@ -13,6 +15,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class LaborCategoriesPaginatedList extends BaseApiEndpoint
 {
+    use CombinesMultipleApiCalls;
     use ExportsCsvData;
     use PaginatesApiData;
 
@@ -28,13 +31,15 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             array_filter($this->selectedLaborCategories, fn ($item) => $item !== $category)
         );
         $this->resetPage();
+        $this->clearPaginationCache();
         $this->loadAllData();
     }
 
-    protected function loadAllData()
+    protected function loadAllData(): void
     {
         if (! $this->isAuthenticated) {
-            $this->allData = collect();
+            $this->totalRecords = 0;
+            $this->cacheKey = '';
 
             return;
         }
@@ -46,23 +51,23 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 // Fetch ALL data in one API call
                 $this->loadAllDataFromApi();
             } else {
-                // Load filtered data
+                // Load filtered data using multiple API calls
                 $this->loadFilteredData();
             }
 
             $this->logPerformanceMetrics($startTime);
-
         } catch (ConnectionException $ce) {
             $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
             Log::error('Connection error in LaborCategoriesPaginatedList', [
                 'error' => $ce->getMessage(),
                 'selected_categories' => $this->selectedLaborCategories,
             ]);
-            $this->allData = collect();
+            $this->totalRecords = 0;
+            $this->cacheKey = '';
         }
     }
 
-    protected function loadAllDataFromApi()
+    protected function loadAllDataFromApi(): void
     {
         // Fetch ALL records in one API call
         $requestData = [
@@ -74,47 +79,58 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
         });
 
+        // Use the trait's method to process and cache the response
         $this->processApiResponseData($response, 'LaborCategoriesPaginatedList');
     }
 
-    protected function loadFilteredData()
+    protected function loadFilteredData(): void
     {
-        $allRecords = [];
+        $apiCallFunctions = [];
 
         foreach ($this->selectedLaborCategories as $category) {
-            $requestData = [
-                'count' => 10000, // Large number for each category
-                'index' => 0,
-                'where' => [
-                    'laborCategory' => [
-                        'qualifier' => $category,
-                    ],
-                ],
-            ];
-
-            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
-                return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
-            });
-
-            if ($response && $response->successful()) {
-                $data = $response->json();
-                if (isset($data['records']) && is_array($data['records'])) {
-                    $allRecords = array_merge($allRecords, $data['records']);
-                }
-            } else {
-                // If any category fails due to auth, stop and let user know
-                if (! $this->isAuthenticated) {
-                    break;
-                }
-            }
+            $apiCallFunctions[] = function () use ($category) {
+                return $this->wfmService->getLaborCategoryEntriesPaginated([
+                    'count' => 10000,
+                    'index' => 0,
+                    'where' => ['laborCategory' => ['qualifier' => $category]],
+                ]);
+            };
         }
 
-        // Convert to collection and remove duplicates
-        $this->allData = collect($allRecords)->unique(function ($item) {
+        $combinedData = $this->makeMultipleApiCalls($apiCallFunctions, function ($item) {
             return $item['id'] ?? ($item['name'] ?? '').'_'.data_get($item, 'laborCategory.name', '');
         });
 
-        $this->totalRecords = $this->allData->count();
+        // Cache the combined data using the trait's pattern
+        $this->cacheKey = $this->generateCacheKey();
+        cache()->put($this->cacheKey, $combinedData, now()->addMinutes(30));
+
+        $this->totalRecords = $combinedData->count();
+
+        // Clear pagination cache when new data is loaded
+        $this->clearPaginationCache();
+
+        Log::info('Combined Data Cached', [
+            'component' => 'LaborCategoriesPaginatedList',
+            'total_records_available' => $this->totalRecords,
+            'selected_categories' => count($this->selectedLaborCategories),
+            'cache_key' => $this->cacheKey,
+            'memory_usage_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
+        ]);
+    }
+
+    /**
+     * Override the generateCacheKey method to include selected categories
+     */
+    protected function generateCacheKey(): string
+    {
+        $categoriesHash = empty($this->selectedLaborCategories)
+            ? 'all'
+            : md5(json_encode(sort($this->selectedLaborCategories)));
+
+        return 'api_data_'.class_basename($this).'_'.md5(
+            $this->hostname.'_'.session('wfm_access_token', 'anonymous').'_'.$categoriesHash
+        );
     }
 
     private function logPerformanceMetrics(float $startTime): void
@@ -128,7 +144,21 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             'total_records' => $this->totalRecords,
             'selected_categories' => count($this->selectedLaborCategories),
             'data_source' => empty($this->selectedLaborCategories) ? 'api_all' : 'api_filtered',
+            'cache_key' => $this->cacheKey,
         ]);
+    }
+
+    /**
+     * Override executeRequest to clear raw JSON viewer
+     */
+    public function executeRequest(): void
+    {
+        // Clear raw JSON viewer when making new request
+        $this->dispatch('clear-raw-json-viewer');
+
+        $this->resetPage();
+        $this->clearPaginationCache();
+        $this->executeApiCall();
     }
 
     /**
@@ -180,13 +210,8 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
      */
     public function exportSelectionsToCsv(): StreamedResponse
     {
-        if (empty($this->selectedLaborCategories)) {
-            // If no categories selected, export current filtered view
-            $exportData = $this->getFilteredAndSortedData();
-        } else {
-            // Export only data from selected categories
-            $exportData = $this->getFilteredAndSortedData();
-        }
+        // Get the current filtered and sorted data (what the user is seeing)
+        $exportData = $this->getFilteredAndSortedData();
 
         $categoryNames = empty($this->selectedLaborCategories)
             ? 'current-view'
@@ -201,7 +226,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         return $this->exportAsCsv($exportData->toArray(), $this->tableColumns, $filename);
     }
 
-    public function render()
+    public function render(): View
     {
         $paginatedData = $this->getPaginatedData();
 
@@ -241,7 +266,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return;
         }
 
-        // Use the new authenticated API call method
+
         $response = $this->makeAuthenticatedApiCall(function () {
             return $this->wfmService->getLaborCategories();
         });
@@ -251,7 +276,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             $this->laborCategories = array_column($data, 'name');
         } elseif (! $this->isAuthenticated) {
             // Authentication was invalid, laborCategories will remain empty
-            // Error message already set by authentication handler
+            // Error message already set by the authentication handler
         } else {
             $this->errorMessage = 'Unable to load labor categories. Please check your network connection and try again.';
             Log::error('Failed to load labor categories in initializeEndpoint', [
@@ -265,35 +290,42 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
     {
         $this->loadAllData();
 
-        return $this->createMockResponse();
+        // Get the cached data to create the mock response
+        $cachedData = $this->getAllData();
+        $recordCount = $cachedData->count();
+
+        return $this->createMockResponse($cachedData->toArray(), $recordCount);
     }
 
-    private function createMockResponse(): object
+    /**
+     * Override the searchable fields for labor categories
+     */
+    protected function getSearchableFields(): array
     {
-        // Return a mock response for the parent class
-        return new class($this->allData->toArray())
-        {
-            private $data;
+        return [
+            'name',
+            'description',
+            'laborCategory.name',
+        ];
+    }
 
-            public function __construct($data)
-            {
-                $this->data = ['records' => $data];
-            }
+    /**
+     * Override to extract record count from our custom mock response structure
+     */
+    protected function extractRecordCount($response): int
+    {
+        $data = $response->json();
 
-            public function successful(): bool
-            {
-                return true;
-            }
+        // Our mock response includes a record_count field that reflects the actual cached data count
+        if (isset($data['record_count']) && is_numeric($data['record_count'])) {
+            return (int) $data['record_count'];
+        }
 
-            public function status(): int
-            {
-                return 200;
-            }
+        // Fallback to counting records array
+        if (isset($data['records']) && is_array($data['records'])) {
+            return count($data['records']);
+        }
 
-            public function json()
-            {
-                return $this->data;
-            }
-        };
+        return 0;
     }
 }
