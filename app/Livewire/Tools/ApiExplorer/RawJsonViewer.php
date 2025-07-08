@@ -5,6 +5,7 @@ namespace App\Livewire\Tools\ApiExplorer;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class RawJsonViewer extends Component
@@ -26,6 +27,28 @@ class RawJsonViewer extends Component
     public function mount(string $cacheKey = ''): void
     {
         $this->cacheKey = $cacheKey;
+    }
+
+    /**
+     * Listen for cache key updates from parent component
+     */
+    public function updatedCacheKey(): void
+    {
+        // Clear existing data when cache key changes
+        $this->jsonData = null;
+        $this->errorMessage = null;
+        $this->isVisible = false;
+    }
+
+    /**
+     * Listen for clear events from parent component
+     */
+    #[On('clear-raw-json-viewer')]
+    public function clearData(): void
+    {
+        $this->jsonData = null;
+        $this->errorMessage = null;
+        $this->isVisible = false;
     }
 
     public function toggleVisibility(?string $cacheKey = null): void
