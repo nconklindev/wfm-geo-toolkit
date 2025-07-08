@@ -140,9 +140,13 @@ abstract class BaseApiEndpoint extends Component
                 } else {
                     $this->handleSuccessfulResponse($response);
 
-                    // Always show summary response - never load full data here
-                    $data = $response->json();
-                    $recordCount = is_array($data) ? count($data) : (isset($data['records']) ? count($data['records']) : 0);
+                    // Use the child class's implementation to extract record count
+                    $recordCount = $this->extractRecordCount($response);
+
+                    //                    Log::debug('DEBUG: BaseApiEndpoint record count extracted', [
+                    //                        'component' => get_class($this),
+                    //                        'record_count' => $recordCount,
+                    //                    ]);
 
                     $this->apiResponse = [
                         'status' => $response->status(),
@@ -209,10 +213,10 @@ abstract class BaseApiEndpoint extends Component
         $errorMessage = strtolower($responseData['message'] ?? $responseData['error'] ?? '');
 
         return str_contains($errorMessage, 'token') ||
-               str_contains($errorMessage, 'auth') ||
-               str_contains($errorMessage, 'unauthorized') ||
-               str_contains($errorMessage, 'forbidden') ||
-               str_contains($errorMessage, 'expired');
+            str_contains($errorMessage, 'auth') ||
+            str_contains($errorMessage, 'unauthorized') ||
+            str_contains($errorMessage, 'forbidden') ||
+            str_contains($errorMessage, 'expired');
     }
 
     /**
@@ -244,6 +248,31 @@ abstract class BaseApiEndpoint extends Component
     protected function handleSuccessfulResponse($response): void
     {
         // Base implementation - can be overridden
+    }
+
+    /**
+     * Extract record count from response - can be overridden by child classes
+     */
+    protected function extractRecordCount($response): int
+    {
+        $data = $response->json();
+
+        // Default implementation - checks for 'records' key first, then falls back to array count
+        if (isset($data['records']) && is_array($data['records'])) {
+            return count($data['records']);
+        }
+
+        // If data itself is an array, count it
+        if (is_array($data)) {
+            return count($data);
+        }
+
+        // If there's a record_count field in the response, use it
+        if (isset($data['record_count']) && is_numeric($data['record_count'])) {
+            return (int) $data['record_count'];
+        }
+
+        return 0;
     }
 
     /**
