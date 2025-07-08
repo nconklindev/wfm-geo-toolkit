@@ -3,21 +3,93 @@
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
 use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
+use App\Traits\ExportsCsvData;
 use App\Traits\PaginatesApiData;
-use Illuminate\Http\Client\ConnectionException;
+use Exception;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DataElementsList extends BaseApiEndpoint
 {
+    use ExportsCsvData;
     use PaginatesApiData;
 
-    public function render()
+    public function render(): View
     {
         $paginatedData = $this->getPaginatedData();
 
         return view('livewire.tools.api-explorer.endpoints.data-elements-list', [
             'paginatedData' => $paginatedData,
         ]);
+    }
+
+    /**
+     * Export all data elements to CSV (respects current search/sort but gets all data)
+     */
+    public function exportAllToCsv(): StreamedResponse|RedirectResponse
+    {
+        // Get all data (not paginated)
+        $allData = $this->getAllData();
+
+        if ($allData->isEmpty()) {
+            session()->flash('error', 'No data available to export.');
+
+            return back();
+        }
+
+        // Apply current search and sort to the full dataset
+        $filteredData = $this->getFilteredAndSortedData($allData);
+
+        // Generate filename based on current state
+        $filename = $this->generateExportFilename();
+
+        return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
+    }
+
+    /**
+     * Generate a descriptive filename for the export
+     */
+    protected function generateExportFilename(): string
+    {
+        $parts = ['data-elements'];
+
+        // Add search term if present
+        if (! empty($this->search)) {
+            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
+            $parts[] = "search-{$searchSlug}";
+        }
+
+        // Add sort info if not default
+        if ($this->sortField !== 'name' || $this->sortDirection !== 'asc') {
+            $parts[] = "sorted-by-{$this->sortField}-{$this->sortDirection}";
+        }
+
+        // Add timestamp
+        $parts[] = now()->format('Y-m-d_H-i-s');
+
+        return implode('-', $parts);
+    }
+
+    /**
+     * Export current filtered/searched selections to CSV
+     */
+    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
+    {
+        // Get the current filtered and sorted data (what the user is seeing)
+        $exportData = $this->getFilteredAndSortedData();
+
+        if ($exportData->isEmpty()) {
+            session()->flash('error', 'No data available to export.');
+
+            return back();
+        }
+
+        // Generate filename based on the current view
+        $filename = $this->generateExportFilename();
+
+        return $this->exportAsCsv($exportData->toArray(), $this->tableColumns, $filename);
     }
 
     /**
@@ -77,46 +149,29 @@ class DataElementsList extends BaseApiEndpoint
 
             $this->processApiResponseData($response, 'DataElementsList');
 
-            return $response;
+            // Clear any previous error messages on a successful call
+            $this->errorMessage = '';
 
-        } catch (ConnectionException $ce) {
-            $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
-            Log::error('Connection error in DataElementsList', [
-                'error' => $ce->getMessage(),
+            return $response;
+        } catch (Exception $e) {
+            // Handle other types of exceptions
+            $this->errorMessage = 'An unexpected error occurred. Please try again later.';
+
+            Log::error('Unexpected error in DataElementsList', [
+                'error' => $e->getMessage(),
+                'type' => get_class($e),
+                'stack_trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id(),
+                'session_id' => session()->getId(),
             ]);
+
             $this->totalRecords = 0;
+
+            if (! empty($this->cacheKey)) {
+                cache()->forget($this->cacheKey);
+            }
 
             return null;
-        }
-    }
-
-    /**
-     * Override the data processing for data elements API response
-     * The data elements endpoint returns data directly as an array, not wrapped in 'records'
-     */
-    protected function processApiResponseData($response, string $componentName = ''): void
-    {
-        if ($response && $response->successful()) {
-            $data = $response->json();
-
-            // Data elements API returns the array directly, not wrapped in 'records'
-            $records = is_array($data) ? $data : [];
-
-            // Cache the full dataset instead of storing in the component state
-            $this->cacheKey = $this->generateCacheKey();
-            cache()->put($this->cacheKey, collect($records), now()->addMinutes(30));
-
-            $this->totalRecords = count($records);
-
-            Log::info('Data Elements Cached', [
-                'component' => $componentName ?: get_class($this),
-                'total_records_available' => $this->totalRecords,
-                'records_fetched' => count($records),
-                'cache_key' => $this->cacheKey,
-                'memory_usage_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
-            ]);
-        } else {
-            $this->totalRecords = 0;
         }
     }
 }
