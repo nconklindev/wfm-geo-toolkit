@@ -32,9 +32,11 @@
                                     </option>
                                 @endforeach
                             @else
-                                <option disabled>
+                                <option disabled class="text-wrap">
                                     @if (! $isAuthenticated)
-                                        Please authenticate to load categories
+                                        Please authenticate to load categories.
+                                        If you were previously authenticated,
+                                        your session may have expired and you will need to re-authenticate.
                                     @elseif (empty($laborCategories))
                                         No categories available - check authentication
                                     @endif
@@ -144,7 +146,7 @@
     </div>
 
     <!-- Enhanced Data Table -->
-    @if ($paginatedData && ($paginatedData->total() > 0 || ! empty($currentPageData)))
+    @if (! empty($tableColumns) && ($totalRecords > 0 || ! empty($cacheKey)))
         <x-api-data-table
             :paginated-data="$paginatedData"
             :columns="$tableColumns"
@@ -158,5 +160,5 @@
     @endif
 
     <!-- Response Section (Raw JSON) -->
-    <x-api-response :response="$apiResponse" :error="$errorMessage" />
+    <x-api-response :response="$apiResponse" :error="$errorMessage" :raw-json-cache-key="$rawJsonCacheKey" />
 </div>
