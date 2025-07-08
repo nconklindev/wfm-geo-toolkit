@@ -266,7 +266,6 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return;
         }
 
-
         $response = $this->makeAuthenticatedApiCall(function () {
             return $this->wfmService->getLaborCategories();
         });
