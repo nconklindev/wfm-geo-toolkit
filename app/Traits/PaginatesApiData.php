@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
@@ -29,14 +30,121 @@ trait PaginatesApiData
     // Cache key for storing the full dataset
     public string $cacheKey = '';
 
+    // Add pagination cache for filtered/sorted results
+    protected string $paginationCacheKey = '';
+
     public function updatedPerPage()
     {
         $this->resetPage();
+        $this->clearPaginationCache();
+    }
+
+    /**
+     * Clear pagination-related cache
+     */
+    protected function clearPaginationCache(): void
+    {
+        // Clear all pagination cache entries for this component
+        $baseKey = $this->generateCacheKey();
+
+        // Get the cache store
+        $cache = cache();
+        $store = $cache->getStore();
+
+        try {
+            // Handle different cache drivers
+            if (method_exists($store, 'getRedis') && $store->getRedis()) {
+                // Redis implementation
+                $this->clearRedisPaginationCache($store->getRedis(), $baseKey);
+            } elseif (method_exists($store, 'getMemcached')) {
+                // Memcached implementation
+                $this->clearMemcachedPaginationCache($store, $baseKey);
+            } else {
+                // File cache or other drivers - use key tracking
+                $this->clearFilePaginationCache($cache, $baseKey);
+            }
+
+            Log::debug('Pagination cache cleared', [
+                'component' => get_class($this),
+                'base_key' => $baseKey,
+                'cache_driver' => config('cache.default'),
+            ]);
+
+        } catch (Exception $e) {
+            Log::warning('Failed to clear pagination cache', [
+                'error' => $e->getMessage(),
+                'component' => get_class($this),
+                'base_key' => $baseKey,
+            ]);
+        }
+    }
+
+    /**
+     * Generate a unique cache key for this component instance
+     */
+    protected function generateCacheKey(): string
+    {
+        return 'api_data_'.class_basename($this).'_'.md5(
+            $this->hostname.'_'.session('wfm_access_token', 'anonymous')
+        );
+    }
+
+    /**
+     * Clear Redis pagination cache using pattern matching
+     */
+    private function clearRedisPaginationCache($redis, string $baseKey): void
+    {
+        $patterns = [
+            $baseKey.'_page_*',
+            $baseKey.'_filter_*',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $keys = $redis->keys($pattern);
+            if (! empty($keys)) {
+                $redis->del($keys);
+            }
+        }
+    }
+
+    /**
+     * Clear Memcached pagination cache using tracked keys
+     */
+    private function clearMemcachedPaginationCache($store, string $baseKey): void
+    {
+        // Memcached doesn't support pattern deletion, so we track keys
+        $trackedKeysKey = $baseKey.'_tracked_keys';
+        $trackedKeys = cache()->get($trackedKeysKey, []);
+
+        foreach ($trackedKeys as $key) {
+            cache()->forget($key);
+        }
+
+        // Clear the tracking key itself
+        cache()->forget($trackedKeysKey);
+    }
+
+    /**
+     * Clear file cache pagination using tracked keys
+     */
+    private function clearFilePaginationCache($cache, string $baseKey): void
+    {
+        // For file cache and other drivers without pattern support
+        $trackedKeysKey = $baseKey.'_tracked_keys';
+        $trackedKeys = $cache->get($trackedKeysKey, []);
+
+        foreach ($trackedKeys as $key) {
+            $cache->forget($key);
+        }
+
+        // Clear the tracking key itself
+        $cache->forget($trackedKeysKey);
     }
 
     public function updatedSearch()
     {
         $this->resetPage();
+        $this->clearPaginationCache();
     }
 
     /**
@@ -45,18 +153,29 @@ trait PaginatesApiData
     public function executeRequest(): void
     {
         $this->resetPage();
+        $this->clearPaginationCache();
         $this->executeApiCall();
     }
 
     /**
-     * Get paginated data for rendering
+     * Get paginated data for rendering with enhanced caching
      */
     public function getPaginatedData(): LengthAwarePaginator
     {
+        // Generate cache key for current pagination state
+        $this->paginationCacheKey = $this->generatePaginationCacheKey();
+
+        // Try to get cached pagination result
+        $cachedPagination = cache()->get($this->paginationCacheKey);
+
+        if ($cachedPagination) {
+            return $cachedPagination;
+        }
+
         $allData = $this->getAllData();
 
         if ($allData->isEmpty()) {
-            return new LengthAwarePaginator(
+            $emptyPaginator = new LengthAwarePaginator(
                 collect(),
                 0,
                 $this->perPage,
@@ -66,6 +185,11 @@ trait PaginatesApiData
                     'pageName' => 'page',
                 ]
             );
+
+            // Cache empty result briefly with tracking
+            $this->putCacheWithTracking($this->paginationCacheKey, $emptyPaginator, now()->addMinutes(5));
+
+            return $emptyPaginator;
         }
 
         // Get filtered and sorted data
@@ -79,7 +203,7 @@ trait PaginatesApiData
         $offset = ($currentPage - 1) * $this->perPage;
         $currentPageItems = $filteredData->slice($offset, $this->perPage)->values();
 
-        return new LengthAwarePaginator(
+        $paginator = new LengthAwarePaginator(
             $currentPageItems,
             $totalFilteredRecords,
             $this->perPage,
@@ -88,6 +212,21 @@ trait PaginatesApiData
                 'path' => request()->url(),
                 'pageName' => 'page',
             ]
+        );
+
+        // Cache pagination result for 10 minutes with tracking
+        $this->putCacheWithTracking($this->paginationCacheKey, $paginator, now()->addMinutes(10));
+
+        return $paginator;
+    }
+
+    /**
+     * Generate cache key for pagination state
+     */
+    protected function generatePaginationCacheKey(): string
+    {
+        return $this->generateCacheKey().'_page_'.md5(
+            $this->search.$this->sortField.$this->sortDirection.$this->perPage.$this->getPage()
         );
     }
 
@@ -104,13 +243,68 @@ trait PaginatesApiData
     }
 
     /**
-     * Get filtered and sorted data collection (current view)
+     * Enhanced cache put method that tracks keys
+     */
+    private function putCacheWithTracking(string $key, $value, $ttl): void
+    {
+        cache()->put($key, $value, $ttl);
+
+        // Track the key if we're not using Redis (which supports pattern deletion)
+        $store = cache()->getStore();
+        if (! method_exists($store, 'getRedis') || ! $store->getRedis()) {
+            $this->trackCacheKey($key);
+        }
+    }
+
+    /**
+     * Track cache keys for drivers that don't support pattern deletion
+     */
+    private function trackCacheKey(string $key): void
+    {
+        $baseKey = $this->generateCacheKey();
+        $trackedKeysKey = $baseKey.'_tracked_keys';
+
+        $trackedKeys = cache()->get($trackedKeysKey, []);
+
+        if (! in_array($key, $trackedKeys)) {
+            $trackedKeys[] = $key;
+            cache()->put($trackedKeysKey, $trackedKeys, now()->addHours(2));
+        }
+    }
+
+    /**
+     * Get filtered and sorted data collection with enhanced caching
      */
     protected function getFilteredAndSortedData(?Collection $data = null): Collection
     {
         $data = $data ?? $this->getAllData();
 
-        return $this->applySearchAndSort($data);
+        // Generate cache key for filtered/sorted data
+        $filterSortCacheKey = $this->generateFilterSortCacheKey();
+
+        // Try to get cached filtered data
+        $cachedFiltered = cache()->get($filterSortCacheKey);
+
+        if ($cachedFiltered) {
+            return $cachedFiltered;
+        }
+
+        $filteredData = $this->applySearchAndSort($data);
+
+        // Cache filtered/sorted data for 15 minutes with tracking
+        $this->putCacheWithTracking($filterSortCacheKey, $filteredData, now()->addMinutes(15));
+
+        return $filteredData;
+    }
+
+    /**
+     * Generate cache key for filtered/sorted data
+     */
+    protected function generateFilterSortCacheKey(): string
+    {
+        return $this->generateCacheKey().'_filter_'.md5(
+            $this->search.$this->sortField.$this->sortDirection
+        );
     }
 
     /**
@@ -140,15 +334,24 @@ trait PaginatesApiData
 
     /**
      * Check if an item matches the search term
-     * Override in child classes for custom search logic
      */
     protected function matchesSearchTerm($item, string $searchTerm): bool
     {
-        // Default search implementation - searches common fields
         $searchableFields = $this->getSearchableFields();
 
         foreach ($searchableFields as $field) {
             $value = data_get($item, $field, '');
+
+            // Handle arrays and objects by converting to string
+            if (is_array($value)) {
+                $value = implode(' ', array_filter($value, 'is_string'));
+            } elseif (is_object($value)) {
+                $value = json_encode($value);
+            }
+
+            // Ensure we have a string before calling strtolower
+            $value = (string) $value;
+
             if (str_contains(strtolower($value), $searchTerm)) {
                 return true;
             }
@@ -159,7 +362,6 @@ trait PaginatesApiData
 
     /**
      * Get fields that should be searched
-     * Override in child classes to define custom searchable fields
      */
     protected function getSearchableFields(): array
     {
@@ -179,24 +381,28 @@ trait PaginatesApiData
             $this->sortDirection = 'asc';
         }
         $this->resetPage();
+        $this->clearPaginationCache();
     }
 
     /**
-     * Process API response data and cache it instead of storing in component state
+     * Process API response data and cache it
      */
     protected function processApiResponseData($response, string $componentName = ''): void
     {
         if ($response && $response->successful()) {
             $data = $response->json();
-            $records = $data['records'] ?? $data; // Handle both wrapped and unwrapped responses
+            $records = $data['records'] ?? $data;
 
-            // Cache the full dataset instead of storing in component state
+            // Cache the full dataset
             $this->cacheKey = $this->generateCacheKey();
             cache()->put($this->cacheKey, collect($records), now()->addMinutes(30));
 
             $this->totalRecords = is_array($data) && isset($data['totalRecords'])
                 ? $data['totalRecords']
                 : count($records);
+
+            // Clear pagination cache when new data is loaded
+            $this->clearPaginationCache();
 
             Log::info('Data Cached', [
                 'component' => $componentName ?: get_class($this),
@@ -211,22 +417,12 @@ trait PaginatesApiData
     }
 
     /**
-     * Generate a unique cache key for this component instance
-     */
-    protected function generateCacheKey(): string
-    {
-        return 'api_data_'.class_basename($this).'_'.md5(
-            $this->hostname.'_'.session('wfm_access_token', 'anonymous')
-        );
-    }
-
-    /**
      * Initialize the data collection
-     * Call this in the child class's initializeEndpoint method
      */
     protected function initializePaginationData(): void
     {
         $this->totalRecords = 0;
         $this->cacheKey = '';
+        $this->paginationCacheKey = '';
     }
 }
