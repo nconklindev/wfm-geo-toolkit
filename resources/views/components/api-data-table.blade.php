@@ -83,7 +83,25 @@
                             <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-700">
                                 @foreach ($columns as $column)
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-900 dark:text-zinc-100">
-                                        {{ data_get($row, $column['field'], '-') }}
+                                        @php
+                                            $value = data_get($row, $column['field'], '-');
+
+                                            // Handle arrays and objects for display
+                                            if (is_array($value)) {
+                                                $displayValue = implode(
+                                                    ', ',
+                                                    array_filter($value, function ($item) {
+                                                        return is_string($item) || is_numeric($item);
+                                                    }),
+                                                );
+                                            } elseif (is_object($value)) {
+                                                $displayValue = json_encode($value);
+                                            } else {
+                                                $displayValue = $value;
+                                            }
+                                        @endphp
+
+                                        {{ $displayValue ?: '-' }}
                                     </td>
                                 @endforeach
                             </tr>
