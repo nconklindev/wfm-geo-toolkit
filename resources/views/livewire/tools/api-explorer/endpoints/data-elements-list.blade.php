@@ -57,10 +57,5 @@
         />
     @endif
 
-    <x-api-response
-        :response="$apiResponse"
-        :error="$errorMessage"
-        :show-raw-json="$showRawJson"
-        component-id="{{ $this->getId() }}"
-    />
+    <x-api-response :response="$apiResponse" :error="$errorMessage" :raw-json-cache-key="$rawJsonCacheKey" />
 </div>

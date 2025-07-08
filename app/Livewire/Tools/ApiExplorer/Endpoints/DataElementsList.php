@@ -102,7 +102,7 @@ class DataElementsList extends BaseApiEndpoint
             // Data elements API returns the array directly, not wrapped in 'records'
             $records = is_array($data) ? $data : [];
 
-            // Cache the full dataset instead of storing in component state
+            // Cache the full dataset instead of storing in the component state
             $this->cacheKey = $this->generateCacheKey();
             cache()->put($this->cacheKey, collect($records), now()->addMinutes(30));
 
