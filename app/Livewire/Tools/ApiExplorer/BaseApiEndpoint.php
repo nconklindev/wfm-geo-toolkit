@@ -29,15 +29,15 @@ abstract class BaseApiEndpoint extends Component
     #[Validate('nullable|json')]
     public string $jsonInput = '';
 
-    // Track if user wants to see raw JSON (lazy load)
-    public bool $showRawJson = false;
-
     // Store response metadata without full data
     public ?array $responseMetadata = null;
 
+    // Store the cache key for raw JSON viewer
+    public string $rawJsonCacheKey = '';
+
     protected WfmService $wfmService;
 
-    public function boot(WfmService $wfmService)
+    public function boot(WfmService $wfmService): void
     {
         $this->wfmService = $wfmService;
         $this->setupAuthenticationFromSession();
@@ -48,22 +48,20 @@ abstract class BaseApiEndpoint extends Component
         if (session('wfm_authenticated') && session('wfm_access_token')) {
             $this->isAuthenticated = true;
 
-            if ($this->wfmService) {
-                $this->wfmService->setAccessToken(session('wfm_access_token'));
+            $this->wfmService->setAccessToken(session('wfm_access_token'));
 
-                if (! empty($this->hostname)) {
-                    $this->wfmService->setHostname($this->hostname);
-                } elseif (session('wfm_credentials.hostname')) {
-                    $this->wfmService->setHostname(session('wfm_credentials.hostname'));
-                    $this->hostname = session('wfm_credentials.hostname');
-                }
+            if (! empty($this->hostname)) {
+                $this->wfmService->setHostname($this->hostname);
+            } elseif (session('wfm_credentials.hostname')) {
+                $this->wfmService->setHostname(session('wfm_credentials.hostname'));
+                $this->hostname = session('wfm_credentials.hostname');
             }
         } else {
             $this->isAuthenticated = false;
         }
     }
 
-    public function mount(bool $isAuthenticated = false, string $hostname = '')
+    public function mount(bool $isAuthenticated = false, string $hostname = ''): void
     {
         $this->isAuthenticated = $isAuthenticated;
         $this->hostname = $hostname;
@@ -79,64 +77,17 @@ abstract class BaseApiEndpoint extends Component
         // Override in child classes if needed
     }
 
-    public function switchInputMode(string $mode): void
-    {
-        if (in_array($mode, ['form', 'json'])) {
-            $this->inputMode = $mode;
-            $this->resetErrorBag();
-            $this->resetValidation();
-        }
-    }
-
     /**
-     * Toggle raw JSON display and load data if needed
+     * Method to set placeholder in all child classes that extend this
      */
-    public function toggleRawJson(): void
+    public function placeholder(): string
     {
-        $this->showRawJson = ! $this->showRawJson;
-
-        // If showing raw JSON, load the data
-        if ($this->showRawJson) {
-            $this->loadRawJsonData();
-        } else {
-            // If hiding raw JSON, reset to summary view
-            $this->resetToSummaryView();
-        }
-    }
-
-    /**
-     * Load the full raw JSON data from cache for display
-     */
-    public function loadRawJsonData(): void
-    {
-        if (! $this->isAuthenticated) {
-            $this->apiResponse = [
-                'status' => 401,
-                'data' => ['message' => 'Authentication required'],
-            ];
-
-            return;
-        }
-
-        // Get data from cache if using PaginatesApiData trait
-        if (method_exists($this, 'getAllData')) {
-            $cachedData = $this->getAllData();
-
-            if ($cachedData->isNotEmpty()) {
-                $this->apiResponse = [
-                    'status' => $this->responseMetadata['status'] ?? 200,
-                    'data' => $cachedData->toArray(),
-                    'total_records' => $cachedData->count(),
-                    'loaded_from' => 'cache',
-                ];
-            } else {
-                // Re-fetch if cache is empty
-                $this->executeApiCall();
-            }
-        } else {
-            // For non-paginated components, re-fetch the data
-            $this->executeApiCall();
-        }
+        return <<<'HTML'
+        <div class="flex items-center justify-center h-12 mx-auto w-full">
+            <!-- Loading spinner... -->
+            <flux:icon.loading class="w-6 h-6 text-gray-400 animate-spin" />
+        </div>
+        HTML;
     }
 
     protected function executeApiCall(): void
@@ -145,12 +96,6 @@ abstract class BaseApiEndpoint extends Component
 
         if (! $this->isAuthenticated) {
             $this->errorMessage = 'Please authenticate first using the credentials form above.';
-
-            return;
-        }
-
-        if (! $this->wfmService) {
-            $this->errorMessage = 'WFM Service not available.';
 
             return;
         }
@@ -171,7 +116,7 @@ abstract class BaseApiEndpoint extends Component
             if ($response) {
                 // Validate authentication state first
                 if (! $this->validateAuthenticationState($response)) {
-                    return; // Authentication failed, error message already set
+                    return; // Authentication failed, error messages already set
                 }
 
                 // Store basic response metadata
@@ -195,26 +140,22 @@ abstract class BaseApiEndpoint extends Component
                 } else {
                     $this->handleSuccessfulResponse($response);
 
-                    // Set appropriate response based on toggle state
-                    if ($this->showRawJson) {
-                        // Show full raw JSON data
-                        $this->apiResponse = [
-                            'status' => $response->status(),
-                            'data' => $response->json(),
-                        ];
-                    } else {
-                        // Provide summary response
-                        $data = $response->json();
-                        $recordCount = is_array($data) ? count($data) : (isset($data['records']) ? count($data['records']) : 0);
+                    // Always show summary response - never load full data here
+                    $data = $response->json();
+                    $recordCount = is_array($data) ? count($data) : (isset($data['records']) ? count($data['records']) : 0);
 
-                        $this->apiResponse = [
-                            'status' => $response->status(),
-                            'data' => [
-                                'message' => "Data loaded successfully - {$recordCount} records",
-                                'record_count' => $recordCount,
-                                'click_to_view' => 'Click "Show Raw JSON" to view full response',
-                            ],
-                        ];
+                    $this->apiResponse = [
+                        'status' => $response->status(),
+                        'data' => [
+                            'message' => "Data loaded successfully - $recordCount records",
+                            'record_count' => $recordCount,
+                            'click_to_view' => 'Click "Show Raw JSON" to view full response',
+                        ],
+                    ];
+
+                    // Set the cache key for the raw JSON viewer component
+                    if (method_exists($this, 'generateCacheKey')) {
+                        $this->rawJsonCacheKey = $this->generateCacheKey();
                     }
                 }
 
@@ -237,9 +178,6 @@ abstract class BaseApiEndpoint extends Component
 
     /**
      * Validate that the current authentication is still valid by testing it
-     *
-     * @param  mixed  $response  The response object to check
-     * @return bool True if authentication is valid, false if expired/invalid
      */
     protected function validateAuthenticationState($response): bool
     {
@@ -310,7 +248,6 @@ abstract class BaseApiEndpoint extends Component
 
     /**
      * Override in child classes to process API response for additional data extraction
-     * (e.g., extracting table data, formatting response data, etc.)
      */
     protected function processApiResponse($response): void
     {
@@ -318,48 +255,7 @@ abstract class BaseApiEndpoint extends Component
     }
 
     /**
-     * Reset the API response to summary view
-     */
-    private function resetToSummaryView(): void
-    {
-        if ($this->responseMetadata && $this->responseMetadata['successful']) {
-            // Get record count from cache if available
-            $recordCount = 0;
-            if (method_exists($this, 'getAllData')) {
-                $cachedData = $this->getAllData();
-                $recordCount = $cachedData->count();
-            }
-
-            // Set summary response
-            $this->apiResponse = [
-                'status' => $this->responseMetadata['status'] ?? 200,
-                'data' => [
-                    'message' => "Data loaded successfully - {$recordCount} records",
-                    'record_count' => $recordCount,
-                    'click_to_view' => 'Click "Show Raw JSON" to view full response',
-                ],
-            ];
-        }
-    }
-
-    /**
-     * Method to set placeholder in all child classes that extend this
-     */
-    public function placeholder(): string
-    {
-        return <<<'HTML'
-        <div class="flex items-center justify-center h-12 mx-auto w-full">
-            <!-- Loading spinner... -->
-            <flux:icon.loading class="w-6 h-6 text-gray-400 animate-spin" />
-        </div>
-        HTML;
-    }
-
-    /**
      * Safely make an API call with authentication validation
-     *
-     * @param  callable  $apiCallFunction  The function that makes the API call
-     * @return mixed The response or null if authentication failed
      */
     protected function makeAuthenticatedApiCall(callable $apiCallFunction)
     {
