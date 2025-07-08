@@ -13,7 +13,6 @@ trait PaginatesApiData
 {
     use WithPagination;
 
-    // Don't store all data in component state - use caching instead
     public int $totalRecords = 0;
 
     #[Url(except: 15)]
