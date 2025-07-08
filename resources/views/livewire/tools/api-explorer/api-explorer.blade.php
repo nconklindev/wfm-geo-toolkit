@@ -116,7 +116,8 @@
                     @if ($isAuthenticated)
                         <flux:text size="sm" class="text-green-600 dark:text-green-400">
                             <flux:icon.wifi class="mr-1 inline h-4 w-4" />
-                            Connected to {{ parse_url($hostname, PHP_URL_HOST) ?? 'API' }}
+                            Connected to
+                            {{ parse_url($hostname, PHP_URL_HOST) ?? 'API' }}
                         </flux:text>
                     @endif
                 </div>
@@ -265,6 +266,10 @@
                     $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
                     // I literally cannot get the IDE to NOT add these in
 
+                    '';
+                    '';
+                    '';
+                    '';
                     '';
                     '';
                     '';
