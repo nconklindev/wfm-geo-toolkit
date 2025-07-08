@@ -29,10 +29,10 @@ trait PaginatesApiData
     // Cache key for storing the full dataset
     public string $cacheKey = '';
 
-    // Add pagination cache for filtered/sorted results
+    // Add a pagination cache for filtered/sorted results
     protected string $paginationCacheKey = '';
 
-    public function updatedPerPage()
+    public function updatedPerPage(): void
     {
         $this->resetPage();
         $this->clearPaginationCache();
@@ -57,18 +57,17 @@ trait PaginatesApiData
                 $this->clearRedisPaginationCache($store->getRedis(), $baseKey);
             } elseif (method_exists($store, 'getMemcached')) {
                 // Memcached implementation
-                $this->clearMemcachedPaginationCache($store, $baseKey);
+                $this->clearMemcachedPaginationCache($baseKey);
             } else {
                 // File cache or other drivers - use key tracking
                 $this->clearFilePaginationCache($cache, $baseKey);
             }
 
-            Log::debug('Pagination cache cleared', [
-                'component' => get_class($this),
-                'base_key' => $baseKey,
-                'cache_driver' => config('cache.default'),
-            ]);
-
+            //            Log::debug('Pagination cache cleared', [
+            //                'component' => get_class($this),
+            //                'base_key' => $baseKey,
+            //                'cache_driver' => config('cache.default'),
+            //            ]);
         } catch (Exception $e) {
             Log::warning('Failed to clear pagination cache', [
                 'error' => $e->getMessage(),
@@ -109,7 +108,7 @@ trait PaginatesApiData
     /**
      * Clear Memcached pagination cache using tracked keys
      */
-    private function clearMemcachedPaginationCache($store, string $baseKey): void
+    private function clearMemcachedPaginationCache(string $baseKey): void
     {
         // Memcached doesn't support pattern deletion, so we track keys
         $trackedKeysKey = $baseKey.'_tracked_keys';
@@ -140,7 +139,7 @@ trait PaginatesApiData
         $cache->forget($trackedKeysKey);
     }
 
-    public function updatedSearch()
+    public function updatedSearch(): void
     {
         $this->resetPage();
         $this->clearPaginationCache();
@@ -161,10 +160,10 @@ trait PaginatesApiData
      */
     public function getPaginatedData(): LengthAwarePaginator
     {
-        // Generate cache key for current pagination state
+        // Generate a cache key for the current pagination state
         $this->paginationCacheKey = $this->generatePaginationCacheKey();
 
-        // Try to get cached pagination result
+        // Try to get the cached pagination result
         $cachedPagination = cache()->get($this->paginationCacheKey);
 
         if ($cachedPagination) {
@@ -185,7 +184,7 @@ trait PaginatesApiData
                 ]
             );
 
-            // Cache empty result briefly with tracking
+            // Cache empty results briefly with tracking
             $this->putCacheWithTracking($this->paginationCacheKey, $emptyPaginator, now()->addMinutes(5));
 
             return $emptyPaginator;
@@ -220,7 +219,7 @@ trait PaginatesApiData
     }
 
     /**
-     * Generate cache key for pagination state
+     * Generate the cache key for pagination state
      */
     protected function generatePaginationCacheKey(): string
     {
@@ -230,7 +229,7 @@ trait PaginatesApiData
     }
 
     /**
-     * Get the full dataset from cache
+     * Get the full dataset from the cache
      */
     public function getAllData(): Collection
     {
@@ -238,7 +237,7 @@ trait PaginatesApiData
             return collect();
         }
 
-        return cache()->get($this->cacheKey, collect());
+        return cache()->get($this->cacheKey, collect()); // FIXME
     }
 
     /**
@@ -371,7 +370,7 @@ trait PaginatesApiData
         ];
     }
 
-    public function sortBy($field)
+    public function sortBy($field): void
     {
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
