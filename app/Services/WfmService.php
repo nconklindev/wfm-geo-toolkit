@@ -454,6 +454,10 @@ class WfmService
     }
 
     /**
+     * Get the JSON representation of all data elements from WFM
+     *
+     * @return Response|PromiseInterface the response from the API containing the data
+     *
      * @throws ConnectionException
      */
     public function getDataElementsPaginated(array $requestData): PromiseInterface|Response
