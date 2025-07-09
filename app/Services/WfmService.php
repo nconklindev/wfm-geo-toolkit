@@ -327,10 +327,52 @@ class WfmService
     }
 
     /**
+     * @throws ConnectionException
+     */
+    public function getAdjustmentRules(array $requestData = []): Response
+    {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+        $apiPath = '/api/v1/timekeeping/setup/adjustment_rules';
+
+        Log::info('WFM Adjustment Rules - Request Debug', [
+            'hostname' => $this->hostname,
+            'endpoint' => "{$this->hostname}{$apiPath}",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $requestData,
+        ]);
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("$this->hostname{$apiPath}");
+        } catch (ConnectionException $e) {
+            Log::error('WFM Connection Error', [
+                'error' => $e->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+                'request_data' => $requestData,
+
+            ]);
+
+            throw $e;
+        }
+
+        return $response;
+    }
+
+    /**
      * Gets the paginated list of Labor Category Entries using the provided Labor Category name
      *
      * @param  array  $requestData  request parameters
      * @return Response the JSON response from the WFM API
+     *
+     * @throws ConnectionException
      *
      * @see https://developer.ukg.com/wfm/reference/retrieve-paginated-list-of-labor-category-entries
      */
@@ -365,6 +407,8 @@ class WfmService
                 'app_user' => $appUsername,
                 'ip_address' => $ipAddress,
             ]);
+
+            throw $e;
         }
 
         return $response;
