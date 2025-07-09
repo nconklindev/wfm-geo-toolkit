@@ -45,7 +45,7 @@
 
     <!-- Always show the table component once data has been loaded at least once -->
     @if (! empty($tableColumns) && ($totalRecords > 0 || ! empty($cacheKey)))
-        <x-api-data-table
+        <x-tools.api-explorer.adjustment-rules-table
             :paginated-data="$paginatedData"
             :columns="$tableColumns"
             title="Adjustment Rules"
