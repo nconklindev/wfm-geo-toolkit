@@ -204,21 +204,21 @@
             >
                 <!-- GPS Known Places Group -->
                 <x-api-endpoint-group title="GPS Known Places" name="map-pin">
-                    <x-api-endpoint-item value="places.list" label="Retrieve All Known Places" method="GET">
-                        Retrieve All Known Places
-                    </x-api-endpoint-item>
+                    {{-- <x-api-endpoint-item value="places.list" label="Retrieve All Known Places" method="GET"> --}}
+                    {{-- Retrieve All Known Places --}}
+                    {{-- </x-api-endpoint-item> --}}
 
                     <x-api-endpoint-item value="places.create" label="Create Known Place" method="POST">
                         Create Known Place
                     </x-api-endpoint-item>
 
-                    <x-api-endpoint-item value="places.delete" label="Delete Known Places" method="POST">
-                        Delete Known Places
-                    </x-api-endpoint-item>
+                    {{-- <x-api-endpoint-item value="places.delete" label="Delete Known Places" method="POST"> --}}
+                    {{-- Delete Known Places --}}
+                    {{-- </x-api-endpoint-item> --}}
 
-                    <x-api-endpoint-item value="places.delete_by_id" label="Delete Known Place by ID" method="DELETE">
-                        Delete Known Place by ID
-                    </x-api-endpoint-item>
+                    {{-- <x-api-endpoint-item value="places.delete_by_id" label="Delete Known Place by ID" method="DELETE"> --}}
+                    {{-- Delete Known Place by ID --}}
+                    {{-- </x-api-endpoint-item> --}}
                 </x-api-endpoint-group>
 
                 <x-api-endpoint-group title="Labor Category Entries" name="briefcase">
@@ -250,8 +250,12 @@
                 </x-api-endpoint-group>
 
                 <x-api-endpoint-group title="Timekeeping" name="clock">
-                    <x-api-endpoint-item value="paycodes-list" label="Retrieve Paycodes as a Manager" method="GET">
-                        Retrieve Paycodes as Manager
+                    <x-api-endpoint-item
+                        value="adjustment-rules-list"
+                        label="Retrieve All Adjustment Rules"
+                        method="GET"
+                    >
+                        Retrieve All Adjustment Rules
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
             </div>
@@ -266,6 +270,9 @@
                     $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
                     // I literally cannot get the IDE to NOT add these in
 
+                    '';
+                    '';
+                    '';
                     '';
                     '';
                     '';
