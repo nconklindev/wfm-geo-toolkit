@@ -458,7 +458,7 @@ trait PaginatesApiData
                     try {
                         $record[$field] = Carbon::parse($record[$field]);
                     } catch (Exception $e) {
-                        // Keep original value if date parsing fails
+                        // Keep the original value if date parsing fails
                         Log::error('Failed to parse date field', [
                             'field' => $field,
                             'value' => $record[$field],
@@ -473,7 +473,7 @@ trait PaginatesApiData
     }
 
     /**
-     * Get list of fields that should be converted to boolean
+     * Get the list of fields that should be converted to boolean
      * Override in child classes to specify boolean fields
      */
     protected function getBooleanFields(): array
@@ -482,7 +482,7 @@ trait PaginatesApiData
     }
 
     /**
-     * Get list of fields that should be converted to dates
+     * Get the list of fields that should be converted to dates
      * Override in child classes to specify date fields
      */
     protected function getDateFields(): array

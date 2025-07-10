@@ -35,6 +35,9 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         $this->loadAllData();
     }
 
+    /**
+     * @throws ConnectionException
+     */
     protected function loadAllData(): void
     {
         if (! $this->isAuthenticated) {
@@ -86,7 +89,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             });
 
             if (! $response || ! $response->successful()) {
-                // Analyze the error using base class method
+                // Analyze the error using the base class method
                 $responseData = $response ? $response->json() : [];
                 $errorAnalysis = $this->analyzeApiError($responseData);
 
@@ -103,7 +106,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
 
                         $batchSize = $newBatchSize;
 
-                        continue; // Retry with smaller batch size
+                        continue; // Retry with a smaller batch size
                     }
                 }
 
@@ -128,7 +131,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             if ($records->isEmpty()) {
                 $hasMoreData = false;
             } else {
-                // Transform the data using trait method
+                // Transform the data using the trait method
                 $transformedRecords = $this->transformApiData($records->toArray());
                 $allRecords = $allRecords->concat($transformedRecords);
                 $index += $batchSize;
@@ -296,7 +299,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 'index' => $index,
             ];
 
-            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+            $response = $this->makeAuthenticatedApiCallWithRetry(function () use ($requestData) {
                 return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
             });
 
@@ -385,7 +388,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return;
         }
 
-        $response = $this->makeAuthenticatedApiCall(function () {
+        $response = $this->makeAuthenticatedApiCallWithRetry(function () {
             return $this->wfmService->getLaborCategories();
         });
 

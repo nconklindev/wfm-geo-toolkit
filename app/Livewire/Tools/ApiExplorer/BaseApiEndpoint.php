@@ -263,7 +263,7 @@ abstract class BaseApiEndpoint extends Component
             return count($data['records']);
         }
 
-        // If data itself is an array, count it
+        // If the data itself is an array, count it
         if (is_array($data)) {
             return count($data);
         }
@@ -374,12 +374,12 @@ abstract class BaseApiEndpoint extends Component
                         ]);
 
                         // Add a small delay before retry
-                        usleep(500000); // 0.5 second delay
+                        sleep(1); // 1-second delay
 
                         continue;
                     }
 
-                    // Set error message from analysis
+                    // Set the error message from analysis
                     $this->errorMessage = $errorAnalysis['user_message'];
 
                     Log::error('API call failed after retries', [
@@ -431,7 +431,7 @@ abstract class BaseApiEndpoint extends Component
             if (str_contains($fullText, $keyword)) {
                 $maxCount = $this->extractMaxCountFromError($responseData);
                 $userMessage = $maxCount
-                    ? "API limit exceeded. This tenant has a maximum record limit of {$maxCount} per request. Please use filters to reduce the dataset size, if possible."
+                    ? "API limit exceeded. This tenant has a maximum record limit of $maxCount per request. Please use filters to reduce the dataset size, if possible."
                     : 'API limit exceeded. This tenant has restrictions on the number of records that can be requested. Please use filters to reduce the dataset size, if possible.';
 
                 return [
@@ -492,7 +492,7 @@ abstract class BaseApiEndpoint extends Component
     }
 
     /**
-     * Extract the maximum count limit from API error message
+     * Extract the maximum count limit from the API error message
      */
     protected function extractMaxCountFromError(array $responseData): ?int
     {
