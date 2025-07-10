@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {{-- Dynamic Title --}}
-        <title>{{ $title . ' | WFM Geo Toolkit' ?? config('app.name', 'WFM Geo Toolkit') }}</title>
+        <title>{{ $title . ' | WFM Toolkit' ?? config('app.name', 'WFM Toolkit') }}</title>
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/coloris.js', 'resources/css/coloris.css', 'resources/js/app.js'])
@@ -13,7 +13,9 @@
         {{-- Add custom styles to the stack --}}
         @stack('styles')
     </head>
-    <body class="min-h-screen flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-200">
+    <body
+        class="min-h-screen flex-col bg-linear-to-br from-zinc-50 via-zinc-100/80 to-zinc-100 text-zinc-900 dark:bg-zinc-900 dark:bg-linear-to-br dark:from-zinc-900 dark:via-zinc-800/20 dark:to-zinc-800/30 dark:text-zinc-200"
+    >
         <!-- Navigation -->
         <x-navbar-basic />
 

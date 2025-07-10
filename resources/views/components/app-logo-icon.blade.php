@@ -1,16 +1,40 @@
-@props(['size' => 'size-6'])
+@props([])
+
 <svg
-    {{ $attributes->merge(['class' => $size . ' text-accent']) }}
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
+    {{ $attributes->merge(['class' => 'size-6']) }}
     viewBox="0 0 24 24"
-    stroke="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
 >
-    <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
+    <rect
+        x="4"
+        y="8"
+        width="16"
+        height="10"
+        rx="2"
+        stroke="currentColor"
         stroke-width="2"
-        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+        fill="none"
+        class="text-teal-600 dark:text-teal-500"
     />
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path
+        d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+        stroke="currentColor"
+        stroke-width="2"
+        fill="none"
+        class="text-teal-600 dark:text-teal-500"
+    />
+    <path
+        d="M12 12v4"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        class="text-teal-600 dark:text-teal-500"
+    />
+    <path
+        d="M10 14h4"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        class="text-teal-600 dark:text-teal-500"
+    />
 </svg>
