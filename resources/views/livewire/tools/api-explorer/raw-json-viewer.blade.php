@@ -54,15 +54,17 @@
                         class="overflow-x-auto text-xs break-words whitespace-pre-wrap"
                     ><code>{{ json_encode($jsonData['data'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</code></pre>
 
-                    <flux:tooltip content="Copy to clipboard">
-                        <flux:button
-                            icon="copy"
-                            variant="ghost"
-                            size="sm"
-                            class="absolute top-2 right-2 opacity-70 transition-opacity hover:opacity-100"
-                            onclick="copyToClipboard('json-viewer-{{ $this->getId() }}', this)"
-                        />
-                    </flux:tooltip>
+                    <div class="absolute top-2 right-2">
+                        <flux:tooltip content="Copy to clipboard">
+                            <flux:button
+                                icon="copy"
+                                variant="ghost"
+                                size="sm"
+                                class="opacity-70 transition-opacity hover:opacity-100"
+                                onclick="copyToClipboard('json-viewer-{{ $this->getId() }}', this)"
+                            />
+                        </flux:tooltip>
+                    </div>
                 @endif
             </div>
 
