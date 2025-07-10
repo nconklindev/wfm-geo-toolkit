@@ -1,4 +1,4 @@
-<x-layouts.guest :title="__('WFM Geo Toolkit')">
+<x-layouts.guest :title="__('Home')">
     <!-- Hero Section -->
     <section class="lg:py-16">
         <div class="flex flex-col items-center lg:flex-row">
@@ -8,74 +8,57 @@
                     size="xl"
                     class="mb-6 leading-tight font-bold! text-shadow-md md:text-4xl lg:text-5xl"
                 >
-                    Known Place Geofence Plotting for Workforce Management
+                    The Complete WFM Toolkit
                 </flux:heading>
                 <flux:text class="mb-8 text-base md:text-lg">
-                    Track, monitor, and optimize your workforce with our advanced geofencing technology. Real-time
-                    location tracking with customizable boundaries.
+                    Your comprehensive solution for workforce management, geofencing, API exploration, and network
+                    analysis. Everything you need in one powerful platform.
                 </flux:text>
                 <div class="flex flex-wrap gap-4">
-                    <flux:button variant="primary" href="{{ route('register') }}" class="px-6 py-6">
-                        Get Started
-                    </flux:button>
+                    <flux:button variant="primary" href="#tools" class="px-6 py-6">Try Tools Now</flux:button>
                     <flux:button
                         variant="ghost"
-                        href="#features"
+                        href="{{ route('register') }}"
                         class="border border-zinc-400 px-6 py-6 hover:border-zinc-200"
                     >
-                        Learn More
+                        Create Account
                     </flux:button>
                 </div>
             </div>
-            <!-- Browser render window -->
+            <!-- Tool Preview -->
             <div class="w-full md:w-1/2 md:pl-12">
                 <div class="relative">
                     <div
-                        class="overflow-hidden rounded-lg bg-white shadow-lg dark:bg-zinc-900 dark:shadow-[0px_4px_16px_rgba(255,255,255,0.08)]"
+                        class="overflow-hidden rounded-lg bg-white shadow-sm dark:bg-zinc-900 dark:shadow-md dark:shadow-zinc-200/5"
                     >
                         <div class="flex items-center space-x-2 bg-zinc-100 p-4 dark:bg-zinc-800">
                             <!-- Mock window circles -->
-                            <div class="h-3 w-3 rounded-full bg-danger"></div>
-                            <div class="h-3 w-3 rounded-full bg-warning"></div>
-                            <div class="h-3 w-3 rounded-full bg-success"></div>
+                            <div class="h-3 w-3 rounded-full bg-red-600"></div>
+                            <div class="h-3 w-3 rounded-full bg-amber-600"></div>
+                            <div class="h-3 w-3 rounded-full bg-green-600"></div>
+                            <div class="ml-4 text-sm text-zinc-600 dark:text-zinc-400">API Explorer</div>
                         </div>
                         <div class="p-6">
                             <div
-                                class="relative h-64 w-full overflow-hidden rounded-md bg-zinc-200 lg:h-80 dark:bg-zinc-800"
+                                class="relative h-64 w-full overflow-hidden rounded-md bg-gradient-to-br from-slate-50 to-slate-100 lg:h-80 dark:from-zinc-800 dark:to-zinc-900"
                             >
-                                <!-- Map illustration with geofencing -->
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <svg
-                                        class="text h-48 w-48 opacity-30 dark:text-zinc-400"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1"
-                                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                                        />
-                                    </svg>
-                                </div>
-                                <!-- Geofence circle -->
-                                <div
-                                    class="absolute top-1/2 left-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 transform rounded-full border-2 border-accent opacity-80"
-                                ></div>
-                                <!-- Location pin -->
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
-                                    <svg
-                                        class="h-8 w-8 text-accent"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"
-                                        />
-                                    </svg>
+                                <!-- API Explorer mockup -->
+                                <div class="absolute inset-0 p-4 font-mono text-xs">
+                                    <!-- URL bar -->
+                                    <div class="mb-3 flex items-center rounded bg-white p-2 shadow-sm dark:bg-zinc-800">
+                                        <span class="mr-2 rounded bg-green-600 px-2 py-1 text-white">GET</span>
+                                        <span class="text-zinc-600 dark:text-zinc-400">/api/v1/persons/employees</span>
+                                    </div>
+                                    <!-- Response -->
+                                    <div class="rounded bg-zinc-900 p-3 text-green-400">
+                                        <div>{"status": "success",</div>
+                                        <div class="ml-2">"data": [</div>
+                                        <div class="ml-4">{"id": 123,</div>
+                                        <div class="ml-4">"name": "John Doe",</div>
+                                        <div class="ml-4">"location": {...}}</div>
+                                        <div class="ml-2">]</div>
+                                        <div>}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -85,85 +68,207 @@
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="mt-10 w-full">
-        <div class="mb-16">
-            <flux:heading level="2" class="mb-4 text-4xl! tracking-tight">
-                The one-stop
-                <span class="block text-teal-700 dark:text-teal-500">known places shop.</span>
+    <!-- Tools Section -->
+    <section id="tools" class="mt-16 w-full">
+        <div class="mb-12 text-center">
+            <flux:heading level="2" class="mb-4 text-3xl! tracking-tight">
+                Try Our Tools
+                <span class="block text-teal-700 dark:text-teal-500">No signup required</span>
             </flux:heading>
             <flux:text class="text-base md:text-lg">
-                Explore the powerful tools designed to streamline your workforce management and location tracking.
+                Pro WFM tools that complement your daily workflow. Available instantly in your browser. No downloads
+                required.
             </flux:text>
         </div>
 
-        <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
-            <!-- Feature 1: Plotting (Full Width) -->
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-1 lg:grid-cols-1">
+            <!-- Plotter Tool -->
             <div
-                class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md md:col-span-3 md:flex-row dark:border-zinc-700/50 dark:bg-zinc-800/30"
-                {{-- Span 3 columns --}}
+                class="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
             >
-                <div class="mr-4 mb-4 md:mb-0">
-                    <flux:icon.map-pin class="mb-2 size-28 text-center" />
-                </div>
-                <div class="flex flex-1 flex-col justify-center">
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Plotting & Visualization
-                    </flux:heading>
-                    <flux:text>
-                        Visually plot geofence areas against employee punch coordinates on an interactive map for clear
-                        spatial analysis and identification of discrepancies.
-                    </flux:text>
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900"
+                            >
+                                <flux:icon.map class="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <flux:heading level="3" size="lg" class="mb-2 font-semibold">
+                                Geofencing Punch Plotting Tool
+                            </flux:heading>
+                            <flux:text class="mb-4 text-sm">
+                                Visualize employee punch data against geofenced areas. Use real punch data and Known
+                                Places to see exactly where employees are clocking in and identify potential issues.
+                            </flux:text>
+                            <div class="mb-4 flex flex-wrap gap-2">
+                                <flux:badge variant="pill" color="teal" size="sm">Geofencing</flux:badge>
+                                <flux:badge variant="pill" color="sky" size="sm">Data Visualization</flux:badge>
+                                <flux:badge variant="pill" color="green" size="sm">Mobile</flux:badge>
+                            </div>
+                            <flux:button href="{{ route('tools.plotter') }}" size="sm" icon:trailing="arrow-right">
+                                Plot punches
+                            </flux:button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Feature 2: Punch Analysis (Wider - 2/3 Width) -->
+            <!-- API Explorer Tool -->
             <div
-                class="flex flex-col rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/50 dark:bg-zinc-800/30"
-                {{-- Span 2 columns --}}
+                class="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
             >
-                <flux:icon.magnifying-glass-circle class="mb-2 size-28" />
-                <div class="flex-start">
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Punch Analysis
-                    </flux:heading>
-                    <flux:text>
-                        Diagnose specific punch issues by analyzing individual employee location data against defined
-                        geofences.
-                    </flux:text>
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900"
+                            >
+                                <flux:icon.code-bracket class="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <flux:heading level="3" size="lg" class="mb-2 font-semibold">
+                                Pro WFM API Explorer
+                            </flux:heading>
+                            <flux:text class="mb-4 text-sm">
+                                Interactive API testing tool for many Pro WFM endpoints. Test authentication, explore
+                                available endpoints, and see real API responses. Perfect for system admins and
+                                timekeepers alike. We take the guesswork out of API testing.
+                                <strong>Postman not required!</strong>
+                            </flux:text>
+                            <div class="mb-4 flex flex-wrap gap-2">
+                                <flux:badge variant="pill" size="sm" color="violet">API Testing</flux:badge>
+                                <flux:badge variant="pill" size="sm" color="indigo">Integration</flux:badge>
+                                <flux:badge variant="pill" size="sm" color="fuchsia">Development</flux:badge>
+                            </div>
+                            <flux:button
+                                href="{{ route('tools.api-explorer') }}"
+                                size="sm"
+                                icon:trailing="arrow-right"
+                            >
+                                Call your first API
+                            </flux:button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Feature 4: Automated Alerts (Narrower - 1/3 Width) -->
+            <!-- HAR Analyzer Tool -->
             <div
-                class="flex flex-col rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/50 dark:bg-zinc-800/30"
-                {{-- Span 1 column --}}
+                class="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
             >
-                <flux:icon.bell-alert class="mb-2 size-28" />
-                <div class="flex-start">
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Automated Alerts
-                    </flux:heading>
-                    <flux:text>Receive real-time notifications for critical geofence events.</flux:text>
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900"
+                            >
+                                <flux:icon.chart-bar class="h-6 w-6 text-green-600 dark:text-green-400" />
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <flux:heading level="3" size="lg" class="mb-2 font-semibold">
+                                HAR File Analyzer
+                            </flux:heading>
+                            <flux:text class="mb-4 text-sm">
+                                Analyze network traffic with the HAR Analyzer. Upload HAR files to identify performance
+                                issues, failed requests, and connectivity problems with Pro WFM applications.
+                                Specifically tuned to help you see what might be causing that pesky 500 error.
+                            </flux:text>
+                            <div class="mb-4 flex flex-wrap gap-2">
+                                <flux:badge variant="pill" size="sm" color="green">Network Analysis</flux:badge>
+                                <flux:badge variant="pill" size="sm" color="amber">Performance</flux:badge>
+                                <flux:badge variant="pill" size="sm" color="red">Troubleshooting</flux:badge>
+                            </div>
+                            <flux:button
+                                href="{{ route('tools.har-analyzer') }}"
+                                size="sm"
+                                icon:trailing="arrow-right"
+                            >
+                                Analyze now
+                            </flux:button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="mt-16 w-full">
+        <div class="mb-12 text-center">
+            <flux:heading level="2" class="mb-4 text-3xl! tracking-tight">Why Use WFM Toolkit?</flux:heading>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div class="text-center">
+                <div
+                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900"
+                >
+                    <flux:icon.bolt class="h-8 w-8 text-teal-600 dark:text-teal-400" />
+                </div>
+                <flux:heading level="3" size="lg" class="mb-2 font-semibold">Instant Access</flux:heading>
+                <flux:text class="text-sm">
+                    No downloads, no installation. All tools work directly in your browser with instant access.
+                </flux:text>
             </div>
 
-            <!-- Feature 6: Import Known Places (Full Width) -->
-            <div
-                class="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 p-6 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-700/50 dark:bg-zinc-800/30"
-                {{-- Span 3 columns --}}
-            >
-                <flux:icon.arrow-up-on-square class="mb-2 size-28" />
-                <div class="flex-start">
-                    <flux:heading level="3" size="lg" class="mb-2 font-semibold text-zinc-900 dark:text-white">
-                        Import Known Places
-                    </flux:heading>
-                    <flux:text>
-                        Seamlessly import your existing location data via the Pro WFM API for rapid setup and updates,
-                        ensuring consistency across systems.
-                    </flux:text>
+            <div class="text-center">
+                <div
+                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900"
+                >
+                    <flux:icon.hand-thumb-up class="h-8 w-8 text-blue-600 dark:text-blue-400" />
                 </div>
+                <flux:heading level="3" size="lg" class="mb-2 font-semibold">Easy to Use</flux:heading>
+                <flux:text class="text-sm">
+                    We developed our tools to be intuitive and easy to use. No account required. Just pick from our
+                    selection of tools, and get started.
+                </flux:text>
             </div>
+
+            <div class="text-center">
+                <div
+                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900"
+                >
+                    <flux:icon.users class="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <flux:heading level="3" size="lg" class="mb-2 font-semibold">Pro WFM Focused</flux:heading>
+                <flux:text class="text-sm">
+                    Built specifically for Pro WFM environments with deep understanding of workforce management needs.
+                </flux:text>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="mt-16 w-full">
+        <div class="rounded-lg bg-gradient-to-r p-8 text-center dark:from-teal-600 dark:to-emerald-700">
+            <flux:heading level="2" class="mb-4 text-3xl! text-white">Ready to Get Started?</flux:heading>
+            <flux:text class="text-lg text-white/90">
+                Try our tools now or create an account to save your work and access advanced features
+                <sup><b>*</b></sup>
+            </flux:text>
+            <div class="mt-4 flex flex-wrap justify-center gap-4">
+                <flux:button variant="ghost" href="#tools">Try Tools Now</flux:button>
+                <flux:button
+                    variant="outline"
+                    href="{{ route('register') }}"
+                    class="border-white text-white hover:bg-white/10"
+                >
+                    Create Free Account
+                </flux:button>
+            </div>
+        </div>
+
+        <!-- Footnote -->
+        <div class="mt-4 text-center">
+            <flux:text class="text-[11px] text-zinc-500 dark:text-zinc-400">
+                <sup><b>*</b></sup>
+                Advanced features require registration. Registration restricted to ukg.com domain.
+            </flux:text>
         </div>
     </section>
 </x-layouts.guest>
