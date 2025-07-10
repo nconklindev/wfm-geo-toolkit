@@ -285,7 +285,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return collect();
         }
 
-        $batchSize = 1000;
+        $batchSize = 250;
         $index = 0;
         $allRecords = collect();
         $hasMoreData = true;
