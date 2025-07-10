@@ -10,6 +10,7 @@ use Livewire\Component;
 class EditKnownIpAddressModal extends Component
 {
     public KnownIpAddressForm $form;
+
     public ?KnownIpAddress $ipAddress = null;
 
     #[On('edit-known-ip-address')]
@@ -22,11 +23,11 @@ class EditKnownIpAddressModal extends Component
         if ($this->ipAddress) {
             $this->form->setKnownIpAddress($this->ipAddress);
             logger()->debug('EditKnownIpAddressModal: Form data set: '.json_encode([
-                    'name' => $this->form->name,
-                    'description' => $this->form->description,
-                    'start' => $this->form->start,
-                    'end' => $this->form->end
-                ]));
+                'name' => $this->form->name,
+                'description' => $this->form->description,
+                'start' => $this->form->start,
+                'end' => $this->form->end,
+            ]));
         } else {
             logger()->debug('EditKnownIpAddressModal: IP address not found');
         }
@@ -42,6 +43,7 @@ class EditKnownIpAddressModal extends Component
     public function render()
     {
         logger()->debug('EditKnownIpAddressModal: Rendering component '.$this->getId().' with ipAddress: '.($this->ipAddress ? $this->ipAddress->name : 'null'));
+
         return view('livewire.edit-known-ip-address-modal');
     }
 
@@ -49,6 +51,7 @@ class EditKnownIpAddressModal extends Component
     {
         $this->form->update();
         $this->modal('edit-known-ip-address')->close();
+
         return $this->redirect('/known-ip-addresses');
     }
 }

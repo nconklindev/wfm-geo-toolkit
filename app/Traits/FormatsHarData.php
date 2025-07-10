@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Concerns;
+namespace App\Traits;
 
 trait FormatsHarData
 {

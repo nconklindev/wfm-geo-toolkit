@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Livewire\Tools\ApiExplorer\ApiExplorer;
 use App\Livewire\Tools\HarAnalyzer\HarAnalyzer;
 use App\Livewire\Tools\HarAnalyzer\HarAnalyzerResults;
 use App\Livewire\Tools\Plotter;
@@ -15,6 +16,7 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::get('/plotter', Plotter::class)->name('plotter');
     Route::get('/har-analyzer', HarAnalyzer::class)->name('har-analyzer');
     Route::get('/har-analyzer/results', HarAnalyzerResults::class)->name('har-analyzer-results');
+    Route::get('/api-explorer', ApiExplorer::class)->name('api-explorer');
 });
 
 // Welcome

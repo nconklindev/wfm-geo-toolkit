@@ -15,12 +15,12 @@
 
                     <flux:menu>
                         <div class="flex flex-col">
-                            <flux:menu.group heading="Network">
+                            <flux:menu.group heading="API">
                                 <flux:menu.item
-                                    href="{{ route('tools.har-analyzer') }}"
-                                    :current="request()->routeIs('tools.har-analyzer')"
+                                    href="{{ route('tools.api-explorer') }}"
+                                    :current="request()->routeIs('tools.api-explorer')"
                                 >
-                                    HAR Analyzer
+                                    API Explorer
                                 </flux:menu.item>
                             </flux:menu.group>
                             <flux:menu.group heading="Mobile">
@@ -29,6 +29,14 @@
                                     :current="request()->routeIs('tools.plotter')"
                                 >
                                     Plotter
+                                </flux:menu.item>
+                            </flux:menu.group>
+                            <flux:menu.group heading="Network">
+                                <flux:menu.item
+                                    href="{{ route('tools.har-analyzer') }}"
+                                    :current="request()->routeIs('tools.har-analyzer')"
+                                >
+                                    HAR Analyzer
                                 </flux:menu.item>
                             </flux:menu.group>
                         </div>

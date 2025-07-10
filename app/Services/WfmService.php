@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Livewire\Tools\ApiExplorer\Endpoints\LaborCategoriesPaginatedList;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
@@ -28,14 +30,6 @@ class WfmService
 
     /**
      * Authenticate with WFM API via Auth0
-     *
-     * @param  string  $clientId
-     * @param  string  $clientSecret
-     * @param  string  $orgId
-     * @param  string  $username
-     * @param  string  $password
-     *
-     * @return bool
      */
     public function authenticate(
         string $clientId,
@@ -52,15 +46,13 @@ class WfmService
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
 
-
         Log::info('Authenticating with WFM', [
             'tokenUrl' => $tokenUrl,
             'hostname' => $this->hostname,
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
-            'client_username' => $username
+            'client_username' => $username,
         ]);
-
 
         try {
             $response = Http::asForm()->withHeaders([
@@ -81,7 +73,7 @@ class WfmService
 
                 Log::info('WFM Authentication successful', [
                     'app_user' => $appUsername,
-                    'ip_address' => $ipAddress
+                    'ip_address' => $ipAddress,
                 ]);
 
                 return true;
@@ -91,7 +83,7 @@ class WfmService
                 'status' => $response->status(),
                 'body' => $response->body(),
                 'app_user' => $appUsername,
-                'ip_address' => $ipAddress
+                'ip_address' => $ipAddress,
             ]);
 
             return false;
@@ -99,7 +91,7 @@ class WfmService
             Log::error('WFM Authentication exception', [
                 'message' => $e->getMessage(),
                 'app_user' => $appUsername,
-                'ip_address' => $ipAddress
+                'ip_address' => $ipAddress,
             ]);
 
             return false;
@@ -108,8 +100,6 @@ class WfmService
 
     /**
      * Get the appropriate token URL based on the hostname
-     *
-     * @return string
      */
     public function getTokenUrl(): string
     {
@@ -119,7 +109,7 @@ class WfmService
 
         // Extract the base URL (scheme + host)
         $parsedUrl = parse_url($this->hostname);
-        if (!$parsedUrl || !isset($parsedUrl['scheme']) || !isset($parsedUrl['host'])) {
+        if (! $parsedUrl || ! isset($parsedUrl['scheme']) || ! isset($parsedUrl['host'])) {
             return $this->getEvalTokenUrl();
         }
 
@@ -134,8 +124,6 @@ class WfmService
 
     /**
      * Get the Eval Token URL from Config
-     *
-     * @return string
      */
     private function getEvalTokenUrl(): string
     {
@@ -144,8 +132,6 @@ class WfmService
 
     /**
      * Get the Prod Token URL from Config
-     *
-     * @return string
      */
     private function getProdTokenUrl(): string
     {
@@ -155,23 +141,77 @@ class WfmService
     /**
      * Create a new known place in WFM using its API
      *
-     * @param  array  $placeData
      *
-     * @return Response
      * @throws ConnectionException
      */
     public function createKnownPlace(array $placeData): Response
     {
-        return Http::withToken($this->accessToken)
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        // Log the request details for debugging
+        Log::info('WFM Create Known Place - Request Debug', [
+            'hostname' => $this->hostname,
+            'endpoint' => "{$this->hostname}/api/v1/commons/known_places",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $placeData,
+            'request_data_json' => json_encode($placeData, JSON_PRETTY_PRINT),
+            'data_types' => $this->getDataTypes($placeData),
+            'has_token' => ! empty($this->accessToken),
+            'token_length' => strlen($this->accessToken),
+        ]);
+
+        $response = Http::withToken($this->accessToken)
+            ->withHeaders([
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])
             ->post("{$this->hostname}/api/v1/commons/known_places", $placeData);
+
+        // Log the response for debugging
+        Log::info('WFM Create Known Place - Response Debug', [
+            'status' => $response->status(),
+            'headers' => $response->headers(),
+            'body' => $response->body(),
+            'json' => $response->json(),
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+        ]);
+
+        return $response;
+    }
+
+    /**
+     * Helper method to analyze data types in the request
+     */
+    private function getDataTypes(array $data): array
+    {
+        $types = [];
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $types[$key] = 'array';
+                foreach ($value as $index => $item) {
+                    if (is_array($item)) {
+                        foreach ($item as $subKey => $subValue) {
+                            $types[$key."[$index][$subKey]"] = gettype($subValue).' ('.json_encode($subValue).')';
+                        }
+                    } else {
+                        $types[$key."[$index]"] = gettype($item).' ('.json_encode($item).')';
+                    }
+                }
+            } else {
+                $types[$key] = gettype($value).' ('.json_encode($value).')';
+            }
+        }
+
+        return $types;
     }
 
     /**
      * Extract place IDs from a list of places
-     *
-     * @param  array  $places
-     *
-     * @return array
      */
     public function extractPlaceIds(array $places): array
     {
@@ -182,8 +222,6 @@ class WfmService
 
     /**
      * Get all known places from the WFM using its API
-     *
-     * @return array
      */
     public function getKnownPlaces(): array
     {
@@ -197,14 +235,15 @@ class WfmService
 
             Log::error('Failed to get known places', [
                 'status' => $response->status(),
-                'body' => $response->body()
+                'body' => $response->body(),
             ]);
 
             return [];
         } catch (Throwable $e) {
             Log::error('Exception when getting known places', [
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
@@ -251,7 +290,7 @@ class WfmService
             'body' => $body,
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
-            'hostname' => $this->hostname
+            'hostname' => $this->hostname,
         ]);
 
         // Return a structured error result
@@ -259,7 +298,7 @@ class WfmService
             'success' => false,
             'message' => $message,
             'code' => $errorCode,
-            'details' => $errorData
+            'details' => $errorData,
         ];
     }
 
@@ -269,5 +308,225 @@ class WfmService
     public function setHostname(string $hostname): void
     {
         $this->hostname = $hostname;
+    }
+
+    /**
+     * Get the current access token
+     */
+    public function getAccessToken(): string
+    {
+        return $this->accessToken;
+    }
+
+    /**
+     * Set the access token (useful for restoring from session)
+     */
+    public function setAccessToken(string $token): void
+    {
+        $this->accessToken = $token;
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    public function getAdjustmentRules(array $requestData = []): Response
+    {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+        $apiPath = '/api/v1/timekeeping/setup/adjustment_rules';
+
+        Log::info('WFM Adjustment Rules - Request Debug', [
+            'hostname' => $this->hostname,
+            'endpoint' => "{$this->hostname}{$apiPath}",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $requestData,
+        ]);
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("$this->hostname{$apiPath}");
+        } catch (ConnectionException $e) {
+            Log::error('WFM Connection Error', [
+                'error' => $e->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+                'request_data' => $requestData,
+
+            ]);
+
+            throw $e;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Gets the paginated list of Labor Category Entries using the provided Labor Category name
+     *
+     * @param  array  $requestData  request parameters
+     * @return Response the JSON response from the WFM API
+     *
+     * @throws ConnectionException
+     *
+     * @see https://developer.ukg.com/wfm/reference/retrieve-paginated-list-of-labor-category-entries
+     */
+    public function getLaborCategoryEntriesPaginated(array $requestData = []): Response
+    {
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        $apiPath = '/api/v1/commons/labor_entries/apply_read';
+
+        // Log the request details for debugging
+        Log::info('WFM Labor Category Entries Paginated - Request Debug', [
+            'hostname' => $this->hostname,
+            'endpoint' => "{$this->hostname}{$apiPath}",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $requestData,
+        ]);
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->post("$this->hostname{$apiPath}", $requestData);
+        } catch (ConnectionException $e) {
+            Log::error('WFM Connection Error', [
+                'error' => $e->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            throw $e;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Clear the access token (used for logout)
+     */
+    public function clearAccessToken(): void
+    {
+        $this->accessToken = '';
+    }
+
+    /**
+     * Get labor category entries from WFM using its API
+     *
+     * @param  array  $requestData  Optional request parameters/filters
+     *
+     * @throws ConnectionException
+     */
+    public function getLaborCategoryEntries(array $requestData = []): Response
+    {
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        $apiPath = '/api/v1/commons/labor_entries/multi_read';
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->post("$this->hostname{$apiPath}", $requestData);
+        } catch (ConnectionException $e) {
+            Log::error('WFM Connection Error', [
+                'error' => $e->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            throw $e;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get the list of available Labor Categories from WFM
+     *
+     * Used to populate the list of available Labor Categories in other endpoints
+     *
+     * @see LaborCategoriesPaginatedList
+     * @see https://developer.ukg.com/wfm/reference/retrieve-all-labor-categories-or-by-criteria
+     *
+     * @return Response the JSON response from the API
+     *
+     * @throws ConnectionException
+     */
+    public function getLaborCategories(): Response
+    {
+        // Get the authenticated user and IP Address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("{$this->hostname}/api/v1/commons/labor_categories");
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            // Re-throw the exception so it cna be caught by the parent calling method
+            throw $ce;
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get the JSON representation of all data elements from WFM
+     *
+     * @return Response|PromiseInterface the response from the API containing the data
+     *
+     * @throws ConnectionException
+     */
+    public function getDataElementsPaginated(array $requestData): PromiseInterface|Response
+    {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("{$this->hostname}/api/v1/commons/data_dictionary/data_elements");
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            throw $ce;
+        }
+
+        return $response;
     }
 }
