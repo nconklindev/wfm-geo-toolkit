@@ -115,6 +115,12 @@ class WfmService
 
         // If the hostname contains 'cfn', use the evaluation endpoint
         if (stripos($parsedUrl['host'], 'cfn') !== false) {
+            Log::debug('CFN Host Detected', [
+                'hostname' => $this->hostname,
+                'parsed_url' => $parsedUrl,
+                'token_url' => $this->getEvalTokenUrl(),
+            ]);
+
             return $this->getEvalTokenUrl();
         }
 
@@ -149,11 +155,12 @@ class WfmService
         // Get the authenticated user and IP address for logging
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
+        $apiPath = 'api/v1/commons/known_places';
 
         // Log the request details for debugging
         Log::info('WFM Create Known Place - Request Debug', [
             'hostname' => $this->hostname,
-            'endpoint' => "{$this->hostname}/api/v1/commons/known_places",
+            'endpoint' => "{$this->hostname}{$apiPath}",
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
             'request_data' => $placeData,
@@ -168,7 +175,7 @@ class WfmService
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ])
-            ->post("{$this->hostname}/api/v1/commons/known_places", $placeData);
+            ->post("{$this->hostname}/{$apiPath}", $placeData);
 
         // Log the response for debugging
         Log::info('WFM Create Known Place - Response Debug', [
@@ -333,11 +340,11 @@ class WfmService
     {
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
-        $apiPath = '/api/v1/timekeeping/setup/adjustment_rules';
+        $apiPath = 'api/v1/timekeeping/setup/adjustment_rules';
 
         Log::info('WFM Adjustment Rules - Request Debug', [
             'hostname' => $this->hostname,
-            'endpoint' => "{$this->hostname}{$apiPath}",
+            'endpoint' => "{$this->hostname}/{$apiPath}",
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
             'request_data' => $requestData,
@@ -349,7 +356,7 @@ class WfmService
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ])
-                ->get("$this->hostname{$apiPath}");
+                ->get("$this->hostname/{$apiPath}");
         } catch (ConnectionException $e) {
             Log::error('WFM Connection Error', [
                 'error' => $e->getMessage(),
@@ -382,12 +389,12 @@ class WfmService
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
 
-        $apiPath = '/api/v1/commons/labor_entries/apply_read';
+        $apiPath = 'api/v1/commons/labor_entries/apply_read';
 
         // Log the request details for debugging
         Log::info('WFM Labor Category Entries Paginated - Request Debug', [
             'hostname' => $this->hostname,
-            'endpoint' => "{$this->hostname}{$apiPath}",
+            'endpoint' => "{$this->hostname}/{$apiPath}",
             'app_user' => $appUsername,
             'ip_address' => $ipAddress,
             'request_data' => $requestData,
@@ -399,7 +406,14 @@ class WfmService
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ])
-                ->post("$this->hostname{$apiPath}", $requestData);
+                ->post("$this->hostname/{$apiPath}", $requestData);
+
+            Log::debug('WFM Labor Category Entries Paginated - Response Debug', [
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body' => $response->body(),
+                'json' => $response->json(),
+            ]);
         } catch (ConnectionException $e) {
             Log::error('WFM Connection Error', [
                 'error' => $e->getMessage(),
@@ -435,14 +449,14 @@ class WfmService
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
 
-        $apiPath = '/api/v1/commons/labor_entries/multi_read';
+        $apiPath = 'api/v1/commons/labor_entries/multi_read';
         try {
             $response = Http::withToken($this->accessToken)
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ])
-                ->post("$this->hostname{$apiPath}", $requestData);
+                ->post("$this->hostname/{$apiPath}", $requestData);
         } catch (ConnectionException $e) {
             Log::error('WFM Connection Error', [
                 'error' => $e->getMessage(),
@@ -474,6 +488,7 @@ class WfmService
         // Get the authenticated user and IP Address for logging
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
+        $apiPath = 'api/v1/commons/labor_categories';
 
         try {
             $response = Http::withToken($this->accessToken)
@@ -481,7 +496,7 @@ class WfmService
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ])
-                ->get("{$this->hostname}/api/v1/commons/labor_categories");
+                ->get("{$this->hostname}/{$apiPath}");
         } catch (ConnectionException $ce) {
             Log::error('WFM Connection Error', [
                 'error' => $ce->getMessage(),
@@ -508,6 +523,7 @@ class WfmService
     {
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
+        $apiPath = 'api/v1/commons/data_dictionary/data_elements';
 
         try {
             $response = Http::withToken($this->accessToken)
@@ -515,7 +531,7 @@ class WfmService
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ])
-                ->get("{$this->hostname}/api/v1/commons/data_dictionary/data_elements");
+                ->get("{$this->hostname}/{$apiPath}");
         } catch (ConnectionException $ce) {
             Log::error('WFM Connection Error', [
                 'error' => $ce->getMessage(),
