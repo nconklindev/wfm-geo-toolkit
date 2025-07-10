@@ -136,7 +136,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 // If we got a full batch and haven't hit a limit, we can try increasing batch size
                 if ($records->count() === $batchSize && $batchSize < 1000) {
                     $batchSize = min(1000, $batchSize * 2); // Double batch size up to 1000
-                    Log::debug('Increasing batch size', ['new_batch_size' => $batchSize]);
+                    Log::info('Increasing batch size', ['new_batch_size' => $batchSize]);
                 }
 
                 // Safety check: if we got fewer records than requested, we've reached the end
@@ -311,7 +311,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 $hasMoreData = false;
             } else {
                 // Transform data for export too
-                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                $transformedRecords = $this->transformApiData($records->toArray());
                 $allRecords = $allRecords->concat($transformedRecords);
                 $index += $batchSize;
 
