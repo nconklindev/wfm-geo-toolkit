@@ -64,12 +64,6 @@ trait PaginatesApiData
                 // File cache or other drivers - use key tracking
                 $this->clearFilePaginationCache($cache, $baseKey);
             }
-
-            //            Log::debug('Pagination cache cleared', [
-            //                'component' => get_class($this),
-            //                'base_key' => $baseKey,
-            //                'cache_driver' => config('cache.default'),
-            //            ]);
         } catch (Exception $e) {
             Log::warning('Failed to clear pagination cache', [
                 'error' => $e->getMessage(),
@@ -465,7 +459,7 @@ trait PaginatesApiData
                         $record[$field] = Carbon::parse($record[$field]);
                     } catch (Exception $e) {
                         // Keep original value if date parsing fails
-                        Log::debug('Failed to parse date field', [
+                        Log::error('Failed to parse date field', [
                             'field' => $field,
                             'value' => $record[$field],
                             'error' => $e->getMessage(),
