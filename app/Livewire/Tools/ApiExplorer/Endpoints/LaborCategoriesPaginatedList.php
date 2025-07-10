@@ -70,7 +70,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
     protected function loadAllDataFromApi(): void
     {
         // Start with a reasonable batch size that respects API limits
-        $batchSize = 1000; // Maximum allowed by the API
+        $batchSize = 1000;
         $index = 0;
         $allRecords = collect();
         $hasMoreData = true;
@@ -91,7 +91,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 if (isset($responseData['errorCode']) &&
                     str_contains($responseData['errorCode'], 'laborcategory-common:110')) {
 
-                    $this->errorMessage = 'API limit exceeded. This CFN tenant has a maximum record limit of 1000 per request. '.
+                    $this->errorMessage = 'API limit exceeded. This tenant has a maximum record limit of 1000 per request. '.
                                         'Please use category filters to reduce the dataset size.';
                     Log::error('API count limit exceeded in LaborCategoriesPaginatedList', [
                         'error_code' => $responseData['errorCode'] ?? 'unknown',
@@ -125,17 +125,18 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             if ($records->isEmpty()) {
                 $hasMoreData = false;
             } else {
-                $allRecords = $allRecords->concat($records->toArray());
+                // Transform the data before adding to collection
+                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                $allRecords = $allRecords->concat($transformedRecords);
                 $index += $batchSize;
 
-                // Safety check: if we got fewer records than requested, we've reached the end
                 if ($records->count() < $batchSize) {
                     $hasMoreData = false;
                 }
             }
         }
 
-        // Cache the combined data
+        // Cache the transformed data
         $this->cacheKey = $this->generateCacheKey();
         cache()->put($this->cacheKey, $allRecords, now()->addMinutes(30));
         $this->totalRecords = $allRecords->count();
@@ -147,6 +148,21 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             'cache_key' => $this->cacheKey,
             'batches_processed' => ceil($index / $batchSize),
         ]);
+    }
+
+    /**
+     * Transform API response data to proper types
+     */
+    private function transformRecordsToBoolean(array $records): array
+    {
+        return array_map(function ($record) {
+            // Convert numeric boolean fields to actual booleans
+            if (isset($record['inactive'])) {
+                $record['inactive'] = (bool) $record['inactive'];
+            }
+
+            return $record;
+        }, $records);
     }
 
     /**
@@ -265,7 +281,6 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return collect();
         }
 
-        // Use the same batching approach for export
         $batchSize = 1000;
         $index = 0;
         $allRecords = collect();
@@ -291,7 +306,9 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             if ($records->isEmpty()) {
                 $hasMoreData = false;
             } else {
-                $allRecords = $allRecords->concat($records->toArray());
+                // Transform data for export too
+                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                $allRecords = $allRecords->concat($transformedRecords);
                 $index += $batchSize;
 
                 if ($records->count() < $batchSize) {
