@@ -1,11 +1,14 @@
 <div class="flex flex-col space-y-6 overflow-hidden">
     <!-- Credentials Section - Compact -->
     <div class="rounded-lg bg-white p-4 shadow-sm dark:bg-zinc-800">
-        <div class="mb-4 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <flux:icon.key class="h-5 w-5 text-amber-500" />
-                <flux:heading size="lg" class="text-amber-700 dark:text-amber-400">Global Configuration</flux:heading>
-                <flux:badge variant="warning" size="sm">Required for all endpoints</flux:badge>
+        <div class="mb-4 flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div class="flex flex-col space-y-2 md:flex-row md:items-center md:space-x-2 md:space-y-0">
+                <div class="flex items-center space-x-2">
+                    <flux:icon.key class="h-5 w-5 text-amber-500" />
+                    <flux:heading size="lg" class="text-amber-700 dark:text-amber-400">Global Configuration
+                    </flux:heading>
+                </div>
+                <flux:badge variant="warning" size="sm" class="w-fit">Required for all endpoints</flux:badge>
             </div>
 
             <!-- Authentication Status Badge -->
@@ -13,12 +16,12 @@
                 @if ($isAuthenticated)
                     <flux:badge variant="success" size="sm">
                         <flux:icon.check-circle class="mr-1 h-3 w-3" />
-                        Authenticated
+                        <span class="md:inline">Authenticated</span>
                     </flux:badge>
                 @else
                     <flux:badge variant="danger" size="sm">
                         <flux:icon.exclamation-circle class="mr-1 h-3 w-3" />
-                        Not Authenticated
+                        <span class="md:inline">Not Authenticated</span>
                     </flux:badge>
                 @endif
             </div>
@@ -106,8 +109,9 @@
             </div>
 
             <!-- Save Credentials Button -->
-            <div class="flex items-center justify-between border-t pt-3 dark:border-zinc-700">
-                <div class="flex items-center space-x-4">
+            <div
+                class="space-y-4 border-t pt-3 dark:border-zinc-700 md:flex md:items-center md:justify-between md:space-y-0">
+                <div class="space-y-2 md:flex md:items-center md:space-x-4 md:space-y-0">
                     <flux:text size="sm" variant="subtle">
                         <flux:icon.information-circle class="mr-1 inline h-4 w-4" />
                         Credentials are cached for this session
@@ -141,9 +145,9 @@
                         icon="check"
                         :disabled="$isLoading"
                     >
-                        <span wire:loading.remove wire:target="saveCredentials">
-                            {{ $isAuthenticated ? 'Re-authenticate' : 'Save Credentials' }}
-                        </span>
+            <span wire:loading.remove wire:target="saveCredentials">
+                {{ $isAuthenticated ? 'Re-authenticate' : 'Save Credentials' }}
+            </span>
                         <span wire:loading wire:target="saveCredentials">Authenticating...</span>
                     </flux:button>
                 </div>
@@ -267,38 +271,7 @@
                 @php
                     // Convert endpoint to Livewire component name: places.create -> tools.api-explorer.endpoints.places-create
                     $livewireComponentName = 'tools.api-explorer.endpoints.' . str_replace('.', '-', $selectedEndpoint);
-                    $livewireComponentClass = 'App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\' . Str::studly(str_replace('.', '-', $selectedEndpoint));
-                    // I literally cannot get the IDE to NOT add these in
-
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
-                    '';
+                    $livewireComponentClass = "App\\Livewire\\Tools\\ApiExplorer\\Endpoints\\" . Str::studly(str_replace('.', '-', $selectedEndpoint));
                 @endphp
 
                 @if (class_exists($livewireComponentClass))
