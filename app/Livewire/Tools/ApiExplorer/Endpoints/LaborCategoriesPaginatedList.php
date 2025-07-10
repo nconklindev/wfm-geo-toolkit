@@ -69,18 +69,118 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
 
     protected function loadAllDataFromApi(): void
     {
-        // Fetch ALL records in one API call
-        $requestData = [
-            'count' => 50000, // Large number to get all records
-            'index' => 0,
-        ];
+        // Start with a reasonable batch size that respects API limits
+        $batchSize = 1000;
+        $index = 0;
+        $allRecords = collect();
+        $hasMoreData = true;
 
-        $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
-            return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
-        });
+        while ($hasMoreData) {
+            $requestData = [
+                'count' => $batchSize,
+                'index' => $index,
+            ];
 
-        // Use the trait's method to process and cache the response
-        $this->processApiResponseData($response, 'LaborCategoriesPaginatedList');
+            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+                return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+            });
+
+            if (! $response || ! $response->successful()) {
+                // Check if it's a count limit error
+                $responseData = $response ? $response->json() : [];
+                if (isset($responseData['errorCode']) &&
+                    str_contains($responseData['errorCode'], 'laborcategory-common:110')) {
+
+                    $this->errorMessage = 'API limit exceeded. This tenant has a maximum record limit of 1000 per request. '.
+                                        'Please use category filters to reduce the dataset size.';
+                    Log::error('API count limit exceeded in LaborCategoriesPaginatedList', [
+                        'error_code' => $responseData['errorCode'] ?? 'unknown',
+                        'error_message' => $responseData['message'] ?? 'unknown',
+                        'requested_count' => $requestData['count'],
+                        'hostname' => $this->hostname,
+                    ]);
+
+                    $this->totalRecords = 0;
+                    $this->cacheKey = '';
+
+                    return;
+                }
+
+                // Handle other errors
+                $this->errorMessage = 'Failed to load data from API.';
+                Log::error('API call failed in loadAllDataFromApi', [
+                    'response_status' => $response ? $response->status() : 'null',
+                    'response_body' => $response ? $response->body() : 'null',
+                ]);
+
+                $this->totalRecords = 0;
+                $this->cacheKey = '';
+
+                return;
+            }
+
+            $data = $response->json();
+            $records = collect($data['records'] ?? []);
+
+            if ($records->isEmpty()) {
+                $hasMoreData = false;
+            } else {
+                // Transform the data before adding to collection
+                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                $allRecords = $allRecords->concat($transformedRecords);
+                $index += $batchSize;
+
+                if ($records->count() < $batchSize) {
+                    $hasMoreData = false;
+                }
+            }
+        }
+
+        // Cache the transformed data
+        $this->cacheKey = $this->generateCacheKey();
+        cache()->put($this->cacheKey, $allRecords, now()->addMinutes(30));
+        $this->totalRecords = $allRecords->count();
+        $this->clearPaginationCache();
+
+        Log::info('All Data Loaded and Cached', [
+            'component' => 'LaborCategoriesPaginatedList',
+            'total_records' => $this->totalRecords,
+            'cache_key' => $this->cacheKey,
+            'batches_processed' => ceil($index / $batchSize),
+        ]);
+    }
+
+    /**
+     * Transform API response data to proper types
+     */
+    private function transformRecordsToBoolean(array $records): array
+    {
+        return array_map(function ($record) {
+            // Convert numeric boolean fields to actual booleans
+            if (isset($record['inactive'])) {
+                $record['inactive'] = (bool) $record['inactive'];
+            }
+
+            return $record;
+        }, $records);
+    }
+
+    /**
+     * Override the generateCacheKey method to include selected categories
+     */
+    protected function generateCacheKey(): string
+    {
+        $categoriesHash = empty($this->selectedLaborCategories)
+            ? 'all'
+            : hash('sha256', json_encode(sort($this->selectedLaborCategories)));
+
+        $cacheSessionId = $this->getCacheSessionId();
+        $userId = auth()->id() ?? 'anonymous';
+
+        // Create a secure cache key
+        return 'api_data_'.class_basename($this).'_'.hash('sha256',
+            $this->hostname.'_'.$cacheSessionId.'_'.$userId.'_'.$categoriesHash
+        );
     }
 
     protected function loadFilteredData(): void
@@ -90,7 +190,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         foreach ($this->selectedLaborCategories as $category) {
             $apiCallFunctions[] = function () use ($category) {
                 return $this->wfmService->getLaborCategoryEntriesPaginated([
-                    'count' => 10000,
+                    'count' => 1000, // Respect the API limit
                     'index' => 0,
                     'where' => ['laborCategory' => ['qualifier' => $category]],
                 ]);
@@ -117,20 +217,6 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             'cache_key' => $this->cacheKey,
             'memory_usage_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
         ]);
-    }
-
-    /**
-     * Override the generateCacheKey method to include selected categories
-     */
-    protected function generateCacheKey(): string
-    {
-        $categoriesHash = empty($this->selectedLaborCategories)
-            ? 'all'
-            : md5(json_encode(sort($this->selectedLaborCategories)));
-
-        return 'api_data_'.class_basename($this).'_'.md5(
-            $this->hostname.'_'.session('wfm_access_token', 'anonymous').'_'.$categoriesHash
-        );
     }
 
     private function logPerformanceMetrics(float $startTime): void
@@ -162,6 +248,18 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
     }
 
     /**
+     * Override the searchable fields for labor categories
+     */
+    protected function getSearchableFields(): array
+    {
+        return [
+            'name',
+            'description',
+            'laborCategory.name',
+        ];
+    }
+
+    /**
      * Export all available data (respects current search/sort but not category filters)
      */
     public function exportAllToCsv(): StreamedResponse
@@ -177,32 +275,49 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
     }
 
-    /**
-     * Get ALL data for export (bypassing category filters)
-     */
     protected function getAllDataForExport(): Collection
     {
         if (! $this->isAuthenticated) {
             return collect();
         }
 
-        $requestData = [
-            'count' => 50000,
-            'index' => 0,
-        ];
+        $batchSize = 1000;
+        $index = 0;
+        $allRecords = collect();
+        $hasMoreData = true;
 
-        $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
-            return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
-        });
+        while ($hasMoreData) {
+            $requestData = [
+                'count' => $batchSize,
+                'index' => $index,
+            ];
 
-        if ($response && $response->successful()) {
+            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+                return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
+            });
+
+            if (! $response || ! $response->successful()) {
+                break;
+            }
+
             $data = $response->json();
-            $records = $data['records'] ?? [];
+            $records = collect($data['records'] ?? []);
 
-            return collect($records);
+            if ($records->isEmpty()) {
+                $hasMoreData = false;
+            } else {
+                // Transform data for export too
+                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                $allRecords = $allRecords->concat($transformedRecords);
+                $index += $batchSize;
+
+                if ($records->count() < $batchSize) {
+                    $hasMoreData = false;
+                }
+            }
         }
 
-        return collect();
+        return $allRecords;
     }
 
     /**
@@ -294,18 +409,6 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         $recordCount = $cachedData->count();
 
         return $this->createMockResponse($cachedData->toArray(), $recordCount);
-    }
-
-    /**
-     * Override the searchable fields for labor categories
-     */
-    protected function getSearchableFields(): array
-    {
-        return [
-            'name',
-            'description',
-            'laborCategory.name',
-        ];
     }
 
     /**

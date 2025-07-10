@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
 use Livewire\WithPagination;
 use Log;
+use Str;
 
 trait PaginatesApiData
 {
@@ -82,9 +83,25 @@ trait PaginatesApiData
      */
     protected function generateCacheKey(): string
     {
-        return 'api_data_'.class_basename($this).'_'.md5(
-            $this->hostname.'_'.session('wfm_access_token', 'anonymous')
-        );
+        $cacheSessionId = $this->getCacheSessionId();
+        $userId = auth()->id() ?? 'anonymous';
+
+        return 'api_data_'.class_basename($this).'_'.hash('sha256', $this->hostname.'_'.$userId.'_'.$cacheSessionId);
+    }
+
+    /**
+     * Get or create a cache session identifier
+     */
+    private function getCacheSessionId(): string
+    {
+        $cacheSessionKey = 'wfm_cache_session_id';
+
+        if (! session()->has($cacheSessionKey)) {
+            // Generate a unique session identifier for caching
+            session()->put($cacheSessionKey, Str::random(32));
+        }
+
+        return session()->get($cacheSessionKey);
     }
 
     /**
