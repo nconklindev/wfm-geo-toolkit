@@ -85,23 +85,69 @@
                                     <td class="px-6 py-4 text-sm whitespace-nowrap text-zinc-900 dark:text-zinc-100">
                                         @php
                                             $value = data_get($row, $column['field'], '-');
+                                        @endphp
 
-                                            // Handle arrays and objects for display
-                                            if (is_array($value)) {
+                                        @if (is_bool($value))
+                                            {{-- Boolean values with semantic icons --}}
+                                            <div class="flex items-center">
+                                                @php
+                                                    // Determine if this is a "negative" boolean field
+                                                    $isNegativeField = in_array(strtolower($column['field']), [
+                                                        'inactive',
+                                                        'disabled',
+                                                        'hidden',
+                                                        'deleted',
+                                                        'blocked',
+                                                        'suspended',
+                                                        'expired',
+                                                        'locked',
+                                                        'closed',
+                                                        'archived',
+                                                    ]);
+
+                                                    // For negative fields, invert the display logic
+                                                    $showAsPositive = $isNegativeField ? ! $value : $value;
+                                                @endphp
+
+                                                @if ($showAsPositive)
+                                                    <flux:icon.check-circle class="h-5 w-5 text-green-500" />
+                                                    <span class="ml-2 text-green-700 dark:text-green-400">
+                                                        @if ($isNegativeField)
+                                                            Active
+                                                        @else
+                                                            Yes
+                                                        @endif
+                                                    </span>
+                                                @else
+                                                    <flux:icon.x-circle class="h-5 w-5 text-red-500" />
+                                                    <span class="ml-2 text-red-700 dark:text-red-400">
+                                                        @if ($isNegativeField)
+                                                            Inactive
+                                                        @else
+                                                            No
+                                                        @endif
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @elseif (is_array($value))
+                                            {{-- Handle arrays --}}
+                                            @php
                                                 $displayValue = implode(
                                                     ', ',
                                                     array_filter($value, function ($item) {
                                                         return is_string($item) || is_numeric($item);
                                                     }),
                                                 );
-                                            } elseif (is_object($value)) {
-                                                $displayValue = json_encode($value);
-                                            } else {
-                                                $displayValue = $value;
-                                            }
-                                        @endphp
+                                            @endphp
 
-                                        {{ $displayValue ?: '-' }}
+                                            {{ $displayValue ?: '-' }}
+                                        @elseif (is_object($value))
+                                            {{-- Handle objects --}}
+                                            {{ json_encode($value) }}
+                                        @else
+                                            {{-- Regular values --}}
+                                            {{ $value ?: '-' }}
+                                        @endif
                                     </td>
                                 @endforeach
                             </tr>

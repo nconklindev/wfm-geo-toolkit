@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -63,12 +64,6 @@ trait PaginatesApiData
                 // File cache or other drivers - use key tracking
                 $this->clearFilePaginationCache($cache, $baseKey);
             }
-
-            //            Log::debug('Pagination cache cleared', [
-            //                'component' => get_class($this),
-            //                'base_key' => $baseKey,
-            //                'cache_driver' => config('cache.default'),
-            //            ]);
         } catch (Exception $e) {
             Log::warning('Failed to clear pagination cache', [
                 'error' => $e->getMessage(),
@@ -439,5 +434,59 @@ trait PaginatesApiData
         $this->totalRecords = 0;
         $this->cacheKey = '';
         $this->paginationCacheKey = '';
+    }
+
+    /**
+     * Transform API response data to proper types
+     */
+    protected function transformApiData(array $records): array
+    {
+        return array_map(function ($record) {
+            // Convert numeric boolean fields to actual booleans
+            $booleanFields = $this->getBooleanFields();
+
+            foreach ($booleanFields as $field) {
+                if (isset($record[$field])) {
+                    $record[$field] = (bool) $record[$field];
+                }
+            }
+
+            // Convert date fields if needed
+            $dateFields = $this->getDateFields();
+            foreach ($dateFields as $field) {
+                if (! empty($record[$field])) {
+                    try {
+                        $record[$field] = Carbon::parse($record[$field]);
+                    } catch (Exception $e) {
+                        // Keep the original value if date parsing fails
+                        Log::error('Failed to parse date field', [
+                            'field' => $field,
+                            'value' => $record[$field],
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            return $record;
+        }, $records);
+    }
+
+    /**
+     * Get the list of fields that should be converted to boolean
+     * Override in child classes to specify boolean fields
+     */
+    protected function getBooleanFields(): array
+    {
+        return ['inactive', 'active', 'enabled', 'disabled', 'visible', 'hidden'];
+    }
+
+    /**
+     * Get the list of fields that should be converted to dates
+     * Override in child classes to specify date fields
+     */
+    protected function getDateFields(): array
+    {
+        return ['created_at', 'updated_at', 'date', 'timestamp'];
     }
 }

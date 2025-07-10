@@ -144,7 +144,7 @@ class DataElementsList extends BaseApiEndpoint
 
         try {
             $response = $this->makeAuthenticatedApiCall(function () {
-                return $this->wfmService->getDataElementsPaginated([]);
+                return $this->wfmService->getDataElementsPaginated();
             });
 
             $this->processApiResponseData($response, 'DataElementsList');

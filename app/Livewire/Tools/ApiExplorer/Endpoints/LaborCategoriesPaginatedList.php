@@ -35,6 +35,9 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         $this->loadAllData();
     }
 
+    /**
+     * @throws ConnectionException
+     */
     protected function loadAllData(): void
     {
         if (! $this->isAuthenticated) {
@@ -69,8 +72,8 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
 
     protected function loadAllDataFromApi(): void
     {
-        // Start with a reasonable batch size that respects API limits
-        $batchSize = 1000;
+        // Start with a conservative batch size
+        $batchSize = 250;
         $index = 0;
         $allRecords = collect();
         $hasMoreData = true;
@@ -81,36 +84,39 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 'index' => $index,
             ];
 
-            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+            $response = $this->makeAuthenticatedApiCallWithRetry(function () use ($requestData) {
                 return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
             });
 
             if (! $response || ! $response->successful()) {
-                // Check if it's a count limit error
+                // Analyze the error using the base class method
                 $responseData = $response ? $response->json() : [];
-                if (isset($responseData['errorCode']) &&
-                    str_contains($responseData['errorCode'], 'laborcategory-common:110')) {
+                $errorAnalysis = $this->analyzeApiError($responseData);
 
-                    $this->errorMessage = 'API limit exceeded. This tenant has a maximum record limit of 1000 per request. '.
-                                        'Please use category filters to reduce the dataset size.';
-                    Log::error('API count limit exceeded in LaborCategoriesPaginatedList', [
-                        'error_code' => $responseData['errorCode'] ?? 'unknown',
-                        'error_message' => $responseData['message'] ?? 'unknown',
-                        'requested_count' => $requestData['count'],
-                        'hostname' => $this->hostname,
-                    ]);
+                if ($errorAnalysis['type'] === 'limit_exceeded') {
+                    // If we detected a max count, try with a smaller batch size
+                    if ($errorAnalysis['max_count'] && $batchSize >= $errorAnalysis['max_count']) {
+                        $newBatchSize = max(100, (int) ($errorAnalysis['max_count'] * 0.8)); // Use 80% of the limit
 
-                    $this->totalRecords = 0;
-                    $this->cacheKey = '';
+                        Log::info('Retrying with smaller batch size', [
+                            'original_batch_size' => $batchSize,
+                            'detected_limit' => $errorAnalysis['max_count'],
+                            'new_batch_size' => $newBatchSize,
+                        ]);
 
-                    return;
+                        $batchSize = $newBatchSize;
+
+                        continue; // Retry with a smaller batch size
+                    }
                 }
 
-                // Handle other errors
-                $this->errorMessage = 'Failed to load data from API.';
+                $this->errorMessage = $errorAnalysis['user_message'];
+
                 Log::error('API call failed in loadAllDataFromApi', [
-                    'response_status' => $response ? $response->status() : 'null',
-                    'response_body' => $response ? $response->body() : 'null',
+                    'error_type' => $errorAnalysis['type'],
+                    'detected_max_count' => $errorAnalysis['max_count'],
+                    'requested_count' => $requestData['count'],
+                    'hostname' => $this->hostname,
                 ]);
 
                 $this->totalRecords = 0;
@@ -125,18 +131,25 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             if ($records->isEmpty()) {
                 $hasMoreData = false;
             } else {
-                // Transform the data before adding to collection
-                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                // Transform the data using the trait method
+                $transformedRecords = $this->transformApiData($records->toArray());
                 $allRecords = $allRecords->concat($transformedRecords);
                 $index += $batchSize;
 
+                // If we got a full batch and haven't hit a limit, we can try increasing batch size
+                if ($records->count() === $batchSize && $batchSize < 1000) {
+                    $batchSize = min(1000, $batchSize * 2); // Double batch size up to 1000
+                    Log::info('Increasing batch size', ['new_batch_size' => $batchSize]);
+                }
+
+                // Safety check: if we got fewer records than requested, we've reached the end
                 if ($records->count() < $batchSize) {
                     $hasMoreData = false;
                 }
             }
         }
 
-        // Cache the transformed data
+        // Cache the combined data
         $this->cacheKey = $this->generateCacheKey();
         cache()->put($this->cacheKey, $allRecords, now()->addMinutes(30));
         $this->totalRecords = $allRecords->count();
@@ -145,24 +158,10 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
         Log::info('All Data Loaded and Cached', [
             'component' => 'LaborCategoriesPaginatedList',
             'total_records' => $this->totalRecords,
+            'final_batch_size' => $batchSize,
             'cache_key' => $this->cacheKey,
             'batches_processed' => ceil($index / $batchSize),
         ]);
-    }
-
-    /**
-     * Transform API response data to proper types
-     */
-    private function transformRecordsToBoolean(array $records): array
-    {
-        return array_map(function ($record) {
-            // Convert numeric boolean fields to actual booleans
-            if (isset($record['inactive'])) {
-                $record['inactive'] = (bool) $record['inactive'];
-            }
-
-            return $record;
-        }, $records);
     }
 
     /**
@@ -260,6 +259,14 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
     }
 
     /**
+     * Override to specify boolean fields for this endpoint
+     */
+    protected function getBooleanFields(): array
+    {
+        return ['inactive'];
+    }
+
+    /**
      * Export all available data (respects current search/sort but not category filters)
      */
     public function exportAllToCsv(): StreamedResponse
@@ -281,7 +288,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return collect();
         }
 
-        $batchSize = 1000;
+        $batchSize = 250;
         $index = 0;
         $allRecords = collect();
         $hasMoreData = true;
@@ -292,7 +299,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 'index' => $index,
             ];
 
-            $response = $this->makeAuthenticatedApiCall(function () use ($requestData) {
+            $response = $this->makeAuthenticatedApiCallWithRetry(function () use ($requestData) {
                 return $this->wfmService->getLaborCategoryEntriesPaginated($requestData);
             });
 
@@ -307,7 +314,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
                 $hasMoreData = false;
             } else {
                 // Transform data for export too
-                $transformedRecords = $this->transformRecordsToBoolean($records->toArray());
+                $transformedRecords = $this->transformApiData($records->toArray());
                 $allRecords = $allRecords->concat($transformedRecords);
                 $index += $batchSize;
 
@@ -381,7 +388,7 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
             return;
         }
 
-        $response = $this->makeAuthenticatedApiCall(function () {
+        $response = $this->makeAuthenticatedApiCallWithRetry(function () {
             return $this->wfmService->getLaborCategories();
         });
 
