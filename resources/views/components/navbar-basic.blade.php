@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between">
         <div class="flex items-center">
             <x-app-logo-icon />
-            <span class="ml-3 hidden font-semibold text-nowrap md:flex md:text-xl">WFM Geo Toolkit</span>
+            <span class="ml-3 hidden font-semibold text-nowrap md:flex md:text-xl">WFM Toolkit</span>
         </div>
         <flux:navbar {{ $attributes }} class="flex items-center justify-start">
             <flux:navbar.item href="{{ url('/') }}" :current="request()->is('/')">Home</flux:navbar.item>

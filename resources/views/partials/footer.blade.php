@@ -3,10 +3,10 @@
         <div class="mb-6 md:mb-0">
             <div class="flex items-center sm:justify-center md:justify-start">
                 <x-app-logo-icon class="size-4" />
-                <span class="ml-2 block text-lg font-semibold">WFM Geo Toolkit</span>
+                <span class="ml-2 block text-lg font-semibold">WFM Toolkit</span>
             </div>
             <flux:text variant="subtle" size="sm" class="mt-2">
-                © {{ date('Y') }} WFM Geo Toolkit. All rights reserved.
+                © {{ date('Y') }} WFM Toolkit. All rights reserved.
             </flux:text>
         </div>
         <div>

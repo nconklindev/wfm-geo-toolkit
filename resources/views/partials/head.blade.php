@@ -4,7 +4,7 @@
     <meta name="user-id" content="{{ auth()->id() }}" />
 @endauth
 
-<title>{{ $title . ' | WFM Geo Toolkit' ?? 'WFM Geo Toolkit' }}</title>
+<title>{{ $title . ' | WFM Toolkit' ?? 'WFM Toolkit' }}</title>
 
 {{-- Stack for page-specific scripts --}}
 @stack('scripts')

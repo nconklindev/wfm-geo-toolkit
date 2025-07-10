@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
         {{-- Dynamic Title --}}
-        <title>{{ $title . ' | WFM Geo Toolkit' ?? config('app.name', 'WFM Geo Toolkit') }}</title>
+        <title>{{ $title . ' | WFM Toolkit' ?? config('app.name', 'WFM Toolkit') }}</title>
 
         <!-- Styles / Scripts -->
         @vite(['resources/css/app.css', 'resources/js/coloris.js', 'resources/css/coloris.css', 'resources/js/app.js'])

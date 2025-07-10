@@ -10,7 +10,7 @@
                     <span class="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
                         <x-app-logo-icon class="size-9 text-black dark:text-teal-500" />
                     </span>
-                    <span class="sr-only">{{ config('app.name', 'WFM Geo Toolkit') }}</span>
+                    <span class="sr-only">{{ config('app.name', 'WFM Toolkit') }}</span>
                 </a>
                 <div class="flex flex-col gap-6">
                     {{ $slot }}

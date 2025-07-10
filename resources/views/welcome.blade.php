@@ -1,9 +1,9 @@
-<x-layouts.app :title="__('Welcome to WFM Geo Toolkit')">
+<x-layouts.app :title="__('Welcome to WFM Toolkit')">
     <div class="container mx-auto max-w-4xl px-4 py-12">
         <div class="text-center">
             <flux:icon.map-pin class="mx-auto mb-4 size-12 text-teal-500" />
             <flux:heading size="xl" level="1" class="mb-1 font-bold! text-shadow-lg/30!">
-                Welcome to the WFM Geo Toolkit!
+                Welcome to the WFM Toolkit!
             </flux:heading>
             <flux:text class="mb-10 text-base">
                 Let's get you started with managing your geographic data effectively.
@@ -31,8 +31,7 @@
                         </flux:heading>
                         <flux:text>
                             <strong>Known Places</strong>
-                            are the core of the WFM Geo Toolkit. They represent the physical locations of your business,
-                            such as:
+                            represent the physical locations of your business, such as:
                             <ul class="mt-2 list-inside list-disc">
                                 <li>Offices</li>
                                 <li>Retail Stores</li>

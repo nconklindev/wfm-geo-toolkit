@@ -12,7 +12,7 @@
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
             <div id="logo-container" class="flex flex-row items-center">
                 <x-app-logo-icon />
-                <flux:brand :href="route('dashboard')" name="WFM Geo Toolkit" class="hidden px-2 dark:flex" />
+                <flux:brand :href="route('dashboard')" name="WFM Toolkit" class="hidden px-2 dark:flex" />
             </div>
             <livewire:search variant="filled" placeholder="Search..." icon="magnifying-glass" tabindex="0" />
             <flux:navlist variant="outline">
