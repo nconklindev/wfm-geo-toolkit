@@ -5218,16 +5218,16 @@
         },
         {
             "name": "resend/resend-php",
-            "version": "v0.18.0",
+            "version": "v0.18.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/resend/resend-php.git",
-                "reference": "d6194782ff1952627bcdd52e5958572c4bd98043"
+                "reference": "f20a9a50a7f705294af1662995c93bfd806fed3e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/resend/resend-php/zipball/d6194782ff1952627bcdd52e5958572c4bd98043",
-                "reference": "d6194782ff1952627bcdd52e5958572c4bd98043",
+                "url": "https://api.github.com/repos/resend/resend-php/zipball/f20a9a50a7f705294af1662995c93bfd806fed3e",
+                "reference": "f20a9a50a7f705294af1662995c93bfd806fed3e",
                 "shasum": ""
             },
             "require": {
@@ -5269,9 +5269,9 @@
             ],
             "support": {
                 "issues": "https://github.com/resend/resend-php/issues",
-                "source": "https://github.com/resend/resend-php/tree/v0.18.0"
+                "source": "https://github.com/resend/resend-php/tree/v0.18.1"
             },
-            "time": "2025-05-06T21:18:26+00:00"
+            "time": "2025-07-04T00:12:53+00:00"
         },
         {
             "name": "sentry/sentry",
