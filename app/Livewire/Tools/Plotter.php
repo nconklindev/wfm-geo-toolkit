@@ -13,7 +13,7 @@ use Livewire\Component;
 
 class Plotter extends Component
 {
-    const MAX_ACCURACY = 1000;
+    public const MAX_ACCURACY = 1000;
 
     // Explicitly set the between values as floats to prevent the validation from failing
     #[Validate('required|decimal:0,10|between:-90.00,90.00')]
@@ -633,7 +633,7 @@ class Plotter extends Component
     }
 
     #[Layout('components.layouts.guest')]
-    #[Title('Plotter | WFM Geo Toolkit')]
+    #[Title('Plotter | WFM Toolkit')]
     public function render(): View
     {
         // Send all points to the view to initialize the map with existing points
