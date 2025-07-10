@@ -5,6 +5,7 @@ namespace App\Livewire\Tools\ApiExplorer;
 use App\Services\WfmService;
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Log;
@@ -330,5 +331,192 @@ abstract class BaseApiEndpoint extends Component
         }
 
         return $data;
+    }
+
+    /**
+     * Make an authenticated API call with intelligent retry logic for rate limits
+     */
+    protected function makeAuthenticatedApiCallWithRetry(callable $apiCallFunction, int $maxRetries = 1): ?Response
+    {
+        if (! $this->isAuthenticated) {
+            return null;
+        }
+
+        $attempt = 0;
+
+        while ($attempt <= $maxRetries) {
+            try {
+                $response = $apiCallFunction();
+
+                if (! $this->validateAuthenticationState($response)) {
+                    return null;
+                }
+
+                // If successful, return the response
+                if ($response && $response->successful()) {
+                    return $response;
+                }
+
+                // If not successful, analyze the error
+                if ($response) {
+                    $responseData = $response->json();
+                    $errorAnalysis = $this->analyzeApiError($responseData);
+
+                    // If it's a retryable error, and we have retries left
+                    if ($errorAnalysis['should_retry'] && $attempt < $maxRetries) {
+                        $attempt++;
+
+                        Log::info('Retrying API call', [
+                            'attempt' => $attempt,
+                            'max_retries' => $maxRetries,
+                            'error_type' => $errorAnalysis['type'],
+                            'component' => get_class($this),
+                        ]);
+
+                        // Add a small delay before retry
+                        usleep(500000); // 0.5 second delay
+
+                        continue;
+                    }
+
+                    // Set error message from analysis
+                    $this->errorMessage = $errorAnalysis['user_message'];
+
+                    Log::error('API call failed after retries', [
+                        'error_type' => $errorAnalysis['type'],
+                        'attempts' => $attempt + 1,
+                        'component' => get_class($this),
+                        'hostname' => $this->hostname,
+                    ]);
+                }
+
+                return $response;
+
+            } catch (ConnectionException $e) {
+                $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
+                Log::error('Connection error in API call', [
+                    'error' => $e->getMessage(),
+                    'component' => get_class($this),
+                    'hostname' => $this->hostname,
+                ]);
+
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Analyze API error response and return error details with extracted limits
+     */
+    protected function analyzeApiError($responseData): array
+    {
+        if (! is_array($responseData)) {
+            return [
+                'type' => 'unknown',
+                'user_message' => 'Unknown error occurred',
+                'max_count' => null,
+                'should_retry' => false,
+            ];
+        }
+
+        $message = strtolower($responseData['message'] ?? '');
+        $errorCode = strtolower($responseData['errorCode'] ?? '');
+        $fullText = $message.' '.$errorCode;
+
+        // System/Rate limit errors
+        $limitKeywords = ['limit', 'exceeded', 'maximum', 'max', 'count', 'system limit', 'too many', 'quota', 'rate limit'];
+        foreach ($limitKeywords as $keyword) {
+            if (str_contains($fullText, $keyword)) {
+                $maxCount = $this->extractMaxCountFromError($responseData);
+                $userMessage = $maxCount
+                    ? "API limit exceeded. This tenant has a maximum record limit of {$maxCount} per request. Please use filters to reduce the dataset size, if possible."
+                    : 'API limit exceeded. This tenant has restrictions on the number of records that can be requested. Please use filters to reduce the dataset size, if possible.';
+
+                return [
+                    'type' => 'limit_exceeded',
+                    'user_message' => $userMessage,
+                    'max_count' => $maxCount,
+                    'should_retry' => $maxCount !== null, // Retry if we can extract a limit
+                ];
+            }
+        }
+
+        // Authentication/Permission errors
+        $authKeywords = ['unauthorized', 'forbidden', 'permission', 'access denied', 'invalid token', 'expired'];
+        foreach ($authKeywords as $keyword) {
+            if (str_contains($fullText, $keyword)) {
+                return [
+                    'type' => 'authentication',
+                    'user_message' => 'Authentication or permission error. Please check your credentials and try again.',
+                    'max_count' => null,
+                    'should_retry' => false,
+                ];
+            }
+        }
+
+        // Timeout errors
+        $timeoutKeywords = ['timeout', 'timed out', 'connection timeout', 'request timeout'];
+        foreach ($timeoutKeywords as $keyword) {
+            if (str_contains($fullText, $keyword)) {
+                return [
+                    'type' => 'timeout',
+                    'user_message' => 'Request timed out. The server took too long to respond. Please try again or reduce your request size.',
+                    'max_count' => null,
+                    'should_retry' => true,
+                ];
+            }
+        }
+
+        // Server errors
+        $serverKeywords = ['server error', 'internal error', 'service unavailable', 'bad gateway'];
+        foreach ($serverKeywords as $keyword) {
+            if (str_contains($fullText, $keyword)) {
+                return [
+                    'type' => 'server_error',
+                    'user_message' => 'Server error occurred. Please try again later or contact support if the issue persists.',
+                    'max_count' => null,
+                    'should_retry' => true,
+                ];
+            }
+        }
+
+        // Default fallback
+        return [
+            'type' => 'generic',
+            'user_message' => 'API error: '.($responseData['message'] ?? 'Unknown error occurred'),
+            'max_count' => null,
+            'should_retry' => false,
+        ];
+    }
+
+    /**
+     * Extract the maximum count limit from API error message
+     */
+    protected function extractMaxCountFromError(array $responseData): ?int
+    {
+        $message = $responseData['message'] ?? '';
+
+        // Look for patterns like "max count: 1000" or "maximum: 500" or "limit of 2000"
+        $patterns = [
+            '/max count:\s*(\d+)/i',
+            '/maximum:\s*(\d+)/i',
+            '/limit of\s*(\d+)/i',
+            '/max:\s*(\d+)/i',
+            '/limit:\s*(\d+)/i',
+            '/maximum count:\s*(\d+)/i',
+            '/count limit:\s*(\d+)/i',
+            '/records limit:\s*(\d+)/i',
+            '/record limit:\s*(\d+)/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message, $matches)) {
+                return (int) $matches[1];
+            }
+        }
+
+        return null;
     }
 }
