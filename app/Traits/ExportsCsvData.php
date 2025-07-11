@@ -2,8 +2,11 @@
 
 namespace App\Traits;
 
+use Exception;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use League\Csv\Writer;
+use Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 trait ExportsCsvData
@@ -23,7 +26,20 @@ trait ExportsCsvData
 
         $filename = $filename ?? $this->getDefaultCsvFilename();
 
-        return $this->exportAsCsv($this->tableData, $this->tableColumns, $filename);
+        try {
+            return $this->exportAsCsv($this->tableData, $this->tableColumns, $filename);
+        } catch (Exception $e) {
+            Log::error('CSV Export Error', [
+                'error' => $e->getMessage(),
+                'filename' => $filename,
+                'data_count' => count($this->tableData),
+                'columns_count' => count($this->tableColumns),
+            ]);
+
+            session()->flash('error', 'Failed to export CSV. Please try again.');
+
+            return back();
+        }
     }
 
     /**
@@ -85,6 +101,11 @@ trait ExportsCsvData
                         $value = '';
                     }
 
+                    // Handle boolean values for better readability in CSV
+                    if (is_bool($value)) {
+                        $value = $value ? 'Yes' : 'No';
+                    }
+
                     $csvRow[] = (string) $value;
                 }
                 $csv->insertOne($csvRow);
@@ -108,5 +129,24 @@ trait ExportsCsvData
         }
 
         return $safeFileName;
+    }
+
+    /**
+     * Generate export filename with optional search term
+     */
+    protected function generateExportFilename(string $itemName): string
+    {
+        $parts = [Str::slug($itemName)];
+
+        // Add search term if present
+        if (! empty($this->search)) {
+            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
+            $parts[] = "search-$searchSlug";
+        }
+
+        // Add timestamp
+        $parts[] = now()->format('Y-m-d_H-i-s');
+
+        return implode('-', $parts);
     }
 }
