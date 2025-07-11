@@ -2,90 +2,64 @@
     <!-- Endpoint Header -->
     <x-api-endpoint-header heading="Create Known Places" method="POST" wfm-endpoint="/api/v1/commons/known_places" />
 
-    <!-- Input Mode Tabs -->
-    <x-api-input-mode-tabs :inputMode="$inputMode" />
-
     <!-- Form Content -->
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- Input Section -->
         <div class="space-y-4">
-            <flux:heading size="md">
-                @if ($inputMode === 'form')
-                    Place Details
-                @else
-                    Request Body
-                @endif
-            </flux:heading>
+            <flux:heading size="md">Place Details</flux:heading>
 
             <form wire:submit="createKnownPlace" class="space-y-4">
-                @if ($inputMode === 'form')
-                    <!-- Form Input Mode -->
-                    <div class="space-y-4">
-                        <flux:input wire:model="name" label="Name" placeholder="Main Office" required />
+                <!-- Form Input Mode -->
+                <div class="space-y-4">
+                    <flux:input wire:model="name" label="Name" placeholder="Main Office" required />
 
+                    <flux:input
+                        wire:model="description"
+                        label="Description"
+                        placeholder="Corporate headquarters (optional)"
+                    />
+
+                    <!-- Coordinates Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:input wire:model="latitude" label="Latitude" placeholder="40.7128" step="any" required />
                         <flux:input
-                            wire:model="description"
-                            label="Description"
-                            placeholder="Corporate headquarters (optional)"
+                            wire:model="longitude"
+                            label="Longitude"
+                            placeholder="-74.0060"
+                            step="any"
+                            required
                         />
-
-                        <!-- Coordinates Grid -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <flux:input
-                                wire:model="latitude"
-                                label="Latitude"
-                                placeholder="40.7128"
-                                step="any"
-                                required
-                            />
-                            <flux:input
-                                wire:model="longitude"
-                                label="Longitude"
-                                placeholder="-74.0060"
-                                step="any"
-                                required
-                            />
-                        </div>
-
-                        <!-- TODO: Locations -->
-
-                        <!-- Measurements Grid -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <flux:input
-                                wire:model="radius"
-                                label="Radius (meters)"
-                                placeholder="75"
-                                type="number"
-                                min="1"
-                                max="10000"
-                                required
-                            />
-                            <flux:input
-                                wire:model="accuracy"
-                                label="GPS Accuracy Threshold (meters)"
-                                placeholder="100"
-                                type="number"
-                                min="1"
-                                max="10000"
-                                required
-                            />
-                        </div>
-
-                        <flux:checkbox.group wire:model="validationOrder" label="Validation Order">
-                            <flux:checkbox value="WIFI" label="WiFi" />
-                            <flux:checkbox value="GPS" label="GPS" checked />
-                        </flux:checkbox.group>
                     </div>
-                @else
-                    <!-- JSON Input Mode -->
-                    <flux:field>
-                        <flux:label>Places Data (JSON Array)</flux:label>
-                        <flux:textarea wire:model="placesJson" rows="12" class="font-mono text-sm" />
-                        @error('placesJson')
-                            <flux:error>{{ $message }}</flux:error>
-                        @enderror
-                    </flux:field>
-                @endif
+
+                    <!-- TODO: Locations -->
+
+                    <!-- Measurements Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <flux:input
+                            wire:model="radius"
+                            label="Radius (meters)"
+                            placeholder="75"
+                            type="number"
+                            min="1"
+                            max="10000"
+                            required
+                        />
+                        <flux:input
+                            wire:model="accuracy"
+                            label="GPS Accuracy Threshold (meters)"
+                            placeholder="100"
+                            type="number"
+                            min="1"
+                            max="10000"
+                            required
+                        />
+                    </div>
+
+                    <flux:checkbox.group wire:model="validationOrder" label="Validation Order">
+                        <flux:checkbox value="WIFI" label="WiFi" />
+                        <flux:checkbox value="GPS" label="GPS" checked />
+                    </flux:checkbox.group>
+                </div>
 
                 <!-- Action Buttons -->
                 <div class="flex items-center space-x-3">
@@ -96,28 +70,9 @@
                         wire:loading.attr="disabled"
                     >
                         <flux:icon.plus class="mr-2 h-4 w-4" />
-                        <span wire:loading.remove wire:target="createKnownPlace">
-                            @if ($inputMode === 'form')
-                                Create Place
-                            @else
-                                Create Places
-                            @endif
-                        </span>
+                        <span wire:loading.remove wire:target="createKnownPlace">Create Place</span>
                         <span wire:loading wire:target="createKnownPlace">Creating...</span>
                     </flux:button>
-
-                    @if ($inputMode === 'form')
-                        <flux:button type="button" variant="ghost" wire:click="loadFormSample" icon="sparkles">
-                            Load Sample
-                        </flux:button>
-                    @else
-                        <flux:button type="button" variant="ghost" wire:click="generateSampleData" icon="sparkles">
-                            Generate Sample
-                        </flux:button>
-                        <flux:button type="button" variant="ghost" wire:click="validateJson" icon="check-circle">
-                            Validate JSON
-                        </flux:button>
-                    @endif
                 </div>
 
                 @if (! $isAuthenticated)

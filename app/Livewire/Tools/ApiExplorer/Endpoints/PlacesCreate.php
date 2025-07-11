@@ -4,15 +4,11 @@ namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
 use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
 use Exception;
-use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Livewire\Attributes\Validate;
 
 class PlacesCreate extends BaseApiEndpoint
 {
-    // Rename for consistency with base class
-    #[Validate('required_if:inputMode,json|json')]
-    public string $jsonInput = '';
-
     // Form-specific properties
     #[Validate('required_if:inputMode,form|string|max:255')]
     public string $name = '';
@@ -47,47 +43,77 @@ class PlacesCreate extends BaseApiEndpoint
     protected function initializeEndpoint(): void
     {
         $this->validationOrder = ['GPS'];
-        $this->generateSampleData();
     }
 
-    public function generateSampleData(): void
+    /**
+     * This is a creation endpoint, so it doesn't fetch data
+     */
+    protected function fetchData(): ?Response
     {
-        $sampleData = [
-            [
-                'name' => 'Warehouse',
-                'description' => 'Distribution center',
-                'latitude' => 40.7589,
-                'longitude' => -73.9851,
-                'radius' => 150,
-                'accuracy' => 100,
-                'active' => true,
-                'validationOrder' => ['GPS', 'WIFI'],
-            ],
-        ];
-
-        $this->jsonInput = json_encode($sampleData, JSON_PRETTY_PRINT);
-        $this->resetValidation();
+        return null;
     }
 
-    protected function validateJsonData($data): void
+    /**
+     * Override executeRequest for creation logic
+     */
+    public function executeRequest(): void
     {
-        if (! is_array($data)) {
-            throw new Exception('Data must be an array');
+        $this->createKnownPlace();
+    }
+
+    /**
+     * Create a known place using the API
+     */
+    public function createKnownPlace(): void
+    {
+        if (! $this->isAuthenticated) {
+            $this->errorMessage = 'Please authenticate first using the credentials form above.';
+
+            return;
+        }
+
+        $this->isLoading = true;
+        $this->errorMessage = null;
+
+        try {
+            // Validate input based on mode
+            if ($this->inputMode === 'json') {
+                $this->validate(['jsonInput' => 'required|json']);
+            } else {
+                $this->validate();
+            }
+
+            // Prepare and make API call
+            $placeData = $this->preparePlaceData();
+
+            $response = $this->makeAuthenticatedApiCall(function () use ($placeData) {
+                return $this->wfmService->createKnownPlace($placeData);
+            });
+
+            if ($response && $response->successful()) {
+                $this->handleSuccessfulResponse($response);
+
+                // Set success response
+                $this->apiResponse = [
+                    'status' => $response->status(),
+                    'data' => [
+                        'message' => 'Known place created successfully',
+                        'created_place' => $placeData['name'] ?? 'Unknown',
+                        'response' => $response->json(),
+                    ],
+                ];
+            }
+
+        } catch (Exception $e) {
+            $this->handleError($e);
+        } finally {
+            $this->isLoading = false;
         }
     }
 
     /**
-     * @throws ConnectionException
-     * @throws Exception
-     */
-    protected function makeApiCall()
-    {
-        $placeData = $this->preparePlaceData();
-
-        return $this->wfmService->createKnownPlace($placeData);
-    }
-
-    /**
+     * Prepare place data for API call
+     *
      * @throws Exception
      */
     private function preparePlaceData(): array
@@ -103,7 +129,7 @@ class PlacesCreate extends BaseApiEndpoint
             return $data;
         }
 
-        // Form mode
+        // Form mode - get next available ID
         $wfmPlaces = $this->wfmService->getKnownPlaces();
         if (empty($wfmPlaces)) {
             throw new Exception('Failed to retrieve existing known places from WFM.');
@@ -125,11 +151,9 @@ class PlacesCreate extends BaseApiEndpoint
         ];
     }
 
-    public function createKnownPlace(): void
-    {
-        $this->executeApiCall();
-    }
-
+    /**
+     * Handle successful API response
+     */
     protected function handleSuccessfulResponse($response): void
     {
         if ($this->inputMode === 'form') {
@@ -138,6 +162,9 @@ class PlacesCreate extends BaseApiEndpoint
         }
     }
 
+    /**
+     * Load sample form data
+     */
     public function loadFormSample(): void
     {
         $this->name = 'Main Office';
