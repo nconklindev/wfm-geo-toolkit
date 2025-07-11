@@ -32,9 +32,9 @@
         @if ($startIp && $endIp)
             <flux:text>
                 <span class="font-medium">Range:</span>
-                <code class="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">{{ $startIp }}</code>
+                <code class="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-700">{{ $startIp }}</code>
                 to
-                <code class="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-700">{{ $endIp }}</code>
+                <code class="rounded bg-zinc-100 px-1 py-0.5 text-xs dark:bg-zinc-700">{{ $endIp }}</code>
             </flux:text>
         @endif
 
@@ -67,11 +67,11 @@
                         'critical' => 'red',
                         'warning' => 'orange',
                         'info' => 'blue',
-                        default => 'gray',
+                        default => 'zinc',
                     };
                 @endphp
 
-                <div class="rounded border border-gray-200 p-3 dark:border-gray-700">
+                <div class="rounded border border-zinc-200 p-3 dark:border-zinc-700">
                     <div class="mb-2 flex items-center justify-between">
                         <flux:text weight="medium" class="capitalize">
                             {{ str_replace('_', ' ', $issue['type'] ?? 'Unknown Issue') }}
@@ -81,17 +81,17 @@
                         </flux:badge>
                     </div>
 
-                    <flux:text class="text-sm text-gray-600 dark:text-gray-400">
+                    <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
                         {{ $issue['message'] ?? 'No details available.' }}
                     </flux:text>
 
                     {{-- Show overlapping ranges if available --}}
                     @if (isset($issue['overlapping_ranges']) && ! empty($issue['overlapping_ranges']))
                         <div class="mt-2">
-                            <flux:text class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            <flux:text class="text-xs font-medium text-zinc-700 dark:text-zinc-300">
                                 Overlapping with:
                             </flux:text>
-                            <ul class="mt-1 list-inside list-disc pl-4 text-xs text-gray-600 dark:text-gray-400">
+                            <ul class="mt-1 list-inside list-disc pl-4 text-xs text-zinc-600 dark:text-zinc-400">
                                 @foreach ($issue['overlapping_ranges'] as $id => $name)
                                     <li>{{ $name }} (ID: {{ $id }})</li>
                                 @endforeach
@@ -108,9 +108,9 @@
 
 {{-- Additional Information --}}
 @if ($startIp && $endIp)
-    <div class="mt-6 border-t pt-4 dark:border-gray-600">
+    <div class="mt-6 border-t pt-4 dark:border-zinc-600">
         <flux:heading level="4" size="sm" class="mb-2">Additional Information</flux:heading>
-        <div class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+        <div class="space-y-1 text-xs text-zinc-600 dark:text-zinc-400">
             @php
                 $startLong = ip2long($startIp);
                 $endLong = ip2long($endIp);
@@ -157,7 +157,7 @@
 
 {{-- Detail Actions --}}
 @if ($ipAddressId)
-    <div class="mt-6 border-t pt-4 dark:border-gray-600">
+    <div class="mt-6 border-t pt-4 dark:border-zinc-600">
         <flux:button
             href="{{ route('known-ip-addresses.edit', $ipAddressId) }}"
             target="_blank"

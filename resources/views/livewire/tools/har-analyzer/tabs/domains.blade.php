@@ -73,7 +73,7 @@
                 <div
                     @class([
                         'flex h-12 w-12 items-center justify-center rounded-lg',
-                        'bg-gray-100 dark:bg-gray-900/30' => $envType === 'local',
+                        'bg-zinc-100 dark:bg-zinc-900/30' => $envType === 'local',
                         'bg-purple-100 dark:bg-purple-900/30' => $envType === 'development',
                         'bg-orange-100 dark:bg-orange-900/30' => $envType === 'staging',
                         'bg-green-100 dark:bg-green-900/30' => $envType === 'production',
@@ -83,7 +83,7 @@
                         name="{{ $envIcon }}"
                         @class([
                             'h-6 w-6',
-                            'text-gray-600 dark:text-gray-400' => $envType === 'local',
+                            'text-zinc-600 dark:text-zinc-400' => $envType === 'local',
                             'text-purple-600 dark:text-purple-400' => $envType === 'development',
                             'text-orange-600 dark:text-orange-400' => $envType === 'staging',
                             'text-green-600 dark:text-green-400' => $envType === 'production',
@@ -268,7 +268,7 @@
                                 str_contains($domainName, 'jsdelivr') || str_contains($domainName, 'unpkg') => ['name' => 'CDN', 'type' => 'Content Delivery', 'color' => 'green'],
                                 str_contains($domainName, 'youtube') || str_contains($domainName, 'youtu.be') => ['name' => 'YouTube', 'type' => 'Video/Media', 'color' => 'red'],
                                 str_contains($domainName, 'twitter') || str_contains($domainName, 'twimg') => ['name' => 'Twitter', 'type' => 'Social Media', 'color' => 'blue'],
-                                default => ['name' => 'Unknown Service', 'type' => 'Third-Party', 'color' => 'gray'],
+                                default => ['name' => 'Unknown Service', 'type' => 'Third-Party', 'color' => 'zinc'],
                             };
                             return array_merge($domain, $service);
                         })

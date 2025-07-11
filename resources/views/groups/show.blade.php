@@ -129,11 +129,7 @@
                         <div class="mb-6 rounded-lg bg-zinc-50 p-6 shadow-md dark:bg-zinc-700">
                             <div class="mb-4 flex items-center justify-between">
                                 <flux:heading level="2" size="lg">Known Places</flux:heading>
-                                <flux:badge
-                                    variant="solid"
-                                    color="teal"
-                                    class="inline-flex min-w-[2rem] justify-center"
-                                >
+                                <flux:badge variant="solid" color="sky" class="inline-flex min-w-[2rem] justify-center">
                                     {{ $group->knownPlaces->count() }}
                                 </flux:badge>
                             </div>
@@ -145,7 +141,7 @@
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center">
                                                     <flux:icon.map-pin
-                                                        class="mr-2 size-4 text-teal-600 dark:text-teal-300"
+                                                        class="mr-2 size-4 text-sky-600 dark:text-sky-300"
                                                     />
                                                     <span class="font-medium text-zinc-700 dark:text-zinc-200">
                                                         {{ $knownPlace->name }}

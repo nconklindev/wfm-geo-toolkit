@@ -22,19 +22,19 @@
         'Critical' => 'red',
         'Success' => 'green',
         'Info' => 'blue',
-        default => 'gray',
+        default => 'zinc',
     };
 @endphp
 
 <div
-    {{ $attributes->merge(['class' => 'group block w-full cursor-pointer border-b border-gray-200 p-4 transition duration-150 ease-in-out hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700']) }}
+    {{ $attributes->merge(['class' => 'group block w-full cursor-pointer border-b border-zinc-200 p-4 transition duration-150 ease-in-out hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-700']) }}
 >
     <div class="flex items-start space-x-4">
         <div class="flex-shrink-0 pt-1">
             @if ($isUnread)
-                <span class="inline-block h-2 w-2 rounded-full bg-teal-500" title="Unread"></span>
+                <span class="inline-block h-2 w-2 rounded-full bg-sky-500" title="Unread"></span>
             @else
-                <span class="inline-block h-2 w-2 rounded-full bg-gray-300 dark:bg-gray-600" title="Read"></span>
+                <span class="inline-block h-2 w-2 rounded-full bg-zinc-300 dark:bg-zinc-600" title="Read"></span>
             @endif
         </div>
         <div class="min-w-0 flex-1">

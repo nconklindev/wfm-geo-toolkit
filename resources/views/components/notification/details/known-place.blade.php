@@ -1,4 +1,3 @@
-
 {{-- resources/views/components/notification/details/known-place.blade.php --}}
 
 @php
@@ -72,12 +71,12 @@
 @endif
 
 @if ($conflictingPlaces->isNotEmpty())
-    <flux:heading level="3" size="md" class="mt-6 mb-3 border-b pb-2 dark:border-gray-600">
+    <flux:heading level="3" size="md" class="mt-6 mb-3 border-b pb-2 dark:border-zinc-600">
         Conflicting Places
     </flux:heading>
     <div class="space-y-3">
         @foreach ($conflictingPlacesWithType as $place)
-            <div class="rounded border border-gray-200 p-3 dark:border-gray-700">
+            <div class="rounded border border-zinc-200 p-3 dark:border-zinc-700">
                 <div class="mb-1 flex items-center justify-between">
                     <flux:text weight="medium">
                         {{ $place['name'] ?? 'Unknown' }}
@@ -96,7 +95,7 @@
                         </flux:badge>
                     @endif
                 </div>
-                <ul class="mt-1 list-inside list-disc pl-4 text-sm text-gray-600 dark:text-gray-400">
+                <ul class="mt-1 list-inside list-disc pl-4 text-sm text-zinc-600 dark:text-zinc-400">
                     @forelse ($place['nodes'] ?? [] as $node)
                         <li>{{ $node['path'] ?? 'N/A' }} (Node ID: {{ $node['id'] ?? 'Unknown' }})</li>
                     @empty
@@ -116,7 +115,7 @@
 
 {{-- Detail Actions --}}
 @if ($triggeredPlace && isset($triggeredPlace['id']))
-    <div class="mt-6 border-t pt-4 dark:border-gray-600">
+    <div class="mt-6 border-t pt-4 dark:border-zinc-600">
         <flux:button
             href="{{ route('known-places.edit', $triggeredPlace['id']) }}"
             target="_blank"

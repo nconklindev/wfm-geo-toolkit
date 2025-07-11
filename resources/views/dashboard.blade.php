@@ -14,7 +14,7 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Known Places</h2>
                     {{-- Count Badge --}}
-                    <flux:badge variant="solid" color="teal" class="inline-flex min-w-[2rem] justify-center">
+                    <flux:badge variant="solid" color="sky" class="inline-flex min-w-[2rem] justify-center">
                         {{ $user->known_places_count }}
                     </flux:badge>
                 </div>
@@ -49,7 +49,7 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Known IP Addresses</h2>
                     {{-- Count Badge --}}
-                    <flux:badge variant="solid" color="teal" class="inline-flex min-w-[2rem] justify-center">
+                    <flux:badge variant="solid" color="sky" class="inline-flex min-w-[2rem] justify-center">
                         {{ $user->known_ip_addresses_count }}
                     </flux:badge>
                 </div>
@@ -76,7 +76,7 @@
             <div class="flex h-full flex-col overflow-hidden rounded-lg bg-white p-4 dark:bg-zinc-800">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Locations</h2>
-                    <flux:badge variant="solid" color="teal" class="inline-flex min-w-[2rem] justify-center">
+                    <flux:badge variant="solid" color="sky" class="inline-flex min-w-[2rem] justify-center">
                         {{ $leafNodes->count() }}
                     </flux:badge>
                 </div>

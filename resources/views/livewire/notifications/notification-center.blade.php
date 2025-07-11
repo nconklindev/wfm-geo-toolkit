@@ -55,9 +55,9 @@
 
         <!-- Notification List -->
         <div class="lg:col-span-2">
-            <div class="overflow-hidden rounded-lg bg-white dark:bg-gray-800">
+            <div class="overflow-hidden rounded-lg bg-white dark:bg-zinc-800">
                 {{-- Header for the list --}}
-                <div class="border-b border-gray-200 p-4 dark:border-gray-700">
+                <div class="border-b border-zinc-200 p-4 dark:border-zinc-700">
                     <div class="flex items-center justify-between">
                         <div>
                             @if ($this->status && $this->status !== 'all')
@@ -108,14 +108,14 @@
                             wire:click="selectNotification('{{ $notification->id }}')"
                             wire:navigate
                             @class([
-                                'bg-teal-50 dark:bg-teal-900/50 border-l-4 border-teal-500' => $selectedNotificationId === $notification->id,
+                                'bg-sky-50 dark:bg-sky-900/50 border-l-4 border-sky-500' => $selectedNotificationId === $notification->id,
                                 'border-l-4 border-transparent' => $selectedNotificationId !== $notification->id,
                             ])
                         />
                     @empty
                         <div class="flex flex-col items-center justify-center p-12 text-center">
                             @if ($this->filter !== 'all' || $this->status !== 'all')
-                                <flux:icon.bell-slash class="size-10 text-gray-400 dark:text-gray-600" />
+                                <flux:icon.bell-slash class="size-10 text-zinc-400 dark:text-zinc-600" />
                                 <flux:text variant="subtle" size="lg" class="mt-4">
                                     No notifications match the current filters.
                                 </flux:text>
@@ -123,7 +123,7 @@
                                     Try adjusting or clearing the filters.
                                 </flux:text>
                             @else
-                                <flux:icon.bell class="size-10 text-gray-400 dark:text-gray-600" />
+                                <flux:icon.bell class="size-10 text-zinc-400 dark:text-zinc-600" />
                                 <flux:text variant="subtle" size="lg" class="mt-4">No notifications found.</flux:text>
                             @endif
                         </div>
@@ -132,7 +132,7 @@
 
                 {{-- Pagination --}}
                 @if ($this->notifications->hasPages())
-                    <div class="border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-900">
+                    <div class="border-t border-zinc-200 bg-zinc-50 px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <flux:text size="sm" variant="subtle">
@@ -198,7 +198,7 @@
                 <x-notification.details :details="$selectedNotificationData" />
             @else
                 <div
-                    class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-6 text-center text-gray-500 dark:border-gray-700 dark:bg-gray-800"
+                    class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-zinc-300 bg-white p-6 text-center text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
                 >
                     Select a notification from the list to view its details.
                 </div>

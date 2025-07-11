@@ -146,9 +146,7 @@
                                     @foreach ($knownPlace->nodes as $node)
                                         <div class="rounded-md bg-zinc-100 p-3 dark:bg-zinc-600">
                                             <div class="flex items-center">
-                                                <flux:icon.map-pin
-                                                    class="mr-2 size-5 text-teal-600 dark:text-teal-300"
-                                                />
+                                                <flux:icon.map-pin class="mr-2 size-5 text-sky-600 dark:text-sky-300" />
                                                 <span class="font-medium text-zinc-700 dark:text-zinc-200">
                                                     {{ $node->pivot->path ? $node->path : '' }}
                                                 </span>

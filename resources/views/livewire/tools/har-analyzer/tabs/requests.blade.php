@@ -147,7 +147,7 @@
                                     'bg-yellow-500' => ($method ?? '') === 'PUT',
                                     'bg-red-500' => ($method ?? '') === 'DELETE',
                                     'bg-purple-500' => ($method ?? '') === 'PATCH',
-                                    'bg-gray-500' => ! in_array($method ?? '', ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
+                                    'bg-zinc-500' => ! in_array($method ?? '', ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']),
                                 ])
                             ></div>
 
@@ -263,7 +263,7 @@
                                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' => ($resource['method'] ?? '') === 'DELETE',
                                         'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' =>
                                             ($resource['method'] ?? '') === 'PATCH',
-                                        'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300' => ! in_array($resource['method'] ?? '', [
+                                        'bg-zinc-100 text-zinc-800 dark:bg-zinc-900/30 dark:text-zinc-300' => ! in_array($resource['method'] ?? '', [
                                             'GET',
                                             'POST',
                                             'PUT',
