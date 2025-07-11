@@ -27,12 +27,12 @@
         'Warning' => 'orange',
         'Success' => 'green',
         'Info' => 'blue',
-        default => 'gray',
+        default => 'zinc',
     };
 @endphp
 
 <div
-    class="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+    class="max-h-[calc(100vh-8rem)] overflow-y-auto rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800"
 >
     {{-- Status and Message --}}
     <div class="mb-4">
@@ -40,11 +40,11 @@
             <flux:heading level="3" size="sm" class="mr-2">Status:</flux:heading>
             <flux:badge size="sm" variant="pill" :color="$badgeColor">{{ $status }}</flux:badge>
         </div>
-        <flux:text class="text-gray-600 dark:text-gray-300">{{ $message }}</flux:text>
+        <flux:text class="text-zinc-600 dark:text-zinc-300">{{ $message }}</flux:text>
     </div>
 
     {{-- Divider --}}
-    <div class="my-4 border-t dark:border-gray-600"></div>
+    <div class="my-4 border-t dark:border-zinc-600"></div>
 
     {{-- Known Place Notification Details --}}
     @if ($notificationType === 'known_place')

@@ -1,7 +1,7 @@
 <x-layouts.app :title="__('Welcome to WFM Toolkit')">
     <div class="container mx-auto max-w-4xl px-4 py-12">
         <div class="text-center">
-            <flux:icon.map-pin class="mx-auto mb-4 size-12 text-teal-500" />
+            <flux:icon.map-pin class="mx-auto mb-4 size-12 text-sky-500" />
             <flux:heading size="xl" level="1" class="mb-1 font-bold! text-shadow-lg/30!">
                 Welcome to the WFM Toolkit!
             </flux:heading>
@@ -63,7 +63,7 @@
                 <ol class="space-y-6">
                     <li class="flex items-start">
                         <div
-                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-teal-700 text-white"
+                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-700 text-white"
                         >
                             1
                         </div>
@@ -81,7 +81,7 @@
                     </li>
                     <li class="flex items-start">
                         <div
-                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-teal-700 text-white"
+                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-700 text-white"
                         >
                             2
                         </div>
@@ -103,7 +103,7 @@
                     </li>
                     <li class="flex items-start">
                         <div
-                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-teal-700 text-white"
+                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-700 text-white"
                         >
                             3
                         </div>
@@ -119,7 +119,7 @@
                     </li>
                     <li class="flex items-start">
                         <div
-                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-teal-700 text-white"
+                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-700 text-white"
                         >
                             4
                         </div>
@@ -138,7 +138,7 @@
                     </li>
                     <li class="flex items-start">
                         <div
-                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-teal-700 text-white"
+                            class="mr-4 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-sky-700 text-white"
                         >
                             5
                         </div>

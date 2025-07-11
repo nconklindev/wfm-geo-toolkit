@@ -40,7 +40,7 @@
                         </div>
                         <div class="p-6">
                             <div
-                                class="relative h-64 w-full overflow-hidden rounded-md bg-gradient-to-br from-slate-50 to-slate-100 lg:h-80 dark:from-zinc-800 dark:to-zinc-900"
+                                class="relative h-64 w-full overflow-hidden rounded-md bg-gradient-to-br from-zinc-50 to-zinc-100 lg:h-80 dark:from-zinc-800 dark:to-zinc-900"
                             >
                                 <!-- API Explorer mockup -->
                                 <div class="absolute inset-0 p-4 font-mono text-xs">
@@ -73,7 +73,7 @@
         <div class="mb-12 text-center">
             <flux:heading level="2" class="mb-4 text-3xl! tracking-tight">
                 Try Our Tools
-                <span class="block text-teal-700 dark:text-teal-500">No signup required</span>
+                <span class="block text-sky-700 dark:text-sky-500">No signup required</span>
             </flux:heading>
             <flux:text class="text-base md:text-lg">
                 Pro WFM tools that complement your daily workflow. Available instantly in your browser. No downloads
@@ -90,9 +90,9 @@
                     <div class="flex items-start space-x-4">
                         <div class="flex-shrink-0">
                             <div
-                                class="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-100 dark:bg-teal-900"
+                                class="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900"
                             >
-                                <flux:icon.map class="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                                <flux:icon.map class="h-6 w-6 text-sky-600 dark:text-sky-400" />
                             </div>
                         </div>
                         <div class="flex-1">
@@ -206,9 +206,9 @@
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
             <div class="text-center">
                 <div
-                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900"
+                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900"
                 >
-                    <flux:icon.bolt class="h-8 w-8 text-teal-600 dark:text-teal-400" />
+                    <flux:icon.bolt class="h-8 w-8 text-sky-600 dark:text-sky-400" />
                 </div>
                 <flux:heading level="3" size="lg" class="mb-2 font-semibold">Instant Access</flux:heading>
                 <flux:text class="text-sm">
@@ -245,7 +245,7 @@
 
     <!-- Call to Action -->
     <section class="mt-16 w-full">
-        <div class="rounded-lg bg-gradient-to-r from-teal-600 to-emerald-700 p-8 text-center">
+        <div class="rounded-lg bg-gradient-to-r from-sky-600 to-blue-800 p-8 text-center">
             <flux:heading level="2" class="mb-4 text-3xl! text-white">Ready to Get Started?</flux:heading>
             <flux:text class="text-lg text-white/90">
                 Try our tools now or create an account to save your work and access advanced features
@@ -271,7 +271,7 @@
     <!-- Powered By Section -->
     <section class="mt-16 w-full">
         <div
-            class="rounded-lg border border-zinc-200 bg-gradient-to-r from-zinc-50 to-zinc-100 p-8 dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900"
+            class="rounded-lg border border-zinc-200 bg-transparent p-8 dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900"
         >
             <div class="text-center">
                 <flux:heading level="3" class="mb-6 text-lg font-semibold text-zinc-700 dark:text-zinc-300">

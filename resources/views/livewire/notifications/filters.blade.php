@@ -1,7 +1,7 @@
 <div class="space-y-6">
     {{-- Filter: Read/Unread --}}
-    <div class="rounded-lg bg-white p-4 dark:bg-gray-800">
-        <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">
+    <div class="rounded-lg bg-white p-4 dark:bg-zinc-800">
+        <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-zinc-700">
             Filter Notifications
         </flux:heading>
         <div class="flex flex-col space-y-2">
@@ -27,8 +27,8 @@
     </div>
 
     {{-- Filter: Severity Levels --}}
-    <div class="rounded-lg bg-white p-4 dark:bg-gray-800">
-        <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">Severity Levels</flux:heading>
+    <div class="rounded-lg bg-white p-4 dark:bg-zinc-800">
+        <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-zinc-700">Severity Levels</flux:heading>
         <div class="flex flex-col space-y-2">
             <x-filter-button query="status" filter="all" :is-active="$currentStatus === 'all'">
                 <x-slot:icon>
@@ -56,7 +56,7 @@
             </x-filter-button>
             <x-filter-button query="status" filter="notification" :is-active="$currentStatus === 'notification'">
                 <x-slot:icon>
-                    <flux:icon.bell class="size-5 text-gray-500" variant="solid" />
+                    <flux:icon.bell class="size-5 text-zinc-500" variant="solid" />
                 </x-slot>
                 General
             </x-filter-button>

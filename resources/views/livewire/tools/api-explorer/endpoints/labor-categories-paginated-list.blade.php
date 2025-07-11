@@ -18,7 +18,7 @@
                         <select
                             wire:model.live="selectedLaborCategories"
                             multiple
-                            class="{{ ! $isAuthenticated || empty($laborCategories) ? 'opacity-50' : '' }} min-h-[120px] w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                            class="{{ ! $isAuthenticated || empty($laborCategories) ? 'opacity-50' : '' }} min-h-[120px] w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-zinc-600 dark:bg-zinc-800 dark:text-white"
                             {{ ! $isAuthenticated || empty($laborCategories) ? 'disabled' : '' }}
                         >
                             @if ($isAuthenticated && ! empty($laborCategories))
@@ -63,7 +63,7 @@
                             @foreach ($selectedLaborCategories as $selected)
                                 <span
                                     wire:key="selected-labor-category-{{ $selected }}"
-                                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700/50 dark:text-gray-300"
+                                    class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-700/50 dark:text-zinc-300"
                                 >
                                     {{ $selected }}
                                     <button

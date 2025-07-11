@@ -112,7 +112,7 @@ window.clipboardUtils = {
                 ? 'bg-green-600 text-white'
                 : type === 'error'
                   ? 'bg-red-600 text-white'
-                  : 'bg-gray-800 text-white'
+                  : 'bg-zinc-800 text-white'
         }`;
         tooltip.textContent = message;
 

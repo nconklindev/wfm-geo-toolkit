@@ -13,20 +13,8 @@
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
     'Noto Color Emoji';
 
-    --color-zinc-50: var(--color-gray-50);
-    --color-zinc-100: var(--color-gray-100);
-    --color-zinc-200: var(--color-gray-200);
-    --color-zinc-300: var(--color-gray-300);
-    --color-zinc-400: var(--color-gray-400);
-    --color-zinc-500: var(--color-gray-500);
-    --color-zinc-600: var(--color-gray-600);
-    --color-zinc-700: var(--color-gray-700);
-    --color-zinc-800: var(--color-gray-800);
-    --color-zinc-900: var(--color-gray-900);
-    --color-zinc-950: var(--color-gray-950);
-
-    --color-accent: var(--color-teal-600);
-    --color-accent-content: var(--color-teal-600);
+    --color-accent: var(--color-sky-600);
+    --color-accent-content: var(--color-sky-600);
     --color-accent-foreground: var(--color-white);
 
     --color-warning: oklch(76.9% 0.188 70.08);
@@ -57,8 +45,8 @@
     }
 
     .dark {
-        --color-accent: var(--color-teal-600);
-        --color-accent-content: var(--color-teal-400);
+        --color-accent: var(--color-sky-600);
+        --color-accent-content: var(--color-sky-400);
         --color-accent-foreground: var(--color-white);
     }
 }
@@ -87,7 +75,7 @@
     ::before,
     ::backdrop,
     ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
+        border-color: var(--color-zinc-200, currentColor);
     }
 
     @font-face {
@@ -147,7 +135,7 @@ select:focus[data-flux-control] {
     transform: translateY(-50%);
     width: 24px;
     height: 24px;
-    border: 1px solid var(--color-gray-200);
+    border: 1px solid var(--color-zinc-200);
     border-radius: 4px;
     z-index: 2;
     background: transparent;
@@ -178,5 +166,5 @@ select:focus[data-flux-control] {
 
 /* For dark mode */
 .dark .clr-field [aria-labelledby="clr-open-label"] {
-    border-color: var(--color-gray-600);
+    border-color: var(--color-zinc-600);
 }

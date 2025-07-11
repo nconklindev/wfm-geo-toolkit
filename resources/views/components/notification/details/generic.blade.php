@@ -16,17 +16,17 @@
 <div class="space-y-4">
     @if ($displayDetails->isNotEmpty())
         <div>
-            <flux:heading level="3" size="md" class="mb-3 border-b pb-2 dark:border-gray-600">
+            <flux:heading level="3" size="md" class="mb-3 border-b pb-2 dark:border-zinc-600">
                 Notification Details
             </flux:heading>
 
             <div class="space-y-2">
                 @foreach ($displayDetails as $key => $value)
                     <div class="text-sm">
-                        <span class="font-medium text-gray-700 capitalize dark:text-gray-300">
+                        <span class="font-medium text-zinc-700 capitalize dark:text-zinc-300">
                             {{ str_replace('_', ' ', $key) }}:
                         </span>
-                        <span class="text-gray-600 dark:text-gray-400">
+                        <span class="text-zinc-600 dark:text-zinc-400">
                             @if (is_array($value))
                                 @if (empty($value))
                                     <em>None</em>
@@ -63,12 +63,12 @@
 
     {{-- Show raw data in development environment --}}
     @if (config('app.debug') && ! empty($additionalDetails))
-        <div class="mt-6 border-t pt-4 dark:border-gray-600">
+        <div class="mt-6 border-t pt-4 dark:border-zinc-600">
             <details class="cursor-pointer">
-                <summary class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                <summary class="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                     Show Raw Notification Data (Debug)
                 </summary>
-                <pre class="mt-2 overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-700">
+                <pre class="mt-2 overflow-auto rounded bg-zinc-100 p-2 text-xs dark:bg-zinc-700">
 {{ json_encode($details, JSON_PRETTY_PRINT) }}</pre
                 >
             </details>

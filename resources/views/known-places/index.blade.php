@@ -239,7 +239,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                                             @foreach ($place->validation_order as $method)
                                                 <flux:badge
-                                                    :color="$method === 'gps' ? 'teal' : 'blue'"
+                                                    :color="$method === 'gps' ? 'sky' : 'blue'"
                                                     class="inline-flex items-center text-xs"
                                                 >
                                                     {{ strtoupper($method) }}

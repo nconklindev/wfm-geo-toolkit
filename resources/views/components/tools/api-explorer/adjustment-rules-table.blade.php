@@ -157,7 +157,7 @@
                                                 {{ implode(', ', array_slice($paycodes, 0, $displayLimit)) }}
                                                 <button
                                                     @click.stop="showAll = true"
-                                                    class="ml-1 text-teal-700 hover:text-teal-800 dark:text-teal-500 dark:hover:text-teal-700"
+                                                    class="ml-1 text-sky-700 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-700"
                                                 >
                                                     (+{{ $paycode_count - $displayLimit }} more)
                                                 </button>
@@ -166,7 +166,7 @@
                                                 {{ $rule['paycode_names'] }}
                                                 <button
                                                     @click.stop="showAll = false"
-                                                    class="ml-1 text-teal-700 hover:text-teal-800 dark:text-teal-500 dark:hover:text-teal-700"
+                                                    class="ml-1 text-sky-700 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-700"
                                                 >
                                                     (show less)
                                                 </button>

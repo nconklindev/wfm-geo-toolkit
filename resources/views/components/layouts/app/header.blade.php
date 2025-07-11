@@ -24,7 +24,7 @@
                     x-data="notificationBadge"
                     icon="bell"
                     :badge="auth()->check() ? auth()->user()->unreadNotifications()->count() : 0"
-                    badge-color="teal"
+                    badge-color="sky"
                     :href="route('notifications')"
                     :current="request()->routeIs('notifications')"
                     x-init=""
@@ -251,7 +251,7 @@
                         if (!badgeSpan && this.currentCount > 0) {
                             badgeSpan = document.createElement('span');
                             badgeSpan.className =
-                                'text-xs font-medium rounded-sm px-1 py-0.5 text-teal-800 dark:text-teal-200 bg-teal-400/20 dark:bg-teal-400/40 ms-2';
+                                'text-xs font-medium rounded-sm px-1 py-0.5 text-sky-800 dark:text-sky-200 bg-sky-400/20 dark:bg-sky-400/40 ms-2';
                             badgeElement.appendChild(badgeSpan);
                         }
 

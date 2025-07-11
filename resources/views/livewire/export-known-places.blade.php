@@ -33,7 +33,7 @@
                         <ul class="space-y-3 text-sm">
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sky-600 text-xs font-medium text-zinc-900 dark:bg-sky-700 dark:text-white"
                                 >
                                     1
                                 </div>
@@ -43,7 +43,7 @@
                             </li>
                             <li class="flex items-start">
                                 <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-medium text-zinc-900 dark:bg-teal-700 dark:text-white"
+                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sky-600 text-xs font-medium text-zinc-900 dark:bg-sky-700 dark:text-white"
                                 >
                                     2
                                 </div>

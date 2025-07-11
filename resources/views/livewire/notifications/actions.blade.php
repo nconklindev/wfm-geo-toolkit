@@ -1,11 +1,11 @@
-<div class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
-    <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-gray-700">Actions</flux:heading>
+<div class="rounded-lg bg-white p-4 shadow-sm dark:bg-zinc-800">
+    <flux:heading level="2" size="md" class="mb-3 border-b pb-2 dark:border-zinc-700">Actions</flux:heading>
     <div class="flex flex-col space-y-2">
         <form wire:submit="markAllAsRead">
             <flux:button
                 type="submit"
                 icon="eye"
-                class="flex w-full cursor-pointer items-center justify-start rounded-md p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                class="flex w-full cursor-pointer items-center justify-start rounded-md p-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
             >
                 Mark All as Read
             </flux:button>
@@ -14,7 +14,7 @@
             <flux:button
                 variant="danger"
                 icon="trash"
-                class="flex w-full cursor-pointer items-center justify-start rounded-md p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                class="flex w-full cursor-pointer items-center justify-start rounded-md p-2 text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700"
             >
                 Delete All
             </flux:button>

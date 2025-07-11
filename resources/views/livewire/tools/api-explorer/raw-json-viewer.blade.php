@@ -34,8 +34,8 @@
             <div class="relative p-4">
                 @if ($isLoading)
                     <div class="flex items-center justify-center py-8">
-                        <flux:icon.loading class="h-6 w-6 animate-spin text-gray-400" />
-                        <span class="ml-2 text-sm text-gray-500">Loading JSON data...</span>
+                        <flux:icon.loading class="h-6 w-6 animate-spin text-zinc-400" />
+                        <span class="ml-2 text-sm text-zinc-500">Loading JSON data...</span>
                     </div>
                 @elseif ($errorMessage)
                     <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">

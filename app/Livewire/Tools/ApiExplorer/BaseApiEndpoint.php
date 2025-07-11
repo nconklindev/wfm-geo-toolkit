@@ -130,7 +130,7 @@ abstract class BaseApiEndpoint extends Component
     {
         return <<<'HTML'
         <div class="flex items-center justify-center h-12 mx-auto w-full">
-            <flux:icon.loading class="w-6 h-6 text-gray-400 animate-spin" />
+            <flux:icon.loading class="w-6 h-6 text-zinc-400 animate-spin" />
         </div>
         HTML;
     }
