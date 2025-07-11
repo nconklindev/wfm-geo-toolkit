@@ -242,7 +242,7 @@
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
 
-                <!-- Locations Group -->
+                <!-- Data Dictionary -->
                 <x-api-endpoint-group title="Data Dictionary" name="book-open">
                     <x-api-endpoint-item
                         value="data-elements.list"
@@ -253,6 +253,7 @@
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
 
+                <!-- Timekeeping -->
                 <x-api-endpoint-group title="Timekeeping" name="clock">
                     <x-api-endpoint-item
                         value="adjustment-rules-list"
@@ -260,6 +261,13 @@
                         method="GET"
                     >
                         Retrieve All Adjustment Rules
+                    </x-api-endpoint-item>
+                    <x-api-endpoint-item
+                        value="paycodes-list"
+                        label="Retrieve Paycodes as a Manager"
+                        method="GET"
+                    >
+                        Retrieve Paycodes as a Manager
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
             </div>

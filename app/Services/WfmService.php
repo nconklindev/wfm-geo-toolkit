@@ -158,7 +158,7 @@ class WfmService
         $apiPath = 'api/v1/commons/known_places';
 
         // Log the request details for debugging
-        Log::info('WFM Create Known Place - Request Debug', [
+        Log::info('WFM Create Known Place - Request Info', [
             'hostname' => $this->hostname,
             'endpoint' => "$this->hostname$apiPath",
             'app_user' => $appUsername,
@@ -215,6 +215,55 @@ class WfmService
         }
 
         return $types;
+    }
+
+    /**
+     * Returns a list of paycodes available to a manager
+     *
+     * - When this operation is executed with no parameters, the system returns a list of all available paycodes to the manager.
+     * - When this operation includes an ID or qualifier, the system returns a list containing the specified paycode, if available to the manager.
+     *
+     * @see https://developer.ukg.com/wfm/reference/retrieve-paycodes-as-manager
+     *
+     * @return Response the response from the Pro WFM API containing the JSON data
+     *
+     * @throws ConnectionException
+     */
+    public function getPaycodes(array $requestData = []): Response
+    {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+        $apiPath = 'api/v2/timekeeping/setup/pay_codes';
+
+        // Log the request details for debugging
+        Log::info('WFM Get Paycodes - Request Info', [
+            'hostname' => $this->hostname,
+            'endpoint' => "$this->hostname/$apiPath",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+        ]);
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->get("$this->hostname/$apiPath");
+
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+                'request_data' => $requestData,
+            ]);
+
+            throw $ce;
+        }
+
+        return $response;
     }
 
     /**
@@ -342,7 +391,7 @@ class WfmService
         $ipAddress = $this->request->ip();
         $apiPath = 'api/v1/timekeeping/setup/adjustment_rules';
 
-        Log::info('WFM Adjustment Rules - Request Debug', [
+        Log::info('WFM Adjustment Rules - Request Info', [
             'hostname' => $this->hostname,
             'endpoint' => "$this->hostname/$apiPath",
             'app_user' => $appUsername,
@@ -364,7 +413,6 @@ class WfmService
                 'app_user' => $appUsername,
                 'ip_address' => $ipAddress,
                 'request_data' => $requestData,
-
             ]);
 
             throw $e;
@@ -392,7 +440,7 @@ class WfmService
         $apiPath = 'api/v1/commons/labor_entries/apply_read';
 
         // Log the request details for debugging
-        Log::info('WFM Labor Category Entries Paginated - Request Debug', [
+        Log::info('WFM Labor Category Entries Paginated - Request Info', [
             'hostname' => $this->hostname,
             'endpoint' => "$this->hostname/$apiPath",
             'app_user' => $appUsername,

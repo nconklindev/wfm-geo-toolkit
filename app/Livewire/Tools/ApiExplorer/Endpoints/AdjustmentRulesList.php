@@ -334,7 +334,7 @@ class AdjustmentRulesList extends BaseApiEndpoint
                 return $this->wfmService->getAdjustmentRules();
             });
 
-            $this->processApiResponseData($response, 'DataElementsList');
+            $this->processApiResponseData($response, 'AdjustmentRulesList');
 
             // Clear any previous error messages on a successful call
             $this->errorMessage = '';
