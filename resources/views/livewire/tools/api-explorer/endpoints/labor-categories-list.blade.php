@@ -64,5 +64,5 @@
     </div>
 
     <!-- Response Section -->
-    <x-api-response :response="$apiResponse" :error="$errorMessage" />
+    <x-api-response :response="$apiResponse" :error="$errorMessage" :raw-json-cache-key="$rawJsonCacheKey" />
 </div>
