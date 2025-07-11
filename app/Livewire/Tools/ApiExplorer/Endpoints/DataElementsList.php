@@ -6,9 +6,10 @@ use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
 use App\Traits\ExportsCsvData;
 use App\Traits\PaginatesApiData;
 use Exception;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
-use Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DataElementsList extends BaseApiEndpoint
@@ -26,34 +27,61 @@ class DataElementsList extends BaseApiEndpoint
     }
 
     /**
-     * Export all data elements to CSV (respects current search/sort but gets all data)
+     * Export all data elements to CSV
      */
     public function exportAllToCsv(): StreamedResponse|RedirectResponse
     {
-        // Get all data (not paginated)
-        $allData = $this->getAllData();
+        try {
+            $response = $this->fetchData();
 
-        if ($allData->isEmpty()) {
-            session()->flash('error', 'No data available to export.');
+            if (! $response || ! $response->successful()) {
+                session()->flash('error', 'Failed to fetch data for export.');
+
+                return back();
+            }
+
+            $allData = $this->extractDataFromResponse($response);
+
+            if (empty($allData)) {
+                session()->flash('error', 'No data available to export.');
+
+                return back();
+            }
+
+            // Apply current search and sort to the full dataset
+            $filteredData = $this->applyFiltersAndSort(collect($allData));
+
+            $filename = $this->generateExportFilename('data-elements-all');
+
+            return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
+        } catch (Exception $e) {
+            Log::error('Error exporting all data elements data', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id(),
+            ]);
+
+            session()->flash('error', 'Failed to export data. Please try again.');
 
             return back();
         }
+    }
 
-        // Apply current search and sort to the full dataset
-        $filteredData = $this->getFilteredAndSortedData($allData);
-
-        // Generate filename based on current state
-        $filename = $this->generateExportFilename();
-
-        return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
+    /**
+     * Fetch data from WFM API
+     */
+    protected function fetchData(): ?Response
+    {
+        return $this->makeAuthenticatedApiCall(function () {
+            return $this->wfmService->getDataElementsPaginated();
+        });
     }
 
     /**
      * Generate a descriptive filename for the export
      */
-    protected function generateExportFilename(): string
+    protected function generateExportFilename(string $type): string
     {
-        $parts = ['data-elements'];
+        $parts = [$type];
 
         // Add search term if present
         if (! empty($this->search)) {
@@ -73,105 +101,28 @@ class DataElementsList extends BaseApiEndpoint
     }
 
     /**
-     * Export current filtered/searched selections to CSV
+     * Initialize endpoint configuration
      */
-    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
-    {
-        // Get the current filtered and sorted data (what the user is seeing)
-        $exportData = $this->getFilteredAndSortedData();
-
-        if ($exportData->isEmpty()) {
-            session()->flash('error', 'No data available to export.');
-
-            return back();
-        }
-
-        // Generate filename based on the current view
-        $filename = $this->generateExportFilename();
-
-        return $this->exportAsCsv($exportData->toArray(), $this->tableColumns, $filename);
-    }
-
-    /**
-     * Override the searchable fields for data elements
-     */
-    protected function getSearchableFields(): array
-    {
-        return [
-            'key',
-            'dataProvider',
-            'categories',
-            'metadata.dataType',
-            'metadata.entity',
-        ];
-    }
-
     protected function initializeEndpoint(): void
     {
-        // Set table columns specific to data elements
         $this->tableColumns = [
-            [
-                'field' => 'key',
-                'label' => 'Key',
-            ],
-            [
-                'field' => 'label',
-                'label' => 'Label',
-            ],
-            [
-                'field' => 'dataProvider',
-                'label' => 'Data Provider',
-            ],
-            [
-                'field' => 'metadata.dataType',
-                'label' => 'Data Type',
-            ],
-            [
-                'field' => 'metadata.entity',
-                'label' => 'Entity Name',
-            ],
+            ['field' => 'key', 'label' => 'Key'],
+            ['field' => 'label', 'label' => 'Label'],
+            ['field' => 'dataProvider', 'label' => 'Data Provider'],
+            ['field' => 'metadata.dataType', 'label' => 'Data Type'],
+            ['field' => 'metadata.entity', 'label' => 'Entity Name'],
         ];
 
-        // Initialize pagination data
         $this->initializePaginationData();
     }
 
-    protected function makeApiCall()
+    /**
+     * Export current page/filtered data as CSV
+     */
+    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
     {
-        if (! $this->isAuthenticated) {
-            return null;
-        }
+        $filename = $this->generateExportFilename('data-elements-selections');
 
-        try {
-            $response = $this->makeAuthenticatedApiCall(function () {
-                return $this->wfmService->getDataElementsPaginated();
-            });
-
-            $this->processApiResponseData($response, 'DataElementsList');
-
-            // Clear any previous error messages on a successful call
-            $this->errorMessage = '';
-
-            return $response;
-        } catch (Exception $e) {
-            // Handle other types of exceptions
-            $this->errorMessage = 'An unexpected error occurred. Please try again later.';
-
-            Log::error('Unexpected error in DataElementsList', [
-                'error' => $e->getMessage(),
-                'type' => get_class($e),
-                'stack_trace' => $e->getTraceAsString(),
-                'user_id' => auth()->id(),
-                'session_id' => session()->getId(),
-            ]);
-
-            $this->totalRecords = 0;
-
-            if (! empty($this->cacheKey)) {
-                cache()->forget($this->cacheKey);
-            }
-
-            return null;
-        }
+        return $this->exportTableDataAsCsv($filename);
     }
 }

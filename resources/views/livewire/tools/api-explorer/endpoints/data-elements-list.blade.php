@@ -44,7 +44,7 @@
     </div>
 
     <!-- Always show the table component once data has been loaded at least once -->
-    @if (! empty($tableColumns) && ($totalRecords > 0 || ! empty($cacheKey)))
+    @if (! empty($tableColumns) && $totalRecords > 0)
         <x-api-data-table
             :paginated-data="$paginatedData"
             :columns="$tableColumns"

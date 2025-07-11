@@ -44,16 +44,16 @@
     </div>
 
     {{-- Always show the table component once data has been loaded at least once --}}
-    @if (! empty($tableColumns) && ($totalRecords > 0 || ! empty($cacheKey)))
+    @if (! empty($tableColumns) && $totalRecords > 0)
         <x-api-data-table
-            :paginated-data="$paginatedData"
+            :paginatedData="$paginatedData"
             :columns="$tableColumns"
-            title="Adjustment Rules"
-            :total-records="$totalRecords"
+            title="Pay Codes"
+            :totalRecords="$totalRecords"
             :search="$search"
-            :sort-field="$sortField"
-            :sort-direction="$sortDirection"
-            :per-page="$perPage"
+            :sortField="$sortField"
+            :sortDirection="$sortDirection"
+            :perPage="$perPage"
         />
     @endif
 
