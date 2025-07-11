@@ -146,7 +146,7 @@
     </div>
 
     <!-- Enhanced Data Table -->
-    @if (! empty($tableColumns) && ($totalRecords > 0 || ! empty($cacheKey)))
+    @if (! empty($tableColumns) && $totalRecords > 0)
         <x-api-data-table
             :paginated-data="$paginatedData"
             :columns="$tableColumns"
