@@ -6,15 +6,15 @@ use App\Services\WfmService;
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Log;
-use Throwable;
 
 abstract class BaseApiEndpoint extends Component
 {
     // Common properties
-    public string $inputMode = 'form'; // 'form' or 'json'
+    public string $inputMode = 'form';
 
     public ?array $apiResponse = null;
 
@@ -26,14 +26,22 @@ abstract class BaseApiEndpoint extends Component
 
     public string $hostname = '';
 
-    // JSON input (can be overridden by child classes for specific validation)
+    // Data properties
+    public int $totalRecords = 0;
+
+    public array $tableColumns = [];
+
+    public array $tableData = [];
+
+    public string $cacheKey = '';
+
+    // JSON input
     #[Validate('nullable|json')]
     public string $jsonInput = '';
 
-    // Store response metadata without full data
+    // Response metadata
     public ?array $responseMetadata = null;
 
-    // Store the cache key for raw JSON viewer
     public string $rawJsonCacheKey = '';
 
     protected WfmService $wfmService;
@@ -48,7 +56,6 @@ abstract class BaseApiEndpoint extends Component
     {
         if (session('wfm_authenticated') && session('wfm_access_token')) {
             $this->isAuthenticated = true;
-
             $this->wfmService->setAccessToken(session('wfm_access_token'));
 
             if (! empty($this->hostname)) {
@@ -64,230 +71,235 @@ abstract class BaseApiEndpoint extends Component
 
     public function mount(bool $isAuthenticated = false, string $hostname = ''): void
     {
+        // 1. Set basic properties
         $this->isAuthenticated = $isAuthenticated;
         $this->hostname = $hostname;
+
+        // 2. Check session for authentication
         $this->setupAuthenticationFromSession();
+
+        // 3. Child class configures itself
         $this->initializeEndpoint();
+
+        // 4. Try to restore from cache
+        $this->restoreStateFromCache();
     }
 
     /**
-     * Called after mount to allow child classes to perform initialization
+     * Initialize endpoint - called after mount
      */
     protected function initializeEndpoint(): void
     {
-        // Override in child classes if needed
+        // Override in child classes
     }
 
     /**
-     * Method to set placeholder in all child classes that extend this
+     * Restore component state from cached data
      */
+    protected function restoreStateFromCache(): void
+    {
+        if (empty($this->cacheKey)) {
+            return;
+        }
+
+        $cachedData = cache()->get($this->cacheKey);
+
+        if ($cachedData) {
+            $data = $cachedData instanceof Collection ?
+                $cachedData->toArray() :
+                (is_array($cachedData) ? $cachedData : []);
+
+            $this->tableData = $data;
+            $this->totalRecords = count($data);
+            $this->rawJsonCacheKey = $this->cacheKey;
+
+            // Set a restored response to indicate data was loaded from the cache
+            $this->apiResponse = [
+                'status' => 200,
+                'data' => [
+                    'message' => "Showing cached data - $this->totalRecords records",
+                    'record_count' => $this->totalRecords,
+                    'click_to_view' => 'Click "Show Raw JSON" to view full response',
+                    'cached' => true,
+                ],
+            ];
+        }
+    }
+
     public function placeholder(): string
     {
         return <<<'HTML'
         <div class="flex items-center justify-center h-12 mx-auto w-full">
-            <!-- Loading spinner... -->
             <flux:icon.loading class="w-6 h-6 text-gray-400 animate-spin" />
         </div>
         HTML;
     }
 
-    protected function executeApiCall(): void
+    /**
+     * The main method called by UI - handles the complete flow
+     *
+     * Simple endpoints will only need to override ({@link BaseApiEndpoint::fetchData()})
+     *
+     * More complex endpoints should override this entire method to implement their custom implementation of this
+     */
+    public function executeRequest(): void
     {
-        $this->setupAuthenticationFromSession();
-
+        // 1. Check authentication
         if (! $this->isAuthenticated) {
             $this->errorMessage = 'Please authenticate first using the credentials form above.';
 
             return;
         }
 
-        if (! empty($this->hostname)) {
-            $this->wfmService->setHostname($this->hostname);
-        }
-
+        // 2. Set the loading state and clear the error message previous state
         $this->isLoading = true;
         $this->errorMessage = null;
 
         try {
-            $this->validate();
+            // Clear any existing cache
+            $this->clearCache();
 
-            // Let child class handle the actual API call
-            $response = $this->makeApiCall();
+            // Make the API call
+            $response = $this->fetchData();
 
-            if ($response) {
-                // Validate authentication state first
-                if (! $this->validateAuthenticationState($response)) {
-                    return; // Authentication failed, error messages already set
+            if ($response && $response->successful()) {
+                // Process and store the data
+                $this->processSuccessfulResponse($response);
+
+                // Trigger pagination refresh if a trait is used
+                if (method_exists($this, 'clearPaginationCache')) {
+                    $this->clearPaginationCache();
                 }
-
-                // Store basic response metadata
-                $this->responseMetadata = [
-                    'status' => $response->status(),
-                    'successful' => $response->successful(),
-                    'headers' => $response->headers(),
-                    'timestamp' => now()->toISOString(),
-                ];
-
-                if (! $response->successful()) {
-                    $errorData = $response->json();
-                    $this->errorMessage = "API Error {$response->status()}: ".
-                        ($errorData['message'] ?? $errorData['error'] ?? 'Unknown error');
-
-                    // For errors, always show the response data
-                    $this->apiResponse = [
-                        'status' => $response->status(),
-                        'data' => $errorData,
-                    ];
-                } else {
-                    $this->handleSuccessfulResponse($response);
-
-                    // Use the child class's implementation to extract record count
-                    $recordCount = $this->extractRecordCount($response);
-
-                    //                    Log::debug('DEBUG: BaseApiEndpoint record count extracted', [
-                    //                        'component' => get_class($this),
-                    //                        'record_count' => $recordCount,
-                    //                    ]);
-
-                    $this->apiResponse = [
-                        'status' => $response->status(),
-                        'data' => [
-                            'message' => "Data loaded successfully - $recordCount records",
-                            'record_count' => $recordCount,
-                            'click_to_view' => 'Click "Show Raw JSON" to view full response',
-                        ],
-                    ];
-
-                    // Set the cache key for the raw JSON viewer component
-                    if (method_exists($this, 'generateCacheKey')) {
-                        $this->rawJsonCacheKey = $this->generateCacheKey();
-                    }
-                }
-
-                // Allow child classes to process the response for table data, etc.
-                $this->processApiResponse($response);
             }
+
         } catch (Exception $e) {
-            $this->errorMessage = $e->getMessage();
-        } catch (Throwable $e) {
-            $this->errorMessage = 'An unexpected error occurred: '.$e->getMessage();
+            $this->handleError($e);
         } finally {
             $this->isLoading = false;
         }
     }
 
     /**
-     * Child classes must implement this to make their specific API call
+     * Clear all caches for this component
      */
-    abstract protected function makeApiCall();
-
-    /**
-     * Validate that the current authentication is still valid by testing it
-     */
-    protected function validateAuthenticationState($response): bool
+    protected function clearCache(): void
     {
-        // Check for authentication failure status codes
-        if ($response && (
-            $response->status() === 401 ||
-            $response->status() === 403 ||
-            ($response->status() === 400 && $this->isAuthenticationError($response))
-        )) {
-            $this->handleAuthenticationFailure();
-
-            return false;
+        if (! empty($this->cacheKey)) {
+            cache()->forget($this->cacheKey);
         }
-
-        return true;
     }
 
     /**
-     * Check if a 400 response is actually an authentication error
+     * Fetch data from API - must be implemented by child classes
      */
-    protected function isAuthenticationError($response): bool
+    abstract protected function fetchData(): ?Response;
+
+    /**
+     * Process successful API response
+     */
+    protected function processSuccessfulResponse(Response $response): void
     {
-        $responseData = $response->json();
+        // Extract and store data
+        $data = $this->extractDataFromResponse($response);
 
-        if (! $responseData) {
-            return false;
-        }
+        // Store in component and cache
+        $this->storeData($data);
 
-        $errorMessage = strtolower($responseData['message'] ?? $responseData['error'] ?? '');
+        // Set response metadata
+        $this->responseMetadata = [
+            'status' => $response->status(),
+            'successful' => true,
+            'timestamp' => now()->toISOString(),
+        ];
 
-        return str_contains($errorMessage, 'token') ||
-            str_contains($errorMessage, 'auth') ||
-            str_contains($errorMessage, 'unauthorized') ||
-            str_contains($errorMessage, 'forbidden') ||
-            str_contains($errorMessage, 'expired');
+        // Create a user-friendly API response
+        $this->apiResponse = [
+            'status' => $response->status(),
+            'data' => [
+                'message' => "Data loaded successfully - $this->totalRecords records",
+                'record_count' => $this->totalRecords,
+                'click_to_view' => 'Click "Show Raw JSON" to view full response',
+                'cached' => false,
+            ],
+        ];
+
+        // Set the raw JSON cache key
+        $this->rawJsonCacheKey = $this->cacheKey;
     }
 
     /**
-     * Handle authentication failure by clearing session and updating component state
+     * Extract data from API response
      */
-    protected function handleAuthenticationFailure(): void
-    {
-        // Clear session authentication data
-        session()->forget(['wfm_authenticated', 'wfm_access_token']);
-
-        // Update component state
-        $this->isAuthenticated = false;
-
-        // Set user-friendly error message
-        $this->errorMessage = 'Your authentication session has expired. Please re-enter your credentials to continue.';
-
-        // Log the authentication failure
-        Log::warning('Authentication session expired', [
-            'component' => get_class($this),
-            'hostname' => $this->hostname,
-            'user_agent' => request()->userAgent(),
-            'ip_address' => request()->ip(),
-        ]);
-    }
-
-    /**
-     * Override in child classes to handle successful responses
-     */
-    protected function handleSuccessfulResponse($response): void
-    {
-        // Base implementation - can be overridden
-    }
-
-    /**
-     * Extract record count from response - can be overridden by child classes
-     */
-    protected function extractRecordCount($response): int
+    protected function extractDataFromResponse(Response $response): array
     {
         $data = $response->json();
 
-        // Default implementation - checks for 'records' key first, then falls back to array count
-        if (isset($data['records']) && is_array($data['records'])) {
-            return count($data['records']);
+        // Handle different response structures
+        if (isset($data['data'])) {
+            return is_array($data['data']) ? $data['data'] : [];
         }
 
-        // If the data itself is an array, count it
-        if (is_array($data)) {
-            return count($data);
+        if (isset($data['records'])) {
+            return is_array($data['records']) ? $data['records'] : [];
         }
 
-        // If there's a record_count field in the response, use it
-        if (isset($data['record_count']) && is_numeric($data['record_count'])) {
-            return (int) $data['record_count'];
-        }
-
-        return 0;
+        return is_array($data) ? $data : [];
     }
 
     /**
-     * Override in child classes to process API response for additional data extraction
+     * Store data in component and cache
      */
-    protected function processApiResponse($response): void
+    protected function storeData(array $data): void
     {
-        // Base implementation - can be overridden by child classes
+        $this->tableData = $data;
+        $this->totalRecords = count($data);
+
+        // Cache the data
+        if (! empty($this->cacheKey)) {
+            cache()->put($this->cacheKey, collect($data), now()->addMinutes(30));
+        }
     }
 
     /**
-     * Safely make an API call with authentication validation
+     * Handle errors consistently
      */
-    protected function makeAuthenticatedApiCall(callable $apiCallFunction)
+    protected function handleError(Exception $e): void
+    {
+        $this->errorMessage = 'An unexpected error occurred. Please try again later.';
+
+        Log::error('API Endpoint Error', [
+            'component' => get_class($this),
+            'error' => $e->getMessage(),
+            'user_id' => auth()->id(),
+        ]);
+
+        // Clear data on error
+        $this->totalRecords = 0;
+        $this->tableData = [];
+        $this->clearCache();
+    }
+
+    /**
+     * Clear component state and cache
+     */
+    public function clearData(): void
+    {
+        $this->tableData = [];
+        $this->totalRecords = 0;
+        $this->apiResponse = null;
+        $this->errorMessage = null;
+        $this->rawJsonCacheKey = '';
+        $this->clearCache();
+
+        if (method_exists($this, 'clearPaginationCache')) {
+            $this->clearPaginationCache();
+        }
+    }
+
+    /**
+     * Make authenticated API call with error handling
+     */
+    protected function makeAuthenticatedApiCall(callable $apiCallFunction): ?Response
     {
         if (! $this->isAuthenticated) {
             return null;
@@ -313,210 +325,21 @@ abstract class BaseApiEndpoint extends Component
         }
     }
 
-    /**
-     * Helper method to decode and validate JSON input
-     *
-     * @throws Exception
-     */
-    protected function getJsonData()
+    protected function validateAuthenticationState($response): bool
     {
-        if (empty($this->jsonInput)) {
-            return null;
+        if ($response && ($response->status() === 401 || $response->status() === 403)) {
+            $this->handleAuthenticationFailure();
+
+            return false;
         }
 
-        $data = json_decode($this->jsonInput, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Invalid JSON: '.json_last_error_msg());
-        }
-
-        return $data;
+        return true;
     }
 
-    /**
-     * Make an authenticated API call with intelligent retry logic for rate limits
-     */
-    protected function makeAuthenticatedApiCallWithRetry(callable $apiCallFunction, int $maxRetries = 1): ?Response
+    protected function handleAuthenticationFailure(): void
     {
-        if (! $this->isAuthenticated) {
-            return null;
-        }
-
-        $attempt = 0;
-
-        while ($attempt <= $maxRetries) {
-            try {
-                $response = $apiCallFunction();
-
-                if (! $this->validateAuthenticationState($response)) {
-                    return null;
-                }
-
-                // If successful, return the response
-                if ($response && $response->successful()) {
-                    return $response;
-                }
-
-                // If not successful, analyze the error
-                if ($response) {
-                    $responseData = $response->json();
-                    $errorAnalysis = $this->analyzeApiError($responseData);
-
-                    // If it's a retryable error, and we have retries left
-                    if ($errorAnalysis['should_retry'] && $attempt < $maxRetries) {
-                        $attempt++;
-
-                        Log::info('Retrying API call', [
-                            'attempt' => $attempt,
-                            'max_retries' => $maxRetries,
-                            'error_type' => $errorAnalysis['type'],
-                            'component' => get_class($this),
-                        ]);
-
-                        // Add a small delay before retry
-                        sleep(1); // 1-second delay
-
-                        continue;
-                    }
-
-                    // Set the error message from analysis
-                    $this->errorMessage = $errorAnalysis['user_message'];
-
-                    Log::error('API call failed after retries', [
-                        'error_type' => $errorAnalysis['type'],
-                        'attempts' => $attempt + 1,
-                        'component' => get_class($this),
-                        'hostname' => $this->hostname,
-                    ]);
-                }
-
-                return $response;
-
-            } catch (ConnectionException $e) {
-                $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
-                Log::error('Connection error in API call', [
-                    'error' => $e->getMessage(),
-                    'component' => get_class($this),
-                    'hostname' => $this->hostname,
-                ]);
-
-                return null;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Analyze API error response and return error details with extracted limits
-     */
-    protected function analyzeApiError($responseData): array
-    {
-        if (! is_array($responseData)) {
-            return [
-                'type' => 'unknown',
-                'user_message' => 'Unknown error occurred',
-                'max_count' => null,
-                'should_retry' => false,
-            ];
-        }
-
-        $message = strtolower($responseData['message'] ?? '');
-        $errorCode = strtolower($responseData['errorCode'] ?? '');
-        $fullText = $message.' '.$errorCode;
-
-        // System/Rate limit errors
-        $limitKeywords = ['limit', 'exceeded', 'maximum', 'max', 'count', 'system limit', 'too many', 'quota', 'rate limit'];
-        foreach ($limitKeywords as $keyword) {
-            if (str_contains($fullText, $keyword)) {
-                $maxCount = $this->extractMaxCountFromError($responseData);
-                $userMessage = $maxCount
-                    ? "API limit exceeded. This tenant has a maximum record limit of $maxCount per request. Please use filters to reduce the dataset size, if possible."
-                    : 'API limit exceeded. This tenant has restrictions on the number of records that can be requested. Please use filters to reduce the dataset size, if possible.';
-
-                return [
-                    'type' => 'limit_exceeded',
-                    'user_message' => $userMessage,
-                    'max_count' => $maxCount,
-                    'should_retry' => $maxCount !== null, // Retry if we can extract a limit
-                ];
-            }
-        }
-
-        // Authentication/Permission errors
-        $authKeywords = ['unauthorized', 'forbidden', 'permission', 'access denied', 'invalid token', 'expired'];
-        foreach ($authKeywords as $keyword) {
-            if (str_contains($fullText, $keyword)) {
-                return [
-                    'type' => 'authentication',
-                    'user_message' => 'Authentication or permission error. Please check your credentials and try again.',
-                    'max_count' => null,
-                    'should_retry' => false,
-                ];
-            }
-        }
-
-        // Timeout errors
-        $timeoutKeywords = ['timeout', 'timed out', 'connection timeout', 'request timeout'];
-        foreach ($timeoutKeywords as $keyword) {
-            if (str_contains($fullText, $keyword)) {
-                return [
-                    'type' => 'timeout',
-                    'user_message' => 'Request timed out. The server took too long to respond. Please try again or reduce your request size.',
-                    'max_count' => null,
-                    'should_retry' => true,
-                ];
-            }
-        }
-
-        // Server errors
-        $serverKeywords = ['server error', 'internal error', 'service unavailable', 'bad gateway'];
-        foreach ($serverKeywords as $keyword) {
-            if (str_contains($fullText, $keyword)) {
-                return [
-                    'type' => 'server_error',
-                    'user_message' => 'Server error occurred. Please try again later or contact support if the issue persists.',
-                    'max_count' => null,
-                    'should_retry' => true,
-                ];
-            }
-        }
-
-        // Default fallback
-        return [
-            'type' => 'generic',
-            'user_message' => 'API error: '.($responseData['message'] ?? 'Unknown error occurred'),
-            'max_count' => null,
-            'should_retry' => false,
-        ];
-    }
-
-    /**
-     * Extract the maximum count limit from the API error message
-     */
-    protected function extractMaxCountFromError(array $responseData): ?int
-    {
-        $message = $responseData['message'] ?? '';
-
-        // Look for patterns like "max count: 1000" or "maximum: 500" or "limit of 2000"
-        $patterns = [
-            '/max count:\s*(\d+)/i',
-            '/maximum:\s*(\d+)/i',
-            '/limit of\s*(\d+)/i',
-            '/max:\s*(\d+)/i',
-            '/limit:\s*(\d+)/i',
-            '/maximum count:\s*(\d+)/i',
-            '/count limit:\s*(\d+)/i',
-            '/records limit:\s*(\d+)/i',
-            '/record limit:\s*(\d+)/i',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $message, $matches)) {
-                return (int) $matches[1];
-            }
-        }
-
-        return null;
+        session()->forget(['wfm_authenticated', 'wfm_access_token']);
+        $this->isAuthenticated = false;
+        $this->errorMessage = 'Your authentication session has expired. Please re-enter your credentials to continue.';
     }
 }

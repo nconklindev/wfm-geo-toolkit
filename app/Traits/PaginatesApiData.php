@@ -2,20 +2,14 @@
 
 namespace App\Traits;
 
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
 use Livewire\WithPagination;
-use Log;
-use Str;
 
 trait PaginatesApiData
 {
     use WithPagination;
-
-    public int $totalRecords = 0;
 
     #[Url(except: 15)]
     public int $perPage = 15;
@@ -26,307 +20,75 @@ trait PaginatesApiData
 
     public string $sortDirection = 'asc';
 
-    public array $tableColumns = [];
-
-    // Cache key for storing the full dataset
-    public string $cacheKey = '';
-
-    // Add a pagination cache for filtered/sorted results
-    protected string $paginationCacheKey = '';
-
     public function updatedPerPage(): void
     {
         $this->resetPage();
-        $this->clearPaginationCache();
-    }
-
-    /**
-     * Clear pagination-related cache
-     */
-    protected function clearPaginationCache(): void
-    {
-        // Clear all pagination cache entries for this component
-        $baseKey = $this->generateCacheKey();
-
-        // Get the cache store
-        $cache = cache();
-        $store = $cache->getStore();
-
-        try {
-            // Handle different cache drivers
-            if (method_exists($store, 'getRedis') && $store->getRedis()) {
-                // Redis implementation
-                $this->clearRedisPaginationCache($store->getRedis(), $baseKey);
-            } elseif (method_exists($store, 'getMemcached')) {
-                // Memcached implementation
-                $this->clearMemcachedPaginationCache($baseKey);
-            } else {
-                // File cache or other drivers - use key tracking
-                $this->clearFilePaginationCache($cache, $baseKey);
-            }
-        } catch (Exception $e) {
-            Log::warning('Failed to clear pagination cache', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-                'base_key' => $baseKey,
-            ]);
-        }
-    }
-
-    /**
-     * Generate a unique cache key for this component instance
-     */
-    protected function generateCacheKey(): string
-    {
-        $cacheSessionId = $this->getCacheSessionId();
-        $userId = auth()->id() ?? 'anonymous';
-
-        return 'api_data_'.class_basename($this).'_'.hash('sha256', $this->hostname.'_'.$userId.'_'.$cacheSessionId);
-    }
-
-    /**
-     * Get or create a cache session identifier
-     */
-    private function getCacheSessionId(): string
-    {
-        $cacheSessionKey = 'wfm_cache_session_id';
-
-        if (! session()->has($cacheSessionKey)) {
-            // Generate a unique session identifier for caching
-            session()->put($cacheSessionKey, Str::random(32));
-        }
-
-        return session()->get($cacheSessionKey);
-    }
-
-    /**
-     * Clear Redis pagination cache using pattern matching
-     */
-    private function clearRedisPaginationCache($redis, string $baseKey): void
-    {
-        $patterns = [
-            $baseKey.'_page_*',
-            $baseKey.'_filter_*',
-        ];
-
-        foreach ($patterns as $pattern) {
-            $keys = $redis->keys($pattern);
-            if (! empty($keys)) {
-                $redis->del($keys);
-            }
-        }
-    }
-
-    /**
-     * Clear Memcached pagination cache using tracked keys
-     */
-    private function clearMemcachedPaginationCache(string $baseKey): void
-    {
-        // Memcached doesn't support pattern deletion, so we track keys
-        $trackedKeysKey = $baseKey.'_tracked_keys';
-        $trackedKeys = cache()->get($trackedKeysKey, []);
-
-        foreach ($trackedKeys as $key) {
-            cache()->forget($key);
-        }
-
-        // Clear the tracking key itself
-        cache()->forget($trackedKeysKey);
-    }
-
-    /**
-     * Clear file cache pagination using tracked keys
-     */
-    private function clearFilePaginationCache($cache, string $baseKey): void
-    {
-        // For file cache and other drivers without pattern support
-        $trackedKeysKey = $baseKey.'_tracked_keys';
-        $trackedKeys = $cache->get($trackedKeysKey, []);
-
-        foreach ($trackedKeys as $key) {
-            $cache->forget($key);
-        }
-
-        // Clear the tracking key itself
-        $cache->forget($trackedKeysKey);
     }
 
     public function updatedSearch(): void
     {
         $this->resetPage();
-        $this->clearPaginationCache();
     }
 
     /**
-     * Execute request and reset pagination
-     */
-    public function executeRequest(): void
-    {
-        $this->resetPage();
-        $this->clearPaginationCache();
-        $this->executeApiCall();
-    }
-
-    /**
-     * Get paginated data for rendering with enhanced caching
+     * Get paginated data - main method called by views
      */
     public function getPaginatedData(): LengthAwarePaginator
     {
-        // Generate a cache key for the current pagination state
-        $this->paginationCacheKey = $this->generatePaginationCacheKey();
-
-        // Try to get the cached pagination result
-        $cachedPagination = cache()->get($this->paginationCacheKey);
-
-        if ($cachedPagination) {
-            return $cachedPagination;
-        }
-
         $allData = $this->getAllData();
 
         if ($allData->isEmpty()) {
-            $emptyPaginator = new LengthAwarePaginator(
-                collect(),
-                0,
-                $this->perPage,
-                $this->getPage(),
-                [
-                    'path' => request()->url(),
-                    'pageName' => 'page',
-                ]
-            );
-
-            // Cache empty results briefly with tracking
-            $this->putCacheWithTracking($this->paginationCacheKey, $emptyPaginator, now()->addMinutes(5));
-
-            return $emptyPaginator;
+            return $this->createEmptyPaginator();
         }
 
-        // Get filtered and sorted data
-        $filteredData = $this->getFilteredAndSortedData($allData);
+        $filteredData = $this->applyFiltersAndSort($allData);
 
-        // Update total records based on filtered data
-        $totalFilteredRecords = $filteredData->count();
+        return $this->createPaginator($filteredData);
+    }
 
-        // Calculate pagination
-        $currentPage = $this->getPage();
-        $offset = ($currentPage - 1) * $this->perPage;
-        $currentPageItems = $filteredData->slice($offset, $this->perPage)->values();
+    /**
+     * Get all data from cache or component
+     */
+    protected function getAllData(): Collection
+    {
+        // Try cache first
+        if (! empty($this->cacheKey)) {
+            $cached = cache()->get($this->cacheKey);
+            if ($cached) {
+                return $cached instanceof Collection ? $cached : collect($cached);
+            }
+        }
 
-        $paginator = new LengthAwarePaginator(
-            $currentPageItems,
-            $totalFilteredRecords,
+        // Fallback to component data
+        return collect($this->tableData ?? []);
+    }
+
+    /**
+     * Create empty paginator
+     */
+    protected function createEmptyPaginator(): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator(
+            collect(),
+            0,
             $this->perPage,
-            $currentPage,
+            $this->getPage(),
             [
                 'path' => request()->url(),
                 'pageName' => 'page',
             ]
         );
-
-        // Cache pagination result for 10 minutes with tracking
-        $this->putCacheWithTracking($this->paginationCacheKey, $paginator, now()->addMinutes(10));
-
-        return $paginator;
     }
 
     /**
-     * Generate the cache key for pagination state
+     * Apply search and sorting filters
      */
-    protected function generatePaginationCacheKey(): string
-    {
-        return $this->generateCacheKey().'_page_'.md5(
-            $this->search.$this->sortField.$this->sortDirection.$this->perPage.$this->getPage()
-        );
-    }
-
-    /**
-     * Get the full dataset from the cache
-     */
-    public function getAllData(): Collection
-    {
-        if (empty($this->cacheKey)) {
-            return collect();
-        }
-
-        return cache()->get($this->cacheKey, collect()); // FIXME
-    }
-
-    /**
-     * Enhanced cache put method that tracks keys
-     */
-    private function putCacheWithTracking(string $key, $value, $ttl): void
-    {
-        cache()->put($key, $value, $ttl);
-
-        // Track the key if we're not using Redis (which supports pattern deletion)
-        $store = cache()->getStore();
-        if (! method_exists($store, 'getRedis') || ! $store->getRedis()) {
-            $this->trackCacheKey($key);
-        }
-    }
-
-    /**
-     * Track cache keys for drivers that don't support pattern deletion
-     */
-    private function trackCacheKey(string $key): void
-    {
-        $baseKey = $this->generateCacheKey();
-        $trackedKeysKey = $baseKey.'_tracked_keys';
-
-        $trackedKeys = cache()->get($trackedKeysKey, []);
-
-        if (! in_array($key, $trackedKeys)) {
-            $trackedKeys[] = $key;
-            cache()->put($trackedKeysKey, $trackedKeys, now()->addHours(2));
-        }
-    }
-
-    /**
-     * Get filtered and sorted data collection with enhanced caching
-     */
-    protected function getFilteredAndSortedData(?Collection $data = null): Collection
-    {
-        $data = $data ?? $this->getAllData();
-
-        // Generate cache key for filtered/sorted data
-        $filterSortCacheKey = $this->generateFilterSortCacheKey();
-
-        // Try to get cached filtered data
-        $cachedFiltered = cache()->get($filterSortCacheKey);
-
-        if ($cachedFiltered) {
-            return $cachedFiltered;
-        }
-
-        $filteredData = $this->applySearchAndSort($data);
-
-        // Cache filtered/sorted data for 15 minutes with tracking
-        $this->putCacheWithTracking($filterSortCacheKey, $filteredData, now()->addMinutes(15));
-
-        return $filteredData;
-    }
-
-    /**
-     * Generate cache key for filtered/sorted data
-     */
-    protected function generateFilterSortCacheKey(): string
-    {
-        return $this->generateCacheKey().'_filter_'.md5(
-            $this->search.$this->sortField.$this->sortDirection
-        );
-    }
-
-    /**
-     * Apply search and sort to a data collection
-     */
-    protected function applySearchAndSort(Collection $data): Collection
+    protected function applyFiltersAndSort(Collection $data): Collection
     {
         // Apply search filter
         if (! empty($this->search)) {
-            $searchTerm = strtolower($this->search);
-            $data = $data->filter(function ($item) use ($searchTerm) {
-                return $this->matchesSearchTerm($item, $searchTerm);
+            $data = $data->filter(function ($item) {
+                return $this->matchesSearch($item, strtolower($this->search));
             });
         }
 
@@ -343,26 +105,22 @@ trait PaginatesApiData
     }
 
     /**
-     * Check if an item matches the search term
+     * Check if item matches search term
      */
-    protected function matchesSearchTerm($item, string $searchTerm): bool
+    protected function matchesSearch($item, string $searchTerm): bool
     {
         $searchableFields = $this->getSearchableFields();
 
         foreach ($searchableFields as $field) {
             $value = data_get($item, $field, '');
 
-            // Handle arrays and objects by converting to string
             if (is_array($value)) {
                 $value = implode(' ', array_filter($value, 'is_string'));
             } elseif (is_object($value)) {
                 $value = json_encode($value);
             }
 
-            // Ensure we have a string before calling strtolower
-            $value = (string) $value;
-
-            if (str_contains(strtolower($value), $searchTerm)) {
+            if (str_contains(strtolower((string) $value), $searchTerm)) {
                 return true;
             }
         }
@@ -371,122 +129,79 @@ trait PaginatesApiData
     }
 
     /**
-     * Get fields that should be searched
+     * Get searchable fields from table columns
      */
     protected function getSearchableFields(): array
     {
-        return [
-            'name',
-            'description',
-            'laborCategory.name',
-        ];
+        return array_column($this->tableColumns ?? [], 'field');
     }
 
-    public function sortBy($field): void
+    /**
+     * Handle sorting from table component
+     */
+    public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {
+            // Toggle direction if same field
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
+            // Set new field and default to ascending
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
+
+        // Reset to first page when sorting changes
         $this->resetPage();
-        $this->clearPaginationCache();
     }
 
     /**
-     * Process API response data and cache it
+     * Create paginator for filtered data
      */
-    protected function processApiResponseData($response, string $componentName = ''): void
+    protected function createPaginator(Collection $filteredData): LengthAwarePaginator
     {
-        if ($response && $response->successful()) {
-            $data = $response->json();
-            $records = $data['records'] ?? $data;
+        $total = $filteredData->count();
+        $currentPage = $this->getPage();
+        $offset = ($currentPage - 1) * $this->perPage;
+        $items = $filteredData->slice($offset, $this->perPage)->values();
 
-            // Cache the full dataset
+        return new LengthAwarePaginator(
+            $items,
+            $total,
+            $this->perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'pageName' => 'page',
+            ]
+        );
+    }
+
+    /**
+     * Clear pagination cache - called when data changes
+     */
+    public function clearPaginationCache(): void
+    {
+        $this->resetPage();
+    }
+
+    /**
+     * Initialize pagination - called by components
+     */
+    protected function initializePaginationData(): void
+    {
+        if (method_exists($this, 'generateCacheKey')) {
             $this->cacheKey = $this->generateCacheKey();
-            cache()->put($this->cacheKey, collect($records), now()->addMinutes(30));
-
-            $this->totalRecords = is_array($data) && isset($data['totalRecords'])
-                ? $data['totalRecords']
-                : count($records);
-
-            // Clear pagination cache when new data is loaded
-            $this->clearPaginationCache();
-
-            Log::info('Data Cached', [
-                'component' => $componentName ?: get_class($this),
-                'total_records_available' => $this->totalRecords,
-                'records_fetched' => count($records),
-                'cache_key' => $this->cacheKey,
-                'memory_usage_mb' => round(memory_get_peak_usage(true) / 1024 / 1024, 2),
-            ]);
-        } else {
-            $this->totalRecords = 0;
         }
     }
 
     /**
-     * Initialize the data collection
+     * Generate cache key for pagination
      */
-    protected function initializePaginationData(): void
+    protected function generateCacheKey(): string
     {
-        $this->totalRecords = 0;
-        $this->cacheKey = '';
-        $this->paginationCacheKey = '';
-    }
+        $userId = auth()->id() ?? 'anonymous';
+        $sessionId = session()->getId();
 
-    /**
-     * Transform API response data to proper types
-     */
-    protected function transformApiData(array $records): array
-    {
-        return array_map(function ($record) {
-            // Convert numeric boolean fields to actual booleans
-            $booleanFields = $this->getBooleanFields();
-
-            foreach ($booleanFields as $field) {
-                if (isset($record[$field])) {
-                    $record[$field] = (bool) $record[$field];
-                }
-            }
-
-            // Convert date fields if needed
-            $dateFields = $this->getDateFields();
-            foreach ($dateFields as $field) {
-                if (! empty($record[$field])) {
-                    try {
-                        $record[$field] = Carbon::parse($record[$field]);
-                    } catch (Exception $e) {
-                        // Keep the original value if date parsing fails
-                        Log::error('Failed to parse date field', [
-                            'field' => $field,
-                            'value' => $record[$field],
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
-                }
-            }
-
-            return $record;
-        }, $records);
-    }
-
-    /**
-     * Get the list of fields that should be converted to boolean
-     * Override in child classes to specify boolean fields
-     */
-    protected function getBooleanFields(): array
-    {
-        return ['inactive', 'active', 'enabled', 'disabled', 'visible', 'hidden'];
-    }
-
-    /**
-     * Get the list of fields that should be converted to dates
-     * Override in child classes to specify date fields
-     */
-    protected function getDateFields(): array
-    {
-        return ['created_at', 'updated_at', 'date', 'timestamp'];
+        return 'api_data_'.class_basename($this).'_'.hash('sha256', $this->hostname.'_'.$userId.'_'.$sessionId);
     }
 }
