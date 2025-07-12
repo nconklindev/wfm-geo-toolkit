@@ -267,6 +267,49 @@ class WfmService
     }
 
     /**
+     * @throws ConnectionException
+     *
+     * @see https://developer.ukg.com/wfm/reference/retrieve-all-persons
+     */
+    public function getAllPersonsPaginated(array $requestData = []): Response
+    {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+        $apiPath = 'api/v1/commons/persons/apply_read';
+
+        // Log the request details for debugging
+        Log::info('WFM Retrieve All Persons - Request Info', [
+            'hostname' => $this->hostname,
+            'endpoint' => "$this->hostname/$apiPath",
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'request_data' => $requestData,
+        ]);
+
+        try {
+            $response = Http::withToken($this->accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
+                ->post("$this->hostname/$apiPath", $requestData);
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'hostname' => $this->hostname,
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+                'request_data' => $requestData,
+            ]);
+
+            throw $ce;
+        }
+
+        return $response;
+
+    }
+
+    /**
      * Extract place IDs from a list of places
      */
     public function extractPlaceIds(array $places): array
