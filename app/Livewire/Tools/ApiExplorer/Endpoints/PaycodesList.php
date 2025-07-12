@@ -5,12 +5,8 @@ namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
 use App\Traits\ExportsCsvData;
 use App\Traits\PaginatesApiData;
-use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Client\Response;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaycodesList extends BaseApiEndpoint
 {
@@ -24,43 +20,6 @@ class PaycodesList extends BaseApiEndpoint
         return view('livewire.tools.api-explorer.endpoints.paycodes-list', [
             'paginatedData' => $paginatedData,
         ]);
-    }
-
-    /**
-     * Export all paycodes data as CSV
-     */
-    public function exportAllToCsv(): StreamedResponse|RedirectResponse
-    {
-        try {
-            $response = $this->fetchData();
-
-            if (! $response || ! $response->successful()) {
-                session()->flash('error', 'Failed to fetch data for export.');
-
-                return back();
-            }
-
-            $allData = $this->extractDataFromResponse($response);
-
-            if (empty($allData)) {
-                session()->flash('error', 'No data available to export.');
-
-                return back();
-            }
-
-            $filename = $this->generateExportFilename('paycodes-all');
-
-            return $this->exportAsCsv($allData, $this->tableColumns, $filename);
-        } catch (Exception $e) {
-            Log::error('Error exporting all paycodes data', [
-                'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
-            ]);
-
-            session()->flash('error', 'Failed to export data. Please try again.');
-
-            return back();
-        }
     }
 
     /**
@@ -93,15 +52,5 @@ class PaycodesList extends BaseApiEndpoint
         ];
 
         $this->initializePaginationData();
-    }
-
-    /**
-     * Export current page/filtered data as CSV
-     */
-    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
-    {
-        $filename = $this->generateExportFilename('paycodes-selections');
-
-        return $this->exportTableDataAsCsv($filename);
     }
 }

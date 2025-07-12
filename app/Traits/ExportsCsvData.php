@@ -6,50 +6,117 @@ use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use League\Csv\Writer;
-use Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 trait ExportsCsvData
 {
     /**
-     * Export table data as CSV using the defined columns
+     * Export all available data as CSV (fresh from API)
      */
-    public function exportTableDataAsCsv(?string $filename = null): StreamedResponse|RedirectResponse
+    public function exportAllToCsv(): StreamedResponse|RedirectResponse
     {
-        if (empty($this->tableData) || empty($this->tableColumns)) {
-            session()->flash('error', 'No data available to export.');
-
-            return back();
-        }
-
-        $filename = $filename ?? $this->getDefaultCsvFilename();
-
         try {
-            return $this->exportAsCsv($this->tableData, $this->tableColumns, $filename);
+            $allData = $this->getAllDataForAllExport();
+
+            if (empty($allData)) {
+                session()->flash('error', 'No data available to export.');
+
+                return back();
+            }
+
+            $filteredData = $this->applyFiltersAndSort(collect($allData));
+
+            // Use custom filename if endpoint provides one, otherwise use smart default
+            $filename = $this->getExportFilename('all');
+
+            return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
         } catch (Exception $e) {
-            Log::error('CSV Export Error', [
+            Log::error('CSV Export Error - All Data', [
                 'error' => $e->getMessage(),
-                'filename' => $filename,
-                'data_count' => count($this->tableData),
-                'columns_count' => count($this->tableColumns),
+                'component' => get_class($this),
             ]);
 
-            session()->flash('error', 'Failed to export CSV. Please try again.');
+            session()->flash('error', 'Failed to export data. Please try again.');
 
             return back();
         }
     }
 
+    protected function getAllDataForAllExport(): array
+    {
+        // Strategy 1: Use custom getAllDataForExport if exists
+        if (method_exists($this, 'getAllDataForExport')) {
+            return $this->getAllDataForExport()->toArray();
+        }
+
+        // Strategy 2: Use fetchData() pattern
+        if (method_exists($this, 'fetchData')) {
+            $response = $this->fetchData();
+
+            if ($response && $response->successful()) {
+                return $this->extractDataFromResponse($response);
+            }
+        }
+
+        // Strategy 3: Use current loaded data
+        return $this->getAllData()->toArray();
+    }
+
     /**
-     * Generate a default filename for CSV export
+     * Get export filename - allows endpoints to customize while providing smart defaults
      */
-    protected function getDefaultCsvFilename(): string
+    protected function getExportFilename(string $type): string
+    {
+        // If endpoint has custom generateExportFilename method, use it
+        if (method_exists($this, 'generateExportFilename')) {
+            return $this->generateExportFilename($type);
+        }
+
+        // Otherwise, generate smart default based on class name
+        return $this->generateSmartDefaultFilename($type);
+    }
+
+    /**
+     * Generate smart default filename based on class name
+     */
+    protected function generateSmartDefaultFilename(string $type): string
     {
         $className = class_basename(static::class);
-        $timestamp = now()->format('Y-m-d_H-i-s');
-        $filename = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $className));
 
-        return "{$filename}-export-{$timestamp}";
+        // Convert class name to readable format
+        $readableName = $this->convertClassNameToReadable($className);
+
+        $parts = [$readableName, $type];
+
+        // Add search term if present
+        if (! empty($this->search)) {
+            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
+            $parts[] = "search-{$searchSlug}";
+        }
+
+        // Add timestamp
+        $parts[] = now()->format('Y-m-d_H-i-s');
+
+        return implode('-', $parts);
+    }
+
+    /**
+     * Convert class name to readable format
+     */
+    private function convertClassNameToReadable(string $className): string
+    {
+        // Handle common patterns
+        $replacements = [
+            'RetrieveAll' => '',
+            'Retrieve' => '',
+            'List' => '',
+            'PaginatedList' => '',
+        ];
+
+        $cleaned = str_replace(array_keys($replacements), array_values($replacements), $className);
+
+        // Convert CamelCase to kebab-case
+        return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $cleaned));
     }
 
     /**
@@ -122,20 +189,68 @@ trait ExportsCsvData
     }
 
     /**
-     * Generate export filename with optional search term
+     * Export current filtered/searched data as CSV (what user sees)
      */
-    protected function generateExportFilename(string $itemName): string
+    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
     {
-        $parts = [Str::slug($itemName)];
+        try {
+            $exportData = $this->getAllData();
+            $filteredData = $this->applyFiltersAndSort($exportData);
 
-        // Add search term if present
-        if (! empty($this->search)) {
-            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
-            $parts[] = "search-$searchSlug";
+            // Use custom filename if endpoint provides one, otherwise use smart default
+            $filename = $this->getExportFilename('selections');
+
+            return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
+        } catch (Exception $e) {
+            Log::error('CSV Export Error - Selections', [
+                'error' => $e->getMessage(),
+                'component' => get_class($this),
+            ]);
+
+            session()->flash('error', 'Failed to export CSV. Please try again.');
+
+            return back();
+        }
+    }
+
+    /**
+     * Export table data as CSV using the defined columns
+     */
+    public function exportTableDataAsCsv(?string $filename = null): StreamedResponse|RedirectResponse
+    {
+        if (empty($this->tableData) || empty($this->tableColumns)) {
+            session()->flash('error', 'No data available to export.');
+
+            return back();
         }
 
-        $parts[] = now()->format('Y-m-d_H-i-s');
+        $filename = $filename ?? $this->getDefaultCsvFilename();
 
-        return implode('-', $parts);
+        try {
+            return $this->exportAsCsv($this->tableData, $this->tableColumns, $filename);
+        } catch (Exception $e) {
+            Log::error('CSV Export Error', [
+                'error' => $e->getMessage(),
+                'filename' => $filename,
+                'data_count' => count($this->tableData),
+                'columns_count' => count($this->tableColumns),
+            ]);
+
+            session()->flash('error', 'Failed to export CSV. Please try again.');
+
+            return back();
+        }
+    }
+
+    /**
+     * Generate a default filename for CSV export
+     */
+    protected function getDefaultCsvFilename(): string
+    {
+        $className = class_basename(static::class);
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $filename = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $className));
+
+        return "{$filename}-export-{$timestamp}";
     }
 }

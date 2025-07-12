@@ -270,6 +270,14 @@
                         Retrieve Paycodes as a Manager
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
+                <x-api-endpoint-group title="People" name="user">
+                    <x-api-endpoint-item
+                        value="retrieve-all-persons"
+                        label="Retrieve All Persons"
+                        method="POST"
+                    >Retrieve All Persons
+                    </x-api-endpoint-item>
+                </x-api-endpoint-group>
             </div>
         </div>
 

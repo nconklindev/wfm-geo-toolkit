@@ -8,9 +8,8 @@ use App\Traits\PaginatesApiData;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Client\Response;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdjustmentRulesList extends BaseApiEndpoint
 {
@@ -27,49 +26,57 @@ class AdjustmentRulesList extends BaseApiEndpoint
     }
 
     /**
-     * Export all adjustment rules data as CSV
+     * Override exportAllToCsv to use flattened data structure
      */
-    public function exportAllToCsv(): StreamedResponse|RedirectResponse
+    public function exportAllToCsv()
     {
         try {
-            $response = $this->fetchData();
+            $allData = $this->getAllDataForExport();
 
-            if (! $response || ! $response->successful()) {
-                session()->flash('error', 'Failed to fetch data for export.');
-
-                return back();
-            }
-
-            $allData = $this->extractDataFromResponse($response);
-
-            if (empty($allData)) {
+            if ($allData->isEmpty()) {
                 session()->flash('error', 'No data available to export.');
 
                 return back();
             }
 
-            // Process the data to add custom fields
-            $processedData = $this->processDataForDisplay($allData);
-
             // Apply current search and sort filters
-            $filteredData = $this->applyFiltersAndSort(collect($processedData));
+            $filteredData = $this->applyFiltersAndSort($allData);
 
             // Flatten the data for CSV export
             $flattenedData = $this->flattenAdjustmentRulesForCsv($filteredData);
 
-            $filename = $this->generateExportFilename('adjustment-rules-all');
+            $filename = $this->generateExportFilename('all');
 
             return $this->exportAsCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
         } catch (Exception $e) {
-            Log::error('Error exporting all adjustment rules data', [
+            Log::error('CSV Export Error - All Data', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'component' => get_class($this),
             ]);
 
             session()->flash('error', 'Failed to export data. Please try again.');
 
             return back();
         }
+    }
+
+    /**
+     * Custom method for getting all data for export - required by ExportsCsvData trait
+     */
+    protected function getAllDataForExport(): Collection
+    {
+        $response = $this->fetchData();
+
+        if (! $response || ! $response->successful()) {
+            return collect();
+        }
+
+        $allData = $this->extractDataFromResponse($response);
+
+        // Process the data to add custom fields
+        $processedData = $this->processDataForDisplay($allData);
+
+        return collect($processedData);
     }
 
     /**
@@ -253,6 +260,25 @@ class AdjustmentRulesList extends BaseApiEndpoint
     }
 
     /**
+     * Custom filename generation for exports
+     */
+    protected function generateExportFilename(string $type): string
+    {
+        $parts = ['adjustment-rules', $type];
+
+        // Add search term if present
+        if (! empty($this->search)) {
+            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
+            $parts[] = "search-{$searchSlug}";
+        }
+
+        // Add timestamp
+        $parts[] = now()->format('Y-m-d_H-i-s');
+
+        return implode('-', $parts);
+    }
+
+    /**
      * Define CSV columns for the flattened data
      */
     private function defineCSVColumnsForTheFlattenedData(): array
@@ -312,52 +338,35 @@ class AdjustmentRulesList extends BaseApiEndpoint
     }
 
     /**
-     * Export current page/filtered data as CSV
+     * Override exportSelectionsToCsv to use flattened data structure
      */
-    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
+    public function exportSelectionsToCsv()
     {
-        $filename = $this->generateExportFilename('adjustment-rules-selections');
+        try {
+            $exportData = $this->getAllData();
+            $filteredData = $this->applyFiltersAndSort($exportData);
 
-        // Get current page data
-        $currentPageData = $this->getPaginatedData();
+            if ($filteredData->isEmpty()) {
+                session()->flash('error', 'No data available to export.');
 
-        if ($currentPageData->isEmpty()) {
-            session()->flash('error', 'No data available to export.');
+                return back();
+            }
+
+            // Flatten the data for CSV export
+            $flattenedData = $this->flattenAdjustmentRulesForCsv($filteredData);
+
+            $filename = $this->generateExportFilename('selections');
+
+            return $this->exportAsCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
+        } catch (Exception $e) {
+            Log::error('CSV Export Error - Selections', [
+                'error' => $e->getMessage(),
+                'component' => get_class($this),
+            ]);
+
+            session()->flash('error', 'Failed to export CSV. Please try again.');
 
             return back();
         }
-
-        // Flatten the data for CSV export
-        $flattenedData = $this->flattenAdjustmentRulesForCsv(collect($currentPageData->items()));
-
-        return $this->exportAsCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
-    }
-
-    /**
-     * Extract ONLY trigger paycode names for the triggers section
-     */
-    private function extractTriggerPaycodeNames($trigger): string
-    {
-        $payCodes = $trigger['payCodes'] ?? [];
-        $triggerPayCodes = collect($payCodes)
-            ->pluck('qualifier')
-            ->filter()
-            ->implode(', ');
-
-        return $triggerPayCodes ?: '-';
-    }
-
-    /**
-     * Extract ONLY allocation paycode name for the allocation section
-     */
-    private function extractAllocationPaycodeName($trigger): string
-    {
-        $allocation = $trigger['adjustmentAllocation']['adjustmentAllocation'] ?? null;
-
-        if ($allocation && isset($allocation['payCode']['qualifier'])) {
-            return $allocation['payCode']['qualifier'];
-        }
-
-        return '-';
     }
 }
