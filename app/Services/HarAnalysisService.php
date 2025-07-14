@@ -39,12 +39,16 @@ class HarAnalysisService
 
     private function getTotalSize(): int
     {
-        return $this->entries->sum(fn ($entry) => max(0, $entry['response']['content']['size'] ?? 0));
+        return $this->entries->sum(
+            fn ($entry) => max(0, $entry['response']['content']['size'] ?? 0),
+        );
     }
 
     private function getTotalTransferred(): int
     {
-        return $this->entries->sum(fn ($entry) => max(0, $entry['response']['bodySize'] ?? 0));
+        return $this->entries->sum(
+            fn ($entry) => max(0, $entry['response']['bodySize'] ?? 0),
+        );
     }
 
     private function getLoadTime(): float
@@ -56,7 +60,9 @@ class HarAnalysisService
         // Convert all times to timestamps (in milliseconds)
         $timeData = $this->entries->map(function ($entry) {
             $startTime = Carbon::parse($entry['startedDateTime']);
-            $startMs = $startTime->timestamp * 1000 + intval($startTime->micro / 1000);
+            $startMs = $startTime->timestamp * 1000 + intval(
+                $startTime->micro / 1000,
+            );
             $duration = floatval($entry['time'] ?? 0);
 
             return [
@@ -73,7 +79,9 @@ class HarAnalysisService
 
     private function getFailedRequestsCount(): int
     {
-        return $this->entries->filter(fn ($entry) => $entry['response']['status'] >= 400)->count();
+        return $this->entries->filter(
+            fn ($entry) => $entry['response']['status'] >= 400,
+        )->count();
     }
 
     private function getUniqueDomains(): Collection
@@ -91,7 +99,8 @@ class HarAnalysisService
         $totalTransferred = $this->getTotalTransferred();
 
         $savings = $totalSize - $totalTransferred;
-        $percentage = $totalSize > 0 ? round(($savings / $totalSize) * 100, 2) : 0;
+        $percentage = $totalSize > 0 ? round(($savings / $totalSize) * 100, 2)
+            : 0;
 
         return [
             'bytes_saved' => $savings,
@@ -237,36 +246,41 @@ class HarAnalysisService
             $url = $entry['request']['url'];
             $mimeType = $entry['response']['content']['mimeType'] ?? '';
 
-            return str_contains($mimeType, 'application/json') ||
-                   str_contains($url, '/api/') ||
-                   str_contains($url, '/auth/') ||
-                   str_contains($url, '/login') ||
-                   str_contains($url, '/logout');
+            return str_contains($mimeType, 'application/json')
+                || str_contains(
+                    $url,
+                    '/api/',
+                )
+                || str_contains($url, '/auth/')
+                || str_contains($url, '/login')
+                || str_contains($url, '/logout');
         });
 
         $authRequests = $apiRequests->filter(function ($entry) {
             $url = $entry['request']['url'];
 
-            return str_contains($url, '/auth/') ||
-                   str_contains($url, '/login') ||
-                   str_contains($url, '/logout') ||
-                   str_contains($url, '/token');
+            return str_contains($url, '/auth/') || str_contains($url, '/login')
+                || str_contains($url, '/logout')
+                || str_contains($url, '/token');
         });
 
         $dataRequests = $apiRequests->filter(function ($entry) {
             $url = $entry['request']['url'];
 
-            return str_contains($url, '/api/') &&
-                   ! str_contains($url, '/auth/') &&
-                   ! str_contains($url, '/upload');
+            return str_contains($url, '/api/')
+                &&
+                ! str_contains($url, '/auth/')
+                &&
+                ! str_contains($url, '/upload');
         });
 
         $uploadRequests = $apiRequests->filter(function ($entry) {
             $url = $entry['request']['url'];
             $method = $entry['request']['method'];
 
-            return str_contains($url, '/upload') ||
-                   ($method === 'POST' && str_contains($url, '/files'));
+            return str_contains($url, '/upload')
+                || ($method === 'POST'
+                    && str_contains($url, '/files'));
         });
 
         return [
@@ -311,16 +325,26 @@ class HarAnalysisService
     {
         $cachedRequests = $this->entries->filter(function ($entry) {
             $headers = collect($entry['response']['headers'] ?? []);
-            $cacheControl = $headers->firstWhere('name', 'cache-control')['value'] ?? '';
+            $cacheControl = $headers->firstWhere(
+                'name',
+                'cache-control',
+            )['value'] ?? '';
             $expires = $headers->firstWhere('name', 'expires')['value'] ?? '';
             $etag = $headers->firstWhere('name', 'etag')['value'] ?? '';
-            $lastModified = $headers->firstWhere('name', 'last-modified')['value'] ?? '';
+            $lastModified = $headers->firstWhere(
+                'name',
+                'last-modified',
+            )['value'] ?? '';
 
-            return ! empty($cacheControl) || ! empty($expires) || ! empty($etag) || ! empty($lastModified);
+            return ! empty($cacheControl) || ! empty($expires) || ! empty($etag)
+                || ! empty($lastModified);
         });
 
         $totalRequests = $this->entries->count();
-        $cacheHitRate = $totalRequests > 0 ? round(($cachedRequests->count() / $totalRequests) * 100, 1) : 0;
+        $cacheHitRate = $totalRequests > 0 ? round(
+            ($cachedRequests->count() / $totalRequests) * 100,
+            1,
+        ) : 0;
 
         return [
             'cache_hit_rate' => $cacheHitRate,
@@ -333,21 +357,31 @@ class HarAnalysisService
     {
         $compressedRequests = $this->entries->filter(function ($entry) {
             $headers = collect($entry['response']['headers'] ?? []);
-            $encoding = $headers->firstWhere('name', 'content-encoding')['value'] ?? '';
+            $encoding = $headers->firstWhere(
+                'name',
+                'content-encoding',
+            )['value'] ?? '';
 
-            return str_contains($encoding, 'gzip') ||
-                   str_contains($encoding, 'br') ||
-                   str_contains($encoding, 'deflate');
+            return str_contains($encoding, 'gzip')
+                || str_contains(
+                    $encoding,
+                    'br',
+                )
+                || str_contains($encoding, 'deflate');
         });
 
         $totalSize = $this->getTotalSize();
         $totalTransferred = $this->getTotalTransferred();
-        $compressionRatio = $totalSize > 0 ? round(($totalTransferred / $totalSize) * 100, 1) : 100;
+        $compressionRatio = $totalSize > 0 ? round(
+            ($totalTransferred / $totalSize) * 100,
+            1,
+        ) : 100;
 
         return [
             'compression_ratio' => $compressionRatio,
             'compressed_requests' => $compressedRequests->count(),
-            'uncompressed_requests' => $this->entries->count() - $compressedRequests->count(),
+            'uncompressed_requests' => $this->entries->count()
+                - $compressedRequests->count(),
             'compression_savings_bytes' => $totalSize - $totalTransferred,
         ];
     }
@@ -405,17 +439,26 @@ class HarAnalysisService
     public function getLargestResources(int $limit = 10): array
     {
         return $this->entries
-            ->sortByDesc(fn ($entry) => max(0, $entry['response']['content']['size'] ?? 0))
+            ->sortByDesc(
+                fn ($entry) => max(0, $entry['response']['content']['size'] ?? 0),
+            )
             ->take($limit)
             ->map(function ($entry) {
                 return [
                     'url' => $entry['request']['url'],
                     'method' => $entry['request']['method'],
                     'status' => $entry['response']['status'],
-                    'size' => max(0, $entry['response']['content']['size'] ?? 0),
-                    'transferred' => max(0, $entry['response']['bodySize'] ?? 0),
+                    'size' => max(
+                        0,
+                        $entry['response']['content']['size'] ?? 0,
+                    ),
+                    'transferred' => max(
+                        0,
+                        $entry['response']['bodySize'] ?? 0,
+                    ),
                     'time' => $entry['time'] ?? 0,
-                    'mime_type' => $entry['response']['content']['mimeType'] ?? 'unknown',
+                    'mime_type' => $entry['response']['content']['mimeType']
+                        ?? 'unknown',
                 ];
             })
             ->values()
@@ -462,8 +505,12 @@ class HarAnalysisService
             return [
                 'type' => $type,
                 'count' => $requests->count(),
-                'size' => $requests->sum(fn ($r) => max(0, $r['response']['content']['size'] ?? 0)),
-                'transferred' => $requests->sum(fn ($r) => max(0, $r['response']['bodySize'] ?? 0)),
+                'size' => $requests->sum(
+                    fn ($r) => max(0, $r['response']['content']['size'] ?? 0),
+                ),
+                'transferred' => $requests->sum(
+                    fn ($r) => max(0, $r['response']['bodySize'] ?? 0),
+                ),
             ];
         })->values()->toArray();
     }
@@ -479,25 +526,30 @@ class HarAnalysisService
 
     public function getSecurityAnalysis(): array
     {
-        $httpsCount = $this->entries->filter(fn ($entry) => str_starts_with($entry['request']['url'], 'https://')
+        $httpsCount = $this->entries->filter(
+            fn ($entry) => str_starts_with($entry['request']['url'], 'https://'),
         )->count();
 
         $secureHeaders = $this->entries->filter(function ($entry) {
             $headers = collect($entry['response']['headers'] ?? []);
 
-            return $headers->contains(fn ($header) => in_array(strtolower($header['name']), [
-                'strict-transport-security',
-                'content-security-policy',
-                'x-frame-options',
-                'x-content-type-options',
-            ])
+            return $headers->contains(
+                fn ($header) => in_array(strtolower($header['name']), [
+                    'strict-transport-security',
+                    'content-security-policy',
+                    'x-frame-options',
+                    'x-content-type-options',
+                ]),
             );
         })->count();
 
         $totalEntries = $this->entries->count();
 
         return [
-            'https_percentage' => $totalEntries > 0 ? round(($httpsCount / $totalEntries) * 100, 2) : 0,
+            'https_percentage' => $totalEntries > 0 ? round(
+                ($httpsCount / $totalEntries) * 100,
+                2,
+            ) : 0,
             'secure_headers_count' => $secureHeaders,
             'mixed_content' => $this->getMixedContentIssues(),
             'insecure_requests' => $this->entries->count() - $httpsCount,
@@ -509,9 +561,16 @@ class HarAnalysisService
         return $this->entries->filter(function ($entry) {
             $url = $entry['request']['url'];
             $referrer = $entry['request']['headers'] ?? [];
-            $referrerUrl = collect($referrer)->firstWhere('name', 'referer')['value'] ?? '';
+            $referrerUrl = collect($referrer)->firstWhere(
+                'name',
+                'referer',
+            )['value'] ?? '';
 
-            return str_starts_with($referrerUrl, 'https://') && str_starts_with($url, 'http://');
+            return str_starts_with($referrerUrl, 'https://')
+                && str_starts_with(
+                    $url,
+                    'http://',
+                );
         })->count();
     }
 
@@ -526,14 +585,22 @@ class HarAnalysisService
             ->map(function ($requests, $domain) {
                 // Check if any request to this domain uses HTTPS
                 $hasHttps = $requests->contains(function ($entry) {
-                    return str_starts_with($entry['request']['url'], 'https://');
+                    return str_starts_with(
+                        $entry['request']['url'],
+                        'https://',
+                    );
                 });
 
                 return [
                     'domain' => $domain,
                     'requests' => $requests->count(),
-                    'size' => $requests->sum(fn ($r) => max(0, $r['response']['content']['size'] ?? 0)),
-                    'avg_time' => round($requests->avg(fn ($r) => $r['time'] ?? 0), 2),
+                    'size' => $requests->sum(
+                        fn ($r) => max(0, $r['response']['content']['size'] ?? 0),
+                    ),
+                    'avg_time' => round(
+                        $requests->avg(fn ($r) => $r['time'] ?? 0),
+                        2,
+                    ),
                     'has_https' => $hasHttps,
                 ];
             })
@@ -552,7 +619,8 @@ class HarAnalysisService
         $startTimestamp = Carbon::parse($startTime)->timestamp * 1000;
 
         return $this->entries->map(function ($entry) use ($startTimestamp) {
-            $entryTime = Carbon::parse($entry['startedDateTime'])->timestamp * 1000;
+            $entryTime = Carbon::parse($entry['startedDateTime'])->timestamp
+                * 1000;
 
             return [
                 'url' => $entry['request']['url'],
@@ -560,7 +628,10 @@ class HarAnalysisService
                 'duration' => $entry['time'] ?? 0,
                 'status' => $entry['response']['status'],
                 'method' => $entry['request']['method'],
-                'size' => max(0, $entry['response']['content']['size'] ?? 0),
+                'size' => max(
+                    0,
+                    $entry['response']['content']['size'] ?? 0,
+                ),
             ];
         })->sortBy('start')->values()->toArray();
     }
