@@ -509,6 +509,9 @@ class WfmService
      *
      * @param  array  $requestData  The data to be sent with the API request.
      * @return Response The response from the API.
+     *
+     * @throws \Illuminate\Http\Client\ConnectionException
+     * @throws \JsonException
      */
     public function getLaborCategories(array $requestData = []): Response
     {
@@ -524,6 +527,9 @@ class WfmService
      *
      * @param  array  $requestData  Optional parameters for filtering or pagination.
      * @return PromiseInterface|Response A promise resolving to an HTTP response object.
+     *
+     * @throws \Illuminate\Http\Client\ConnectionException
+     * @throws \JsonException
      */
     public function getDataElementsPaginated(array $requestData = [],
     ): PromiseInterface|Response {
