@@ -38,6 +38,8 @@ class ApiExplorer extends Component
 
     protected WfmService $wfmService;
 
+    // TODO: Add before validation that lets us trim the properties to account for accidental spaces
+
     public function boot(WfmService $wfmService)
     {
         $this->wfmService = $wfmService;
@@ -118,7 +120,7 @@ class ApiExplorer extends Component
                 $this->clientSecret,
                 $this->orgId,
                 $this->username,
-                $this->password
+                $this->password,
             );
 
             if ($success) {
@@ -192,5 +194,42 @@ class ApiExplorer extends Component
     public function render()
     {
         return view('livewire.tools.api-explorer.api-explorer');
+    }
+
+    public function updatedClientId(): void
+    {
+        $this->clientId = trim($this->clientId);
+    }
+
+    public function updatedClientSecret(): void
+    {
+        $this->clientSecret = trim($this->clientSecret);
+    }
+
+    public function updatedOrgId(): void
+    {
+        $this->orgId = trim($this->orgId);
+    }
+
+    public function updatedUsername(): void
+    {
+        $this->username = trim($this->username);
+    }
+
+    public function updatedPassword(): void
+    {
+        $this->password = trim($this->password);
+    }
+
+    protected function prepareForValidation($attributes): array
+    {
+        return [
+            'clientId' => trim($this->clientId),
+            'clientSecret' => trim($this->clientSecret),
+            'orgId' => trim($this->orgId),
+            'username' => trim($this->username),
+            'password' => trim($this->password),
+            'hostname' => trim($this->hostname),
+        ];
     }
 }
