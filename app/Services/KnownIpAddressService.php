@@ -8,24 +8,17 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use RuntimeException;
 use Throwable;
 
 class KnownIpAddressService
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Import IP addresses from an array of data
      *
-     * @param  array  $data
-     * @param  User  $user
-     * @param  string  $duplicateHandling
-     * @param  string  $matchBy
-     * @param  bool  $validateIpRanges
      *
-     * @return array
      * @throws Throwable
      */
     public function importFromArray(
@@ -39,7 +32,7 @@ class KnownIpAddressService
             'imported' => 0,
             'updated' => 0,
             'skipped' => 0,
-            'errors' => []
+            'errors' => [],
         ];
 
         try {
@@ -51,7 +44,7 @@ class KnownIpAddressService
             });
         } catch (Exception $e) {
             Log::error('IP Address import failed: '.$e->getMessage());
-            throw new Exception('Import failed: '.$e->getMessage());
+            throw new RuntimeException('Import failed: '.$e->getMessage());
         }
 
         return $results;
@@ -59,16 +52,6 @@ class KnownIpAddressService
 
     /**
      * Process a single entry for import
-     *
-     * @param  array  $entry
-     * @param  int  $index
-     * @param  User  $user
-     * @param  string  $duplicateHandling
-     * @param  string  $matchBy
-     * @param  bool  $validateIpRanges
-     * @param  array  $results
-     *
-     * @return void
      */
     protected function processEntry(
         array $entry,
@@ -90,12 +73,14 @@ class KnownIpAddressService
         if ($validator->fails()) {
             $results['errors'][] = "Entry $index: ".implode(', ', $validator->errors()->all());
             $results['skipped']++;
+
             return;
         }
 
         // Validate IP addresses if the option is enabled
-        if ($validateIpRanges && !$this->validateIpRange($entry['start'], $entry['end'], $index, $results)) {
+        if ($validateIpRanges && ! $this->validateIpRange($entry['start'], $entry['end'], $index, $results)) {
             $results['skipped']++;
+
             return;
         }
 
@@ -112,29 +97,25 @@ class KnownIpAddressService
 
     /**
      * Validate IP range
-     *
-     * @param  string  $startIp
-     * @param  string  $endIp
-     * @param  int  $index
-     * @param  array  $results
-     *
-     * @return bool
      */
     protected function validateIpRange(string $startIp, string $endIp, int $index, array &$results): bool
     {
-        if (!filter_var($startIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        if (! filter_var($startIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $results['errors'][] = "Entry $index: Invalid start IP address '$startIp'";
+
             return false;
         }
 
-        if (!filter_var($endIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        if (! filter_var($endIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $results['errors'][] = "Entry $index: Invalid end IP address '$endIp'";
+
             return false;
         }
 
         // Check if start IP is less than or equal to end IP
         if (ip2long($startIp) > ip2long($endIp)) {
             $results['errors'][] = "Entry $index: Start IP must be less than or equal to end IP";
+
             return false;
         }
 
@@ -143,12 +124,6 @@ class KnownIpAddressService
 
     /**
      * Find existing entry based on match criteria
-     *
-     * @param  array  $entry
-     * @param  User  $user
-     * @param  string  $matchBy
-     *
-     * @return KnownIpAddress|null
      */
     public function findExistingEntry(array $entry, User $user, string $matchBy): ?KnownIpAddress
     {
@@ -169,13 +144,6 @@ class KnownIpAddressService
 
     /**
      * Handle duplicate entries
-     *
-     * @param  KnownIpAddress  $existing
-     * @param  array  $entry
-     * @param  string  $duplicateHandling
-     * @param  array  $results
-     *
-     * @return void
      */
     protected function handleDuplicate(
         KnownIpAddress $existing,
@@ -198,11 +166,6 @@ class KnownIpAddressService
 
     /**
      * Create a new Known IP Address
-     *
-     * @param  array  $data
-     * @param  User  $user
-     *
-     * @return KnownIpAddress
      */
     public function createKnownIpAddress(array $data, User $user): KnownIpAddress
     {
@@ -216,11 +179,6 @@ class KnownIpAddressService
 
     /**
      * Update an existing Known IP Address
-     *
-     * @param  KnownIpAddress  $knownIpAddress
-     * @param  array  $data
-     *
-     * @return KnownIpAddress
      */
     public function updateKnownIpAddress(KnownIpAddress $knownIpAddress, array $data): KnownIpAddress
     {
@@ -233,5 +191,4 @@ class KnownIpAddressService
 
         return $knownIpAddress;
     }
-
 }

@@ -13,7 +13,7 @@ trait CombinesMultipleApiCalls
      */
     protected function createMockResponse(?array $data = null, int $recordCount = 0): object
     {
-        $responseData = $data ?? $this->combinedData?->toArray() ?? [];
+        $responseData = $data ?? $this->combinedData->toArray() ?? [];
         $actualRecordCount = $recordCount ?: count($responseData);
 
         return new class($responseData, $actualRecordCount)
@@ -43,7 +43,7 @@ trait CombinesMultipleApiCalls
                 return 200;
             }
 
-            public function json()
+            public function json(): array
             {
                 return $this->data;
             }
@@ -90,7 +90,7 @@ trait CombinesMultipleApiCalls
 
         $collection = collect($allRecords);
 
-        // Apply unique key generator if provided
+        // Apply a unique key generator if provided
         if ($uniqueKeyGenerator) {
             $collection = $collection->unique($uniqueKeyGenerator);
         }

@@ -35,6 +35,7 @@
                     wire:model.live.debounce.300ms="search"
                     placeholder="Search entries..."
                     icon="magnifying-glass"
+                    clearable
                 />
             </div>
 

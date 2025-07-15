@@ -61,7 +61,9 @@ abstract class BaseApiEndpoint extends Component
             if (! empty($this->hostname)) {
                 $this->wfmService->setHostname($this->hostname);
             } elseif (session('wfm_credentials.hostname')) {
-                $this->wfmService->setHostname(session('wfm_credentials.hostname'));
+                $this->wfmService->setHostname(
+                    session('wfm_credentials.hostname'),
+                );
                 $this->hostname = session('wfm_credentials.hostname');
             }
         } else {
@@ -69,8 +71,10 @@ abstract class BaseApiEndpoint extends Component
         }
     }
 
-    public function mount(bool $isAuthenticated = false, string $hostname = ''): void
-    {
+    public function mount(
+        bool $isAuthenticated = false,
+        string $hostname = '',
+    ): void {
         // 1. Set basic properties
         $this->isAuthenticated = $isAuthenticated;
         $this->hostname = $hostname;
@@ -105,8 +109,10 @@ abstract class BaseApiEndpoint extends Component
         $cachedData = cache()->get($this->cacheKey);
 
         if ($cachedData) {
-            $data = $cachedData instanceof Collection ?
-                $cachedData->toArray() :
+            $data = $cachedData instanceof Collection
+                ?
+                $cachedData->toArray()
+                :
                 (is_array($cachedData) ? $cachedData : []);
 
             $this->tableData = $data;
@@ -129,24 +135,27 @@ abstract class BaseApiEndpoint extends Component
     public function placeholder(): string
     {
         return <<<'HTML'
-        <div class="flex items-center justify-center h-12 mx-auto w-full">
-            <flux:icon.loading class="w-6 h-6 text-zinc-400 animate-spin" />
-        </div>
-        HTML;
+            <div class="flex items-center justify-center h-12 mx-auto w-full">
+                <flux:icon.loading class="w-6 h-6 text-zinc-400 animate-spin" />
+            </div>
+            HTML;
     }
 
     /**
      * The main method called by UI - handles the complete flow
      *
-     * Simple endpoints will only need to override ({@link BaseApiEndpoint::fetchData()})
+     * Simple endpoints will only need to override
+     * ({@link BaseApiEndpoint::fetchData()})
      *
-     * More complex endpoints should override this entire method to implement their custom implementation of this
+     * More complex endpoints should override this entire method to implement
+     * their custom implementation of this
      */
     public function executeRequest(): void
     {
         // 1. Check authentication
         if (! $this->isAuthenticated) {
-            $this->errorMessage = 'Please authenticate first using the credentials form above.';
+            $this->errorMessage
+                = 'Please authenticate first using the credentials form above.';
 
             return;
         }
@@ -171,7 +180,6 @@ abstract class BaseApiEndpoint extends Component
                     $this->clearPaginationCache();
                 }
             }
-
         } catch (Exception $e) {
             $this->handleError($e);
         } finally {
@@ -256,7 +264,11 @@ abstract class BaseApiEndpoint extends Component
 
         // Cache the data
         if (! empty($this->cacheKey)) {
-            cache()->put($this->cacheKey, collect($data), now()->addMinutes(30));
+            cache()->put(
+                $this->cacheKey,
+                collect($data),
+                now()->addMinutes(30),
+            );
         }
     }
 
@@ -265,7 +277,8 @@ abstract class BaseApiEndpoint extends Component
      */
     protected function handleError(Exception $e): void
     {
-        $this->errorMessage = 'An unexpected error occurred. Please try again later.';
+        $this->errorMessage
+            = 'An unexpected error occurred. Please try again later.';
 
         Log::error('API Endpoint Error', [
             'component' => get_class($this),
@@ -299,8 +312,8 @@ abstract class BaseApiEndpoint extends Component
     /**
      * Make authenticated API call with error handling
      */
-    protected function makeAuthenticatedApiCall(callable $apiCallFunction): ?Response
-    {
+    protected function makeAuthenticatedApiCall(callable $apiCallFunction,
+    ): ?Response {
         if (! $this->isAuthenticated) {
             return null;
         }
@@ -314,7 +327,8 @@ abstract class BaseApiEndpoint extends Component
 
             return $response;
         } catch (ConnectionException $e) {
-            $this->errorMessage = 'Unable to connect to API. Please check your network connection and try again.';
+            $this->errorMessage
+                = 'Unable to connect to API. Please check your network connection and try again.';
             Log::error('Connection error in API call', [
                 'error' => $e->getMessage(),
                 'component' => get_class($this),
@@ -327,7 +341,10 @@ abstract class BaseApiEndpoint extends Component
 
     protected function validateAuthenticationState($response): bool
     {
-        if ($response && ($response->status() === 401 || $response->status() === 403)) {
+        if ($response
+            && ($response->status() === 401
+                || $response->status() === 403)
+        ) {
             $this->handleAuthenticationFailure();
 
             return false;
@@ -340,6 +357,7 @@ abstract class BaseApiEndpoint extends Component
     {
         session()->forget(['wfm_authenticated', 'wfm_access_token']);
         $this->isAuthenticated = false;
-        $this->errorMessage = 'Your authentication session has expired. Please re-enter your credentials to continue.';
+        $this->errorMessage
+            = 'Your authentication session has expired. Please re-enter your credentials to continue.';
     }
 }
