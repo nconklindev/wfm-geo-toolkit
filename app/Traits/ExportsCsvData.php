@@ -4,62 +4,109 @@ namespace App\Traits;
 
 use Exception;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use League\Csv\Bom;
 use League\Csv\Writer;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 trait ExportsCsvData
 {
     /**
-     * Export all available data as CSV (fresh from API)
+     * Export all available data as CSV (prioritizing cached data)
      */
     public function exportAllToCsv(): StreamedResponse|RedirectResponse
     {
-        try {
-            $allData = $this->getAllDataForAllExport();
+        return $this->performExport('all', function () {
+            // Strategy 1: Use currently loaded table data
+            if (! empty($this->tableData)) {
+                return collect($this->tableData);
+            }
 
-            if (empty($allData)) {
-                session()->flash('error', 'No data available to export.');
+            // Strategy 2: Try to get data from the cache using the cache key
+            if (! empty($this->cacheKey)) {
+                $cachedData = cache()->get($this->cacheKey);
+                if ($cachedData) {
+                    return $cachedData instanceof Collection ? $cachedData : collect($cachedData);
+                }
+            }
+
+            // Strategy 3: Try getAllData() method if available (usually returns cached data)
+            if (method_exists($this, 'getAllData')) {
+                $data = $this->getAllData();
+                if (! $data->isEmpty()) {
+                    return $data;
+                }
+            }
+
+            // Strategy 4: Use custom getAllDataForExport if exists
+            if (method_exists($this, 'getAllDataForExport')) {
+                return $this->getAllDataForExport();
+            }
+
+            // Strategy 5: Use fetchData() pattern (this may trigger validation)
+            if (method_exists($this, 'fetchData')) {
+                try {
+                    $response = $this->fetchData();
+                    if ($response && $response->successful()) {
+                        return collect($this->extractDataFromResponse($response));
+                    }
+                } catch (Exception $e) {
+                    Log::warning('fetchData() failed during export', [
+                        'error' => $e->getMessage(),
+                        'component' => get_class($this),
+                    ]);
+                }
+            }
+
+            return collect();
+        });
+    }
+
+    /**
+     * Perform export with consolidated logic
+     */
+    private function performExport(string $exportType, callable $dataProvider): StreamedResponse|RedirectResponse
+    {
+        try {
+            $data = $dataProvider();
+
+            if ($data->isEmpty()) {
+                session()?->flash('error', 'No data available to export.');
 
                 return back();
             }
 
-            $filteredData = $this->applyFiltersAndSort(collect($allData));
+            // Apply filters and sorting if the method exists
+            if (method_exists($this, 'applyFiltersAndSort')) {
+                $data = $this->applyFiltersAndSort($data);
+            }
 
-            // Use custom filename if endpoint provides one, otherwise use smart default
-            $filename = $this->getExportFilename('all');
+            $filename = $this->getExportFilename($exportType);
 
-            return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
+            return $this->generateCsv($data->toArray(), $this->tableColumns, $filename);
+
         } catch (Exception $e) {
-            Log::error('CSV Export Error - All Data', [
+            Log::error("CSV Export Error - $exportType", [
                 'error' => $e->getMessage(),
                 'component' => get_class($this),
             ]);
 
-            session()->flash('error', 'Failed to export data. Please try again.');
+            session()?->flash('error', 'Failed to export data. Please try again.');
+
+            return back();
+        } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+            Log::error("CSV Export Error - $exportType", [
+                'error' => $e->getMessage(),
+                'component' => get_class($this),
+                'exception' => $e->getTraceAsString(),
+            ]);
+            session()?->flash('error', 'Failed to export data. Please try again.');
 
             return back();
         }
-    }
-
-    protected function getAllDataForAllExport(): array
-    {
-        // Strategy 1: Use custom getAllDataForExport if exists
-        if (method_exists($this, 'getAllDataForExport')) {
-            return $this->getAllDataForExport()->toArray();
-        }
-
-        // Strategy 2: Use fetchData() pattern
-        if (method_exists($this, 'fetchData')) {
-            $response = $this->fetchData();
-
-            if ($response && $response->successful()) {
-                return $this->extractDataFromResponse($response);
-            }
-        }
-
-        // Strategy 3: Use current loaded data
-        return $this->getAllData()->toArray();
     }
 
     /**
@@ -72,7 +119,7 @@ trait ExportsCsvData
             return $this->generateExportFilename($type);
         }
 
-        // Otherwise, generate smart default based on class name
+        // Otherwise, generate smart default based on the class name
         return $this->generateSmartDefaultFilename($type);
     }
 
@@ -91,7 +138,7 @@ trait ExportsCsvData
         // Add search term if present
         if (! empty($this->search)) {
             $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
-            $parts[] = "search-{$searchSlug}";
+            $parts[] = "search-$searchSlug";
         }
 
         // Add timestamp
@@ -122,7 +169,7 @@ trait ExportsCsvData
     /**
      * Export data as CSV with custom columns
      */
-    protected function exportAsCsv(array $data, array $columns, string $filename): StreamedResponse
+    protected function generateCsv(array $data, array $columns, string $filename): StreamedResponse
     {
         $safeFileName = $this->sanitizeFilename($filename);
         $fullFileName = $safeFileName.'.csv';
@@ -136,13 +183,14 @@ trait ExportsCsvData
         ];
 
         return response()->streamDownload(function () use ($data, $columns) {
-            $csv = Writer::createFromStream(fopen('php://output', 'w'));
-            $csv->setDelimiter(',');
-            $csv->setOutputBOM(Writer::BOM_UTF8);
+            $writer = Writer::createFromStream(fopen('php://output', 'wb'));
+            $writer->setEscape('');
+            $writer->setDelimiter(',');
+            $writer->setOutputBOM(Bom::Utf8);
 
             // Add headers
-            $headers = array_map(fn ($column) => $column['label'], $columns);
-            $csv->insertOne($headers);
+            $headers = array_map(static fn ($column) => $column['label'], $columns);
+            $writer->insertOne($headers);
 
             // Process each row of data
             foreach ($data as $row) {
@@ -152,7 +200,7 @@ trait ExportsCsvData
 
                     // Convert arrays/objects to readable strings
                     if (is_array($value) || is_object($value)) {
-                        $value = json_encode($value);
+                        $value = json_encode($value, JSON_THROW_ON_ERROR);
                     }
 
                     // Handle null values
@@ -167,13 +215,13 @@ trait ExportsCsvData
 
                     $csvRow[] = (string) $value;
                 }
-                $csv->insertOne($csvRow);
+                $writer->insertOne($csvRow);
             }
         }, $fullFileName, $headers);
     }
 
     /**
-     * Sanitize filename for safe download
+     * Sanitize the filename for safe download
      */
     protected function sanitizeFilename(string $filename): string
     {
@@ -189,57 +237,18 @@ trait ExportsCsvData
     }
 
     /**
-     * Export current filtered/searched data as CSV (what user sees)
+     * Export current filtered/searched data as CSV (what the user sees)
      */
     public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
     {
-        try {
-            $exportData = $this->getAllData();
-            $filteredData = $this->applyFiltersAndSort($exportData);
+        return $this->performExport('selections', function () {
+            if (method_exists($this, 'getAllData')) {
+                return $this->getAllData();
+            }
 
-            // Use custom filename if endpoint provides one, otherwise use smart default
-            $filename = $this->getExportFilename('selections');
-
-            return $this->exportAsCsv($filteredData->toArray(), $this->tableColumns, $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error - Selections', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-            ]);
-
-            session()->flash('error', 'Failed to export CSV. Please try again.');
-
-            return back();
-        }
-    }
-
-    /**
-     * Export table data as CSV using the defined columns
-     */
-    public function exportTableDataAsCsv(?string $filename = null): StreamedResponse|RedirectResponse
-    {
-        if (empty($this->tableData) || empty($this->tableColumns)) {
-            session()->flash('error', 'No data available to export.');
-
-            return back();
-        }
-
-        $filename = $filename ?? $this->getDefaultCsvFilename();
-
-        try {
-            return $this->exportAsCsv($this->tableData, $this->tableColumns, $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error', [
-                'error' => $e->getMessage(),
-                'filename' => $filename,
-                'data_count' => count($this->tableData),
-                'columns_count' => count($this->tableColumns),
-            ]);
-
-            session()->flash('error', 'Failed to export CSV. Please try again.');
-
-            return back();
-        }
+            // Fallback to table data
+            return collect($this->tableData ?? []);
+        });
     }
 
     /**
@@ -251,6 +260,6 @@ trait ExportsCsvData
         $timestamp = now()->format('Y-m-d_H-i-s');
         $filename = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $className));
 
-        return "{$filename}-export-{$timestamp}";
+        return "$filename-export-$timestamp";
     }
 }

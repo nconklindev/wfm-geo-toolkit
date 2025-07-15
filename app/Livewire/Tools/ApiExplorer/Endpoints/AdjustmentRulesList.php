@@ -8,8 +8,10 @@ use App\Traits\PaginatesApiData;
 use Exception;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Client\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdjustmentRulesList extends BaseApiEndpoint
 {
@@ -28,13 +30,13 @@ class AdjustmentRulesList extends BaseApiEndpoint
     /**
      * Override exportAllToCsv to use flattened data structure
      */
-    public function exportAllToCsv()
+    public function exportAllToCsv(): StreamedResponse|RedirectResponse
     {
         try {
             $allData = $this->getAllDataForExport();
 
             if ($allData->isEmpty()) {
-                session()->flash('error', 'No data available to export.');
+                session()?->flash('error', 'No data available to export.');
 
                 return back();
             }
@@ -47,14 +49,14 @@ class AdjustmentRulesList extends BaseApiEndpoint
 
             $filename = $this->generateExportFilename('all');
 
-            return $this->exportAsCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
+            return $this->generateCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
         } catch (Exception $e) {
             Log::error('CSV Export Error - All Data', [
                 'error' => $e->getMessage(),
                 'component' => get_class($this),
             ]);
 
-            session()->flash('error', 'Failed to export data. Please try again.');
+            session()?->flash('error', 'Failed to export data. Please try again.');
 
             return back();
         }
@@ -305,6 +307,39 @@ class AdjustmentRulesList extends BaseApiEndpoint
     }
 
     /**
+     * Override exportSelectionsToCsv to use flattened data structure
+     */
+    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
+    {
+        try {
+            $exportData = $this->getAllData();
+            $filteredData = $this->applyFiltersAndSort($exportData);
+
+            if ($filteredData->isEmpty()) {
+                session()?->flash('error', 'No data available to export.');
+
+                return back();
+            }
+
+            // Flatten the data for CSV export
+            $flattenedData = $this->flattenAdjustmentRulesForCsv($filteredData);
+
+            $filename = $this->generateExportFilename('selections');
+
+            return $this->generateCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
+        } catch (Exception $e) {
+            Log::error('CSV Export Error - Selections', [
+                'error' => $e->getMessage(),
+                'component' => get_class($this),
+            ]);
+
+            session()?->flash('error', 'Failed to export CSV. Please try again.');
+
+            return back();
+        }
+    }
+
+    /**
      * Initialize endpoint configuration
      */
     protected function initializeEndpoint(): void
@@ -334,39 +369,6 @@ class AdjustmentRulesList extends BaseApiEndpoint
         // Cache the processed data
         if (! empty($this->cacheKey)) {
             cache()->put($this->cacheKey, collect($processedData), now()->addMinutes(30));
-        }
-    }
-
-    /**
-     * Override exportSelectionsToCsv to use flattened data structure
-     */
-    public function exportSelectionsToCsv()
-    {
-        try {
-            $exportData = $this->getAllData();
-            $filteredData = $this->applyFiltersAndSort($exportData);
-
-            if ($filteredData->isEmpty()) {
-                session()->flash('error', 'No data available to export.');
-
-                return back();
-            }
-
-            // Flatten the data for CSV export
-            $flattenedData = $this->flattenAdjustmentRulesForCsv($filteredData);
-
-            $filename = $this->generateExportFilename('selections');
-
-            return $this->exportAsCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error - Selections', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-            ]);
-
-            session()->flash('error', 'Failed to export CSV. Please try again.');
-
-            return back();
         }
     }
 }
