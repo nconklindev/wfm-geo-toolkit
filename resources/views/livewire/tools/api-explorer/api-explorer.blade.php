@@ -278,6 +278,14 @@
                     >Retrieve All Persons
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
+                <x-api-endpoint-group title="Locations" name="building-storefront">
+                    <x-api-endpoint-item
+                        value="locations-paginated-list"
+                        label="Retrieve Paginated List of Locations"
+                        method="POST"
+                    >Retrieve Paginated List of Locations
+                    </x-api-endpoint-item>
+                </x-api-endpoint-group>
             </div>
         </div>
 
