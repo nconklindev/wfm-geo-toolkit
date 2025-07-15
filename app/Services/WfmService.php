@@ -29,6 +29,157 @@ class WfmService
     }
 
     /**
+     * Retrieve paginated locations from the WFM using its API.
+     *
+     * @throws \Illuminate\Http\Client\ConnectionException|\JsonException
+     */
+    public function getLocationsPaginated(array $requestData = []): Response|array
+    {
+        return $this->callWfmApi(
+            'POST',
+            'api/v1/commons/locations/multi_read',
+            $requestData,
+        );
+    }
+
+    /**
+     * Makes a call to the WFM API with the specified method, endpoint, data,
+     * and headers.
+     *
+     * This method logs the API request details, including hostname, endpoint,
+     * client information, and provided headers, before executing the HTTP
+     * request. It supports both GET and POST methods and allows handling JSON
+     * and non-JSON payloads.
+     *
+     * If the API call fails, it logs any errors related to connection or JSON
+     * parsing and can delegate error handling for unsuccessful HTTP responses.
+     *
+     * @param  string  $method  The HTTP method to use for the API call (e.g.,
+     *                          'GET', 'POST').
+     * @param  string  $apiPath  The API endpoint path to append to the base
+     *                           hostname.
+     * @param  array  $data  The request payload to send.
+     * @param  array  $headers  Additional headers to include in the request.
+     * @param  bool  $asJson  Indicates whether to encode the payload as JSON.
+     * @return Response|array Returns the API response as a Response object or
+     *                        an array.
+     *
+     * @throws ConnectionException If there is an error connecting to the API.
+     * @throws JsonException If there is an error with encoding or decoding the
+     *                       JSON payload.
+     */
+    private function callWfmApi(
+        string $method,
+        string $apiPath,
+        array $data = [],
+        array $headers = [],
+        bool $asJson = true,
+    ): Response|array {
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+        $url = rtrim($this->hostname, '/').'/'.ltrim($apiPath, '/');
+        $defaultHeaders = [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
+        $headers = array_merge($defaultHeaders, $headers);
+
+        Log::info('WFM API Call', [
+            'hostname' => $this->hostname,
+            'endpoint' => $url,
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'method' => $method,
+            'data' => $data,
+            'headers' => $headers,
+        ]);
+
+        try {
+            $http = Http::withToken($this->accessToken)->withHeaders($headers);
+
+            if (strtolower($method) === 'get') {
+                $response = $http->get($url, $data);
+            } else {
+                $response = $http->post(
+                    $url,
+                    $asJson ? $data : json_encode($data, JSON_THROW_ON_ERROR),
+                );
+            }
+
+            if (! $response->successful()) {
+                return $this->handleWfmError($response, "WFM API: $apiPath");
+            }
+
+            return $response;
+        } catch (ConnectionException $ce) {
+            Log::error('WFM Connection Error', [
+                'error' => $ce->getMessage(),
+                'url' => $url,
+            ]);
+            throw $ce;
+        } catch (JsonException $e) {
+            Log::error('WFM JSON Error', [
+                'error' => $e->getMessage(),
+                'url' => $url,
+                'data' => $data,
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Handle errors returned by the WFM API and generate a structured
+     * response.
+     *
+     * @param  Response  $response  The response object from the WFM API.
+     * @param  string|null  $context  A contextual description of the error
+     *                                (default: 'WFM API error').
+     * @return array A structured array containing error details, including
+     *               success status, message, code, and additional details.
+     */
+    private function handleWfmError(
+        Response $response,
+        ?string $context = null,
+    ): Response {
+        // Get the authenticated user and IP address for logging
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        // Extract error details from response
+        $status = $response->status();
+        $body = $response->body();
+        $errorData = $response->json() ?? [];
+
+        // Attempt to extract more detailed error info
+        $errorMessage = $errorData['message'] ??
+            $errorData['error'] ?? 'Unknown error';
+        $errorCode = $errorData['code'] ?? $status;
+
+        // Check if the passed context is null
+        // Set the context to the method that called this
+        // which will give the API endpoint method that was called and failed
+        if ($context === null) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+            $context = $trace[1]['function'] ?? 'WFM API error';
+        }
+
+        // Compile a structured error message
+        $message = "$context failed: $errorMessage";
+
+        // Log the error with detailed context
+        Log::error($message, [
+            'status' => $status,
+            'body' => $body,
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'hostname' => $this->hostname,
+        ]);
+
+        // Return the original response
+        return $response;
+    }
+
+    /**
      * Authenticate with the WFM API using the provided credentials.
      *
      * @param  string  $clientId  The client ID for the API.
@@ -36,7 +187,8 @@ class WfmService
      * @param  string  $orgId  The organization ID (realm) for authentication.
      * @param  string  $username  The username of the client accessing the API.
      * @param  string  $password  The password of the client accessing the API.
-     * @return bool Returns true if authentication is successful, otherwise false.
+     * @return bool Returns true if authentication is successful, otherwise
+     *              false.
      */
     public function authenticate(
         string $clientId,
@@ -165,139 +317,6 @@ class WfmService
             'api/v1/commons/known_places',
             $requestData,
         );
-    }
-
-    /**
-     * Makes a call to the WFM API with the specified method, endpoint, data, and headers.
-     *
-     * This method logs the API request details, including hostname, endpoint, client information,
-     * and provided headers, before executing the HTTP request. It supports both GET and POST
-     * methods and allows handling JSON and non-JSON payloads.
-     *
-     * If the API call fails, it logs any errors related to connection or JSON parsing and can
-     * delegate error handling for unsuccessful HTTP responses.
-     *
-     * @param  string  $method  The HTTP method to use for the API call (e.g., 'GET', 'POST').
-     * @param  string  $apiPath  The API endpoint path to append to the base hostname.
-     * @param  array  $data  The request payload to send.
-     * @param  array  $headers  Additional headers to include in the request.
-     * @param  bool  $asJson  Indicates whether to encode the payload as JSON.
-     * @return Response|array Returns the API response as a Response object or an array.
-     *
-     * @throws ConnectionException If there is an error connecting to the API.
-     * @throws JsonException If there is an error with encoding or decoding the JSON payload.
-     */
-    private function callWfmApi(
-        string $method,
-        string $apiPath,
-        array $data = [],
-        array $headers = [],
-        bool $asJson = true,
-    ): Response|array {
-        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
-        $ipAddress = $this->request->ip();
-        $url = rtrim($this->hostname, '/').'/'.ltrim($apiPath, '/');
-        $defaultHeaders = [
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ];
-        $headers = array_merge($defaultHeaders, $headers);
-
-        Log::info('WFM API Call', [
-            'hostname' => $this->hostname,
-            'endpoint' => $url,
-            'app_user' => $appUsername,
-            'ip_address' => $ipAddress,
-            'method' => $method,
-            'data' => $data,
-            'headers' => $headers,
-        ]);
-
-        try {
-            $http = Http::withToken($this->accessToken)->withHeaders($headers);
-
-            if (strtolower($method) === 'get') {
-                $response = $http->get($url, $data);
-            } else {
-                $response = $http->post(
-                    $url,
-                    $asJson ? $data : json_encode($data, JSON_THROW_ON_ERROR),
-                );
-            }
-
-            if (! $response->successful()) {
-                return $this->handleWfmError($response, "WFM API: $apiPath");
-            }
-
-            return $response;
-        } catch (ConnectionException $ce) {
-            Log::error('WFM Connection Error', [
-                'error' => $ce->getMessage(),
-                'url' => $url,
-            ]);
-            throw $ce;
-        } catch (JsonException $e) {
-            Log::error('WFM JSON Error', [
-                'error' => $e->getMessage(),
-                'url' => $url,
-                'data' => $data,
-            ]);
-            throw $e;
-        }
-    }
-
-    /**
-     * Handle errors returned by the WFM API and generate a structured response.
-     *
-     * @param  Response  $response  The response object from the WFM API.
-     * @param  string|null  $context  A contextual description of the error (default: 'WFM API error').
-     * @return array A structured array containing error details, including success status, message, code, and additional details.
-     */
-    private function handleWfmError(
-        Response $response,
-        ?string $context = null,
-    ): array {
-        // Get the authenticated user and IP address for logging
-        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
-        $ipAddress = $this->request->ip();
-
-        // Extract error details from response
-        $status = $response->status();
-        $body = $response->body();
-        $errorData = $response->json() ?? [];
-
-        // Attempt to extract more detailed error info
-        $errorMessage = $errorData['message'] ??
-            $errorData['error'] ?? 'Unknown error';
-        $errorCode = $errorData['code'] ?? $status;
-
-        // Check if the passed context is null
-        // Set the context to the method that called this
-        // which will give the API endpoint method that was called and failed
-        if ($context === null) {
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-            $context = $trace[1]['function'] ?? 'WFM API error';
-        }
-
-        // Compile a structured error message
-        $message = "$context failed: $errorMessage";
-
-        // Log the error with detailed context
-        Log::error($message, [
-            'status' => $status,
-            'body' => $body,
-            'app_user' => $appUsername,
-            'ip_address' => $ipAddress,
-            'hostname' => $this->hostname,
-        ]);
-
-        // Return a structured error result
-        return [
-            'success' => false,
-            'message' => $message,
-            'code' => $errorCode,
-            'details' => $errorData,
-        ];
     }
 
     /**
@@ -460,7 +479,8 @@ class WfmService
     }
 
     /**
-     * Retrieves the paginated list of Labor Category Entries using the provided
+     * Retrieves the paginated list of Labor Category Entries using the
+     * provided
      * Labor Category name from the WFM API
      *
      * @param  array  $requestData  request parameters
@@ -525,8 +545,10 @@ class WfmService
     /**
      * Retrieve paginated data elements from the WFM API.
      *
-     * @param  array  $requestData  Optional parameters for filtering or pagination.
-     * @return PromiseInterface|Response A promise resolving to an HTTP response object.
+     * @param  array  $requestData  Optional parameters for filtering or
+     *                              pagination.
+     * @return PromiseInterface|Response A promise resolving to an HTTP
+     *                                   response object.
      *
      * @throws \Illuminate\Http\Client\ConnectionException
      * @throws \JsonException
@@ -557,7 +579,10 @@ class WfmService
                         foreach ($item as $subKey => $subValue) {
                             $types[$key."[$index][$subKey]"] = gettype(
                                 $subValue,
-                            ).' ('.json_encode($subValue, JSON_THROW_ON_ERROR).')';
+                            ).' ('.json_encode(
+                                $subValue,
+                                JSON_THROW_ON_ERROR,
+                            ).')';
                         }
                     } else {
                         $types[$key."[$index]"] = gettype($item).' ('
@@ -567,7 +592,7 @@ class WfmService
             } else {
                 $types[$key] = gettype($value).' ('.json_encode(
                     $value,
-                    JSON_THROW_ON_ERROR
+                    JSON_THROW_ON_ERROR,
                 ).')';
             }
         }
