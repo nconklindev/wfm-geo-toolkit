@@ -165,6 +165,19 @@ class KnownIpAddressService
     }
 
     /**
+     * Create a new Known IP Address
+     */
+    public function createKnownIpAddress(array $data, User $user): KnownIpAddress
+    {
+        return $user->knownIpAddresses()->create([
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
+            'start' => $data['start'],
+            'end' => $data['end'],
+        ]);
+    }
+
+    /**
      * Update an existing Known IP Address
      */
     public function updateKnownIpAddress(KnownIpAddress $knownIpAddress, array $data): KnownIpAddress
@@ -177,18 +190,5 @@ class KnownIpAddressService
         ]);
 
         return $knownIpAddress;
-    }
-
-    /**
-     * Create a new Known IP Address
-     */
-    public function createKnownIpAddress(array $data, User $user): KnownIpAddress
-    {
-        return $user->knownIpAddresses()->create([
-            'name' => $data['name'],
-            'description' => $data['description'] ?? null,
-            'start' => $data['start'],
-            'end' => $data['end'],
-        ]);
     }
 }
