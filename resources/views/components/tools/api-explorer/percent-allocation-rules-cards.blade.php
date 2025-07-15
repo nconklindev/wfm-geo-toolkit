@@ -1,6 +1,6 @@
 @props([
     'paginatedData' => null,
-    'title' => 'Adjustment Rules',
+    'title' => 'Percent Allocation Rules',
     'totalRecords' => 0,
     'showBorder' => true,
     'search' => '',
@@ -32,7 +32,7 @@
     <div class="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
         <flux:heading size="md">{{ $title }} ({{ $totalRecords }} total)</flux:heading>
 
-        <div class="flex-row items-center space-y-0 space-x-2 md:flex md:flex-col md:space-y-2">
+        <div class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
             <flux:button @click="toggleAll()" variant="ghost" size="sm" class="w-full sm:w-auto">
                 <span x-text="expandAll ? 'Collapse All' : 'Expand All'"></span>
             </flux:button>
@@ -56,7 +56,7 @@
                     class="flex-1 sm:flex-none"
                 >
                     <span class="hidden sm:inline">Export Selections (CSV)</span>
-                    <span class="sm:hidden">Export Sel.</span>
+                    <span class="sm:hidden">Export Selections</span>
                 </flux:button>
             </div>
         </div>
@@ -67,7 +67,7 @@
         <div class="max-w-md flex-1 text-sm md:text-base">
             <flux:input
                 wire:model.live.debounce.300ms="search"
-                placeholder="Search adjustment rules..."
+                placeholder="Search percent allocation rules..."
                 class:input="text-sm md:text-base"
                 icon="magnifying-glass"
             />
@@ -93,10 +93,10 @@
         @if ($paginatedData && $paginatedData->count() > 0)
             @foreach ($paginatedData->items() as $rule)
                 @php
-                    $ruleVersions = $rule['ruleVersions']['adjustmentRuleVersion'] ?? [];
-                    $firstVersion = $ruleVersions[0] ?? null;
-                    $newestVersion = end($ruleVersions);
-                    $ruleId = $rule['id'] ?? '';
+                    $fpaRuleVersions = $rule['fpaRuleVersions'] ?? [];
+                    $firstVersion = $fpaRuleVersions[0] ?? null;
+                    $newestVersion = end($fpaRuleVersions);
+                    $ruleId = $rule['id'] ?? null;
                 @endphp
 
                 <div
@@ -118,6 +118,10 @@
                                     <flux:heading size="sm" class="font-medium">
                                         {{ $rule['name'] ?? 'Unnamed Rule' }}
                                     </flux:heading>
+                                    @if ($rule['id'] ?? false)
+                                        <flux:text size="xs" variant="subtle">ID: {{ $rule['id'] }}</flux:text>
+                                    @endif
+
                                     @if ($newestVersion)
                                         <flux:text size="sm" variant="subtle">
                                             {{ $newestVersion['description'] ?? 'No description' }}
@@ -132,56 +136,18 @@
                         >
                             @if ($newestVersion)
                                 <div class="text-center">
-                                    <div class="text-xs font-medium">Effective</div>
-                                    <div>{{ $newestVersion['effectiveDate'] ?? '-' }}</div>
+                                    <div class="text-xs font-medium">Start Date</div>
+                                    <div>{{ $newestVersion['startEffectiveDate'] ?? '-' }}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-xs font-medium">Expires</div>
-                                    <div>{{ $newestVersion['expirationDate'] ?? '-' }}</div>
+                                    <div class="text-xs font-medium">End Date</div>
+                                    <div>{{ $newestVersion['endEffectiveDate'] ?? '-' }}</div>
                                 </div>
                             @endif
 
                             <div class="text-center">
-                                <div class="text-xs font-medium">Pay Codes Used</div>
-                                @php
-                                    $paycodes = explode(', ', $rule['paycode_names'] ?? '');
-                                    $displayLimit = 3;
-                                    $paycode_count = count($paycodes);
-                                    $ruleId = $rule['id'] ?? '';
-                                @endphp
-
-                                <div x-data="{ showAll: false }">
-                                    @if (isset($rule['paycode_names']))
-                                        @if ($paycode_count > $displayLimit)
-                                            <div x-show="!showAll">
-                                                {{ implode(', ', array_slice($paycodes, 0, $displayLimit)) }}
-                                                <button
-                                                    @click.stop="showAll = true"
-                                                    class="ml-1 text-sky-700 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-700"
-                                                >
-                                                    (+{{ $paycode_count - $displayLimit }} more)
-                                                </button>
-                                            </div>
-                                            <div x-show="showAll">
-                                                {{ $rule['paycode_names'] }}
-                                                <button
-                                                    @click.stop="showAll = false"
-                                                    class="ml-1 text-sky-700 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-700"
-                                                >
-                                                    (show less)
-                                                </button>
-                                            </div>
-                                        @else
-                                            {{ $rule['paycode_names'] }}
-                                        @endif
-                                    @else
-                                        <span>-</span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="text-center">
                                 <div class="text-xs font-medium">Versions</div>
-                                <div>{{ count($ruleVersions) }}</div>
+                                <div>{{ count($fpaRuleVersions) }}</div>
                             </div>
                         </div>
                     </div>
@@ -199,18 +165,18 @@
                     >
                         <div class="space-y-6 p-4">
                             <!-- Rule Versions -->
-                            @foreach ($ruleVersions as $version)
+                            @foreach ($fpaRuleVersions as $version)
                                 <div class="space-y-4">
                                     <div class="flex items-center justify-between">
                                         <flux:heading size="sm" class="text-zinc-800 dark:text-zinc-200">
-                                            Version {{ $version['versionId'] ?? 'Unknown' }}
+                                            Version
                                         </flux:heading>
                                         <div
                                             class="flex items-center space-x-4 text-sm text-zinc-600 dark:text-zinc-400"
                                         >
-                                            <span>{{ $version['effectiveDate'] ?? '-' }}</span>
+                                            <span>{{ $version['startEffectiveDate'] ?? '-' }}</span>
                                             <span><flux:icon.arrow-long-right class="size-4" /></span>
-                                            <span>{{ $version['expirationDate'] ?? '-' }}</span>
+                                            <span>{{ $version['endEffectiveDate'] ?? '-' }}</span>
                                         </div>
                                     </div>
 
@@ -222,7 +188,7 @@
 
                                     <!-- Triggers -->
                                     @php
-                                        $triggers = $version['triggers']['adjustmentTriggerForRule'] ?? [];
+                                        $triggers = $version['triggers'] ?? [];
                                     @endphp
 
                                     @if (! empty($triggers))
@@ -237,7 +203,7 @@
                                                         class="rounded-md border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-600 dark:bg-zinc-700/50"
                                                     >
                                                         <div
-                                                            class="grid grid-cols-1 gap-3 text-sm md:auto-cols-fr md:grid-flow-col"
+                                                            class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2 lg:grid-cols-3"
                                                         >
                                                             <!-- Job/Location -->
                                                             <div>
@@ -247,7 +213,7 @@
                                                                     Job/Location
                                                                 </div>
                                                                 <div class="text-zinc-600 dark:text-zinc-400">
-                                                                    {{ $trigger['jobOrLocation']['qualifier'] ?? '-' }}
+                                                                    {{ $trigger['jobOrLocation']['qualifier'] ?? ($trigger['jobOrLocation']['name'] ?? '-') }}
                                                                 </div>
                                                                 @if (! empty($trigger['jobOrLocationEffectiveDate']))
                                                                     <div
@@ -264,27 +230,27 @@
                                                                 <div
                                                                     class="font-medium text-zinc-700 dark:text-zinc-300"
                                                                 >
-                                                                    Labor Category Entries
+                                                                    Labor Category
                                                                 </div>
                                                                 <div class="text-zinc-600 dark:text-zinc-400">
                                                                     {{ $trigger['laborCategoryEntries'] ?? '-' }}
                                                                 </div>
                                                             </div>
 
-                                                            <!-- Cost Center -->
+                                                            <!-- Match Anywhere -->
                                                             <div>
                                                                 <div
                                                                     class="font-medium text-zinc-700 dark:text-zinc-300"
                                                                 >
-                                                                    Cost Center:
-                                                                    <div class="text-zinc-600 dark:text-zinc-400">
-                                                                        {{ $trigger['costCenter'] ?? '-' }}
-                                                                    </div>
+                                                                    Match Anywhere
+                                                                </div>
+                                                                <div class="text-zinc-600 dark:text-zinc-400">
+                                                                    {{ $trigger['matchAnywhere'] ?? false ? 'Yes' : 'No' }}
                                                                 </div>
                                                             </div>
 
                                                             <!-- Pay Codes -->
-                                                            <div>
+                                                            <div class="md:col-span-2 lg:col-span-3">
                                                                 <div
                                                                     class="font-medium text-zinc-700 dark:text-zinc-300"
                                                                 >
@@ -302,87 +268,126 @@
                                                                     {{ $payCodeNames ?: '-' }}
                                                                 </div>
                                                             </div>
+                                                        </div>
 
-                                                            <!-- Allocation -->
-                                                            <div>
+                                                        <!-- Allocations -->
+                                                        @php
+                                                            $allocations = $trigger['allocations'] ?? [];
+                                                        @endphp
+
+                                                        @if (! empty($allocations))
+                                                            <div
+                                                                class="mt-4 border-t border-zinc-200 pt-3 dark:border-zinc-600"
+                                                            >
                                                                 <div
-                                                                    class="font-medium text-zinc-700 dark:text-zinc-300"
+                                                                    class="mb-3 font-medium text-zinc-700 dark:text-zinc-300"
                                                                 >
-                                                                    Allocation
+                                                                    Allocations ({{ count($allocations) }})
                                                                 </div>
-                                                                @php
-                                                                    $allocation = $trigger['adjustmentAllocation']['adjustmentAllocation'] ?? null;
-                                                                @endphp
 
-                                                                @if ($allocation)
-                                                                    <div class="text-zinc-600 dark:text-zinc-400">
-                                                                        {{ $allocation['adjustmentType'] ?? '-' }}
-                                                                        @if (($allocation['adjustmentType'] ?? '') === 'Wage' && ! empty($allocation['type']))
-                                                                            <span
-                                                                                class="text-xs text-zinc-500 dark:text-zinc-500"
-                                                                            >
-                                                                                ({{ $allocation['type'] }})
-                                                                            </span>
-                                                                        @endif
-                                                                    </div>
-
-                                                                    @if (! empty($allocation['amount']) || ! empty($allocation['bonusRateAmount']) || ! empty($allocation['bonusRateHourlyRate']))
+                                                                <div class="space-y-2">
+                                                                    @foreach ($allocations as $allocation)
                                                                         <div
-                                                                            class="text-xs text-zinc-500 dark:text-zinc-500"
+                                                                            class="rounded border border-zinc-300 bg-white p-2 dark:border-zinc-500 dark:bg-zinc-800"
                                                                         >
-                                                                            @if (! empty($allocation['amount']))
-                                                                                Amount: ${{ $allocation['amount'] }}
-                                                                            @elseif (! empty($allocation['bonusRateAmount']))
+                                                                            <div
+                                                                                class="grid grid-cols-1 gap-2 text-sm md:grid-cols-2 lg:grid-cols-4"
+                                                                            >
                                                                                 <div>
-                                                                                    Bonus:
-                                                                                    ${{ $allocation['bonusRateAmount'] }}
+                                                                                    <span
+                                                                                        class="font-medium text-zinc-700 dark:text-zinc-300"
+                                                                                    >
+                                                                                        Percentage:
+                                                                                    </span>
+                                                                                    <span
+                                                                                        class="text-zinc-600 dark:text-zinc-400"
+                                                                                    >
+                                                                                        {{ $allocation['percentage'] ?? '0' }}%
+                                                                                    </span>
                                                                                 </div>
+
                                                                                 <div>
-                                                                                    Pay Code:
-                                                                                    {{ $allocation['payCode']['name'] ?? ($allocation['payCode']['qualifier'] ?? '-') }}
+                                                                                    <span
+                                                                                        class="font-medium text-zinc-700 dark:text-zinc-300"
+                                                                                    >
+                                                                                        Job:
+                                                                                    </span>
+                                                                                    <span
+                                                                                        class="text-zinc-600 dark:text-zinc-400"
+                                                                                    >
+                                                                                        {{ $allocation['job']['name'] ?? ($allocation['job']['qualifier'] ?? ($allocation['job']['id'] ?? '-')) }}
+                                                                                    </span>
                                                                                 </div>
-                                                                            @elseif (! empty($allocation['bonusRateHourlyRate']))
+
                                                                                 <div>
-                                                                                    Bonus Hourly Rate:
-                                                                                    +${{ $allocation['bonusRateHourlyRate'] }}
+                                                                                    <span
+                                                                                        class="font-medium text-zinc-700 dark:text-zinc-300"
+                                                                                    >
+                                                                                        Wage Adj. Amount:
+                                                                                    </span>
+                                                                                    <span
+                                                                                        class="text-zinc-600 dark:text-zinc-400"
+                                                                                    >
+                                                                                        @if ($allocation['wageAdjustmentType'] === 2)
+                                                                                            x{{ $allocation['wageAdjustmentAmount'] ?? '0.00' }}
+                                                                                        @else
+                                                                                            ${{ $allocation['wageAdjustmentAmount'] ?? '0.00' }}
+                                                                                        @endif
+                                                                                    </span>
                                                                                 </div>
+
                                                                                 <div>
-                                                                                    Pay Code:
-                                                                                    {{ $allocation['payCode']['name'] ?? ($allocation['payCode']['qualifier'] ?? '-') }}
+                                                                                    <span
+                                                                                        class="font-medium text-zinc-700 dark:text-zinc-300"
+                                                                                    >
+                                                                                        Wage Adj. Type:
+                                                                                    </span>
+                                                                                    <span
+                                                                                        class="text-zinc-600 dark:text-zinc-400"
+                                                                                    >
+                                                                                        {{-- We have to hard-code the typeIds because they aren't easily found in documentation --}}
+                                                                                        {{-- This was tested in CFN032 with each type added to a trigger and viewed in the response --}}
+
+                                                                                        @switch($allocation['wageAdjustmentType'])
+                                                                                            @case('1')
+                                                                                                Addition
+
+                                                                                                @break
+                                                                                            @case('2')
+                                                                                                Multiplier
+
+                                                                                                @break
+                                                                                            @case('3')
+                                                                                                Flat Rate
+
+                                                                                                @break
+                                                                                            @case('4')
+                                                                                                None
+
+                                                                                                @break
+                                                                                            @default
+                                                                                                None
+
+                                                                                                @break
+                                                                                        @endswitch
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            @if (! empty($allocation['laborCategoryEntries']))
+                                                                                <div
+                                                                                    class="mt-2 text-sm text-zinc-600 dark:text-zinc-400"
+                                                                                >
+                                                                                    <span
+                                                                                        class="font-medium text-zinc-700 dark:text-zinc-300"
+                                                                                    >
+                                                                                        Labor Category:
+                                                                                    </span>
+                                                                                    {{ $allocation['laborCategoryEntries'] }}
                                                                                 </div>
                                                                             @endif
                                                                         </div>
-                                                                    @endif
-                                                                @else
-                                                                    <div class="text-zinc-600 dark:text-zinc-400">
-                                                                        -
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Additional Details -->
-                                                        @if (! empty($trigger['costCenter']) || ! empty($trigger['genericLocations']))
-                                                            <div
-                                                                class="mt-2 border-t border-zinc-200 pt-2 dark:border-zinc-600"
-                                                            >
-                                                                <div
-                                                                    class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2"
-                                                                >
-                                                                    @if (! empty($trigger['costCenter']))
-                                                                        <div>
-                                                                            <span
-                                                                                class="font-medium text-zinc-700 dark:text-zinc-300"
-                                                                            >
-                                                                                Cost Center:
-                                                                            </span>
-                                                                            <span
-                                                                                class="text-zinc-600 dark:text-zinc-400"
-                                                                            >
-                                                                                {{ $trigger['costCenter'] }}
-                                                                            </span>
-                                                                        </div>
-                                                                    @endif
+                                                                    @endforeach
                                                                 </div>
                                                             </div>
                                                         @endif
@@ -404,9 +409,9 @@
         @else
             <div class="py-8 text-center text-zinc-500 dark:text-zinc-400">
                 @if (! empty($search))
-                    No adjustment rules found matching "{{ $search }}"
+                    No percent allocation rules found matching "{{ $search }}"
                 @else
-                    No adjustment rules available
+                    No percent allocation rules available
                 @endif
             </div>
         @endif

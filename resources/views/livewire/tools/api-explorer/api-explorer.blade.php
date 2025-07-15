@@ -263,6 +263,13 @@
                         Retrieve All Adjustment Rules
                     </x-api-endpoint-item>
                     <x-api-endpoint-item
+                        value="percent-allocation-rules-list"
+                        label="Retrieve All Percentage Allocation Rules"
+                        method="GET"
+                    >
+                        Retrieve All Percentage Allocation Rules
+                    </x-api-endpoint-item>
+                    <x-api-endpoint-item
                         value="paycodes-list"
                         label="Retrieve Paycodes as a Manager"
                         method="GET"
