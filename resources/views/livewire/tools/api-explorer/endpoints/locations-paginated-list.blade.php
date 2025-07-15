@@ -69,7 +69,7 @@
         <x-api-data-table
             :paginatedData="$paginatedData"
             :columns="$tableColumns"
-            title="Pay Codes"
+            title="Locations"
             :totalRecords="$totalRecords"
             :search="$search"
             :sortField="$sortField"
