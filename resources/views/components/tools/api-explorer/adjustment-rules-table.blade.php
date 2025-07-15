@@ -96,7 +96,7 @@
                     $ruleVersions = $rule['ruleVersions']['adjustmentRuleVersion'] ?? [];
                     $firstVersion = $ruleVersions[0] ?? null;
                     $newestVersion = end($ruleVersions);
-                    $ruleId = $rule['id'] ?? uniqid();
+                    $ruleId = $rule['id'] ?? '';
                 @endphp
 
                 <div
@@ -147,7 +147,7 @@
                                     $paycodes = explode(', ', $rule['paycode_names'] ?? '');
                                     $displayLimit = 3;
                                     $paycode_count = count($paycodes);
-                                    $ruleId = $rule['id'] ?? uniqid();
+                                    $ruleId = $rule['id'] ?? '';
                                 @endphp
 
                                 <div x-data="{ showAll: false }">
