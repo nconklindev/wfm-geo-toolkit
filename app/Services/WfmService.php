@@ -543,6 +543,19 @@ class WfmService
     }
 
     /**
+     * @throws \Illuminate\Http\Client\ConnectionException
+     * @throws \JsonException
+     */
+    public function getPercentAllocationRules(array $requestData = []): Response
+    {
+        // Add all_details flag to true to get more information
+        return $this->callWfmApi(
+            'GET',
+            'api/v1/timekeeping/setup/percentage_allocation_rules?all_details=true',
+        );
+    }
+
+    /**
      * Retrieve paginated data elements from the WFM API.
      *
      * @param  array  $requestData  Optional parameters for filtering or
