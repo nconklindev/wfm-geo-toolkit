@@ -51,14 +51,23 @@ Sure! Follow the guidelines for the corresponding thing you want to help with.
 ### Bugs 🐛
 
 You can submit a bug over on the [Issues](https://github.com/nconklindev/wfm-geo-toolkit/issues) page. Click
-the "New issue" button at the top and select "Bug Report." Fill out the required fields and submit the issue. I do not
-guarantee any sort of response time with bug reports.
+the "New issue" button at the top and select "Bug Report." Fill out the required fields and submit the issue. 
+
+I do not guarantee any sort of response time with bug reports.
 
 ### Features ✨
 
 You can submit a Feature Request using the provided [form](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=feature_request.yml).
 
-If you want to work on a suggested feature, please see the [contribution guidelines](/.github/CONTRIBUTING.md).
+### Contributing
+
+To work on this project, please follow the [contribution guidelines](/.github/CONTRIBUTING.md).
+
+Once you are sure of the guidelines, review the [wiki](https://github.com/nconklindev/wfm-geo-toolkit/wiki/Contributing) page on how to set up the environment and application. I know it looks like a lot, but there's not much to it. 
+
+Please feel free to ask any questions in the [discussion boards](https://github.com/nconklindev/wfm-geo-toolkit/discussions/categories/contributing) if you are stuck. 
+
+Also, check out the [resources](https://github.com/nconklindev/wfm-geo-toolkit/wiki/Resources) Wiki page for more information on the framework, programming language, libraries, and more, used in this project.
 
 ## Contributors
 
