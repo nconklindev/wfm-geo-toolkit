@@ -46,7 +46,9 @@ will have a sidebar for easy navigation.
 
 ## How do I submit an Issue? 📄
 
-Sure! Follow the guidelines for the corresponding thing you want to help with.
+Depending on what you want to submit an issue for, we have two different forms for each thing we support. 
+
+NOTE: We do not accept security issues at this time. These are managed by external reporting tools and our own analysis.
 
 ### Bugs 🐛
 
