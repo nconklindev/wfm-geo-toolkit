@@ -44,7 +44,7 @@ available:
 A registered user can get their bearings by going to the `/welcome` page. Also, any page that requires authentication
 will have a sidebar for easy navigation.
 
-## Can I help? 🤝
+## How do I submit an Issue? 📄
 
 Sure! Follow the guidelines for the corresponding thing you want to help with.
 
@@ -59,7 +59,7 @@ I do not guarantee any sort of response time with bug reports.
 
 You can submit a Feature Request using the provided [form](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=feature_request.yml).
 
-### Contributing
+## Contributing 🤝
 
 To work on this project, please follow the [contribution guidelines](/.github/CONTRIBUTING.md).
 
