@@ -225,6 +225,13 @@
                     {{-- </x-api-endpoint-item> --}}
                 </x-api-endpoint-group>
 
+                <x-api-endpoint-group title="Common Resources II" name="check">
+                    <x-api-endpoint-item value="hyperfind-queries-list" label="Retrieve Public Hyperfind Queries"
+                                         method="GET">
+                        Retrieve Public Hyperfind Queries
+                    </x-api-endpoint-item>
+                </x-api-endpoint-group>
+
                 <x-api-endpoint-group title="Labor Category Entries" name="briefcase">
                     <x-api-endpoint-item
                         value="labor-categories.list"
