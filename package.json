@@ -15,7 +15,7 @@
         "leaflet": "^1.9.4",
         "prettier-plugin-blade": "^2.1.21",
         "tailwindcss": "^4.1.11",
-        "vite": "^7.0.4"
+        "vite": "^7.0.5"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.45.1",
