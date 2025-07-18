@@ -28,7 +28,7 @@ class AdjustmentRulesList extends BaseApiEndpoint
     }
 
     /**
-     * Override exportAllToCsv to use flattened data structure
+     * Override exportToCsv to use flattened data structure
      */
     public function exportAllToCsv(): StreamedResponse|RedirectResponse
     {
