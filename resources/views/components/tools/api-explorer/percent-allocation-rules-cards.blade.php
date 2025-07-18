@@ -39,7 +39,7 @@
 
             <div class="flex space-x-2">
                 <flux:button
-                    wire:click="exportAllToCsv"
+                    wire:click="exportToCsv"
                     variant="subtle"
                     size="sm"
                     icon="arrow-down-tray"
