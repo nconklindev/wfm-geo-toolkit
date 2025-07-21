@@ -32,12 +32,12 @@
     <div class="flex flex-col space-y-3 md:flex-row md:items-center md:justify-between md:space-y-0">
         <flux:heading size="md">{{ $title }} ({{ $totalRecords }} total)</flux:heading>
 
-        <div class="flex-row items-center space-y-0 space-x-2 md:flex md:flex-col md:space-y-2">
+        <div class="flex flex-row items-center space-y-0 space-x-2">
             <flux:button @click="toggleAll()" variant="ghost" size="sm" class="w-full sm:w-auto">
                 <span x-text="expandAll ? 'Collapse All' : 'Expand All'"></span>
             </flux:button>
 
-            <div class="flex space-x-2">
+            <div class="flex flex-row space-x-2">
                 <flux:button
                     wire:click="exportToCsv"
                     variant="subtle"
@@ -45,18 +45,7 @@
                     icon="arrow-down-tray"
                     class="flex-1 sm:flex-none"
                 >
-                    <span class="hidden sm:inline">Export All (CSV)</span>
-                    <span class="sm:hidden">Export All</span>
-                </flux:button>
-                <flux:button
-                    wire:click="exportSelectionsToCsv"
-                    variant="subtle"
-                    size="sm"
-                    icon="arrow-down-tray"
-                    class="flex-1 sm:flex-none"
-                >
-                    <span class="hidden sm:inline">Export Selections (CSV)</span>
-                    <span class="sm:hidden">Export Sel.</span>
+                    <span class="hidden sm:inline">Export (CSV)</span>
                 </flux:button>
             </div>
         </div>
@@ -140,45 +129,7 @@
                                     <div>{{ $newestVersion['expirationDate'] ?? '-' }}</div>
                                 </div>
                             @endif
-
-                            <div class="text-center">
-                                <div class="text-xs font-medium">Pay Codes Used</div>
-                                @php
-                                    $paycodes = explode(', ', $rule['paycode_names'] ?? '');
-                                    $displayLimit = 3;
-                                    $paycode_count = count($paycodes);
-                                    $ruleId = $rule['id'] ?? '';
-                                @endphp
-
-                                <div x-data="{ showAll: false }">
-                                    @if (isset($rule['paycode_names']))
-                                        @if ($paycode_count > $displayLimit)
-                                            <div x-show="!showAll">
-                                                {{ implode(', ', array_slice($paycodes, 0, $displayLimit)) }}
-                                                <button
-                                                    @click.stop="showAll = true"
-                                                    class="ml-1 text-sky-700 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-700"
-                                                >
-                                                    (+{{ $paycode_count - $displayLimit }} more)
-                                                </button>
-                                            </div>
-                                            <div x-show="showAll">
-                                                {{ $rule['paycode_names'] }}
-                                                <button
-                                                    @click.stop="showAll = false"
-                                                    class="ml-1 text-sky-700 hover:text-sky-800 dark:text-sky-500 dark:hover:text-sky-700"
-                                                >
-                                                    (show less)
-                                                </button>
-                                            </div>
-                                        @else
-                                            {{ $rule['paycode_names'] }}
-                                        @endif
-                                    @else
-                                        <span>-</span>
-                                    @endif
-                                </div>
-                            </div>
+                            
                             <div class="text-center">
                                 <div class="text-xs font-medium">Versions</div>
                                 <div>{{ count($ruleVersions) }}</div>
