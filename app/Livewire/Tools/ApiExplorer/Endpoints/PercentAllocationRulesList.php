@@ -2,168 +2,31 @@
 
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
-use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
-use App\Traits\ExportsCsvData;
-use App\Traits\PaginatesApiData;
-use Exception;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\Client\Response;
-use Illuminate\Http\RedirectResponse;
+use App\Livewire\Tools\ApiExplorer\BaseApiComponent;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class PercentAllocationRulesList extends BaseApiEndpoint
+class PercentAllocationRulesList extends BaseApiComponent
 {
-    use ExportsCsvData;
-    use PaginatesApiData;
+    public string $errorMessage = '';
 
-    public function render(): View
+    public function getCacheKey(): string
     {
-        $paginatedData = $this->getPaginatedData();
+        $id = md5(session()?->id());
 
-        return view('livewire.tools.api-explorer.endpoints.percent-allocation-rules-list', [
-            'paginatedData' => $paginatedData,
-        ]);
+        return 'percent_allocation_rules_'.$id;
+    }
+
+    public function getCacheTtl(): int
+    {
+        return 3600; // 1 hour
     }
 
     /**
-     * Override exportToCsv to use flattened data structure
+     * Transform data for CSV export (flattens nested structure)
      */
-    public function exportAllToCsv(): StreamedResponse|RedirectResponse
+    public function transformForCsv(array $data): array
     {
-        try {
-            $allData = $this->getAllDataForExport();
-
-            if ($allData->isEmpty()) {
-                session()?->flash('error', 'No data available to export.');
-
-                return back();
-            }
-
-            // Apply current search and sort filters
-            $filteredData = $this->applyFiltersAndSort($allData);
-
-            // Flatten the data for CSV export
-            $flattenedData = $this->flattenPercentAllocationRulesForCsv($filteredData);
-
-            $filename = $this->generateExportFilename('all');
-
-            return $this->generateCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error - All Data', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-            ]);
-
-            session()?->flash('error', 'Failed to export data. Please try again.');
-
-            return back();
-        }
-    }
-
-    /**
-     * Custom method for getting all data for export - required by ExportsCsvData trait
-     */
-    protected function getAllDataForExport(): Collection
-    {
-        $response = $this->fetchData();
-
-        if (! $response || ! $response->successful()) {
-            return collect();
-        }
-
-        $allData = $this->extractDataFromResponse($response);
-
-        // Process the data to add custom fields
-        $processedData = $this->processDataForDisplay($allData);
-
-        return collect($processedData);
-    }
-
-    /**
-     * Fetches data by making an authenticated API call to retrieve percent allocation rules.
-     */
-    protected function fetchData(): ?Response
-    {
-        return $this->makeAuthenticatedApiCall(function () {
-            return $this->wfmService->getPercentAllocationRules();
-        });
-    }
-
-    /**
-     * Process raw API data to add custom fields
-     */
-    protected function processDataForDisplay(array $data): array
-    {
-        return array_map(function ($item) {
-            $item['job_names'] = $this->extractJobNames($item);
-            $item['paycode_names'] = $this->extractPaycodeNames($item);
-
-            return $item;
-        }, $data);
-    }
-
-    /**
-     * Extract job names from allocations for the main table display
-     */
-    private function extractJobNames($item): string
-    {
-        $jobNames = [];
-
-        // Navigate through the nested structure to get job names
-        $fpaRuleVersions = $item['fpaRuleVersions'] ?? [];
-
-        foreach ($fpaRuleVersions as $ruleVersion) {
-            $triggers = $ruleVersion['triggers'] ?? [];
-
-            foreach ($triggers as $trigger) {
-                $allocations = $trigger['allocations'] ?? [];
-
-                foreach ($allocations as $allocation) {
-                    $job = $allocation['job'] ?? [];
-                    if (isset($job['name'])) {
-                        $jobNames[] = $job['name'];
-                    } elseif (isset($job['qualifier'])) {
-                        $jobNames[] = $job['qualifier'];
-                    }
-                }
-            }
-        }
-
-        // Remove duplicates and return as comma-separated string
-        $uniqueNames = array_unique($jobNames);
-
-        return implode(', ', $uniqueNames);
-    }
-
-    /**
-     * Extract paycode names from triggers for the main table display
-     */
-    private function extractPaycodeNames($item): string
-    {
-        $paycodeNames = [];
-
-        // Navigate through the nested structure to get paycodes
-        $fpaRuleVersions = $item['fpaRuleVersions'] ?? [];
-
-        foreach ($fpaRuleVersions as $ruleVersion) {
-            $triggers = $ruleVersion['triggers'] ?? [];
-
-            foreach ($triggers as $trigger) {
-                $payCodes = $trigger['payCodes'] ?? [];
-                foreach ($payCodes as $payCode) {
-                    if (isset($payCode['qualifier'])) {
-                        $paycodeNames[] = $payCode['qualifier'];
-                    }
-                }
-            }
-        }
-
-        // Remove duplicates and return as comma-separated string
-        $uniqueNames = array_unique($paycodeNames);
-
-        return implode(', ', $uniqueNames);
+        return $this->flattenPercentAllocationRulesForCsv($data);
     }
 
     /**
@@ -317,29 +180,49 @@ class PercentAllocationRulesList extends BaseApiEndpoint
         return $flattened;
     }
 
-    /**
-     * Custom filename generation for exports
-     */
-    protected function generateExportFilename(string $type): string
+    protected function getApiParams(): array
     {
-        $parts = ['percent-allocation-rules', $type];
-
-        // Add search term if present
-        if (! empty($this->search)) {
-            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
-            $parts[] = "search-{$searchSlug}";
-        }
-
-        // Add timestamp
-        $parts[] = now()->format('Y-m-d_H-i-s');
-
-        return implode('-', $parts);
+        return []; // No parameters needed for this endpoint
     }
 
-    /**
-     * Define CSV columns for the flattened data
-     */
-    private function defineCSVColumnsForTheFlattenedData(): array
+    protected function getApiServiceCall(): callable
+    {
+        return fn ($params) => $this->wfmService->getPercentAllocationRules($params);
+    }
+
+    protected function getDataKeyFromResponse(): ?string
+    {
+        return null; // Data is at root level
+    }
+
+    protected function getTotalFromResponseData(array $data): ?int
+    {
+        return count($data);
+    }
+
+    protected function getTableColumns(): array
+    {
+        return [
+            ['field' => 'id', 'label' => 'Rule ID'],
+            ['field' => 'name', 'label' => 'Rule Name'],
+            ['field' => 'persistentId', 'label' => 'Persistent ID'],
+            ['field' => 'job_names', 'label' => 'Jobs'],
+            ['field' => 'paycode_names', 'label' => 'Pay Codes'],
+        ];
+    }
+
+    protected function getDataForCsvExport(): Collection
+    {
+        // First, try to get from cached data (much faster)
+        if (! empty($this->data)) {
+            return collect($this->data);
+        }
+
+        // Fall back to fetching fresh data if no cached data
+        return collect($this->fetchDataFromApi());
+    }
+
+    protected function getCsvColumns(): array
     {
         return [
             ['field' => 'rule_id', 'label' => 'Rule ID'],
@@ -365,69 +248,78 @@ class PercentAllocationRulesList extends BaseApiEndpoint
     }
 
     /**
-     * Override exportSelectionsToCsv to use flattened data structure
+     * Transform API data to add extracted job and paycode names for display
      */
-    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
+    protected function transformApiData(array $data): Collection
     {
-        try {
-            $exportData = $this->getAllData();
-            $filteredData = $this->applyFiltersAndSort($exportData);
+        return collect($data)->map(function ($item) {
+            // Add extracted job and paycode names for table display
+            $item['job_names'] = $this->extractJobNames($item);
+            $item['paycode_names'] = $this->extractPaycodeNames($item);
 
-            if ($filteredData->isEmpty()) {
-                session()?->flash('error', 'No data available to export.');
+            return $item;
+        });
+    }
 
-                return back();
+    /**
+     * Extract job names from allocations for the main table display
+     */
+    private function extractJobNames($item): string
+    {
+        $jobNames = [];
+
+        // Navigate through the nested structure to get job names
+        $fpaRuleVersions = $item['fpaRuleVersions'] ?? [];
+
+        foreach ($fpaRuleVersions as $ruleVersion) {
+            $triggers = $ruleVersion['triggers'] ?? [];
+
+            foreach ($triggers as $trigger) {
+                $allocations = $trigger['allocations'] ?? [];
+
+                foreach ($allocations as $allocation) {
+                    $job = $allocation['job'] ?? [];
+                    if (isset($job['name'])) {
+                        $jobNames[] = $job['name'];
+                    } elseif (isset($job['qualifier'])) {
+                        $jobNames[] = $job['qualifier'];
+                    }
+                }
             }
-
-            // Flatten the data for CSV export
-            $flattenedData = $this->flattenPercentAllocationRulesForCsv($filteredData);
-
-            $filename = $this->generateExportFilename('selections');
-
-            return $this->generateCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error - Selections', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-            ]);
-
-            session()?->flash('error', 'Failed to export CSV. Please try again.');
-
-            return back();
         }
+
+        // Remove duplicates and return as comma-separated string
+        $uniqueNames = array_unique($jobNames);
+
+        return implode(', ', $uniqueNames);
     }
 
     /**
-     * Initialize endpoint configuration
+     * Extract paycode names from triggers for the main table display
      */
-    protected function initializeEndpoint(): void
+    private function extractPaycodeNames($item): string
     {
-        $this->tableColumns = [
-            ['field' => 'name', 'label' => 'Name'],
-            ['field' => 'fpaRuleVersions.0.description', 'label' => 'Description'],
-            ['field' => 'fpaRuleVersions.0.startEffectiveDate', 'label' => 'Start Date'],
-            ['field' => 'fpaRuleVersions.0.endEffectiveDate', 'label' => 'End Date'],
-            ['field' => 'job_names', 'label' => 'Jobs'],
-            ['field' => 'paycode_names', 'label' => 'Pay Codes'],
-        ];
+        $paycodeNames = [];
 
-        $this->initializePaginationData();
-    }
+        // Navigate through the nested structure to get paycodes
+        $fpaRuleVersions = $item['fpaRuleVersions'] ?? [];
 
-    /**
-     * Override the storeData method to include custom processing
-     */
-    protected function storeData(array $data): void
-    {
-        // Process data to add custom fields
-        $processedData = $this->processDataForDisplay($data);
+        foreach ($fpaRuleVersions as $ruleVersion) {
+            $triggers = $ruleVersion['triggers'] ?? [];
 
-        $this->tableData = $processedData;
-        $this->totalRecords = count($processedData);
-
-        // Cache the processed data
-        if (! empty($this->cacheKey)) {
-            cache()->put($this->cacheKey, collect($processedData), now()->addMinutes(30));
+            foreach ($triggers as $trigger) {
+                $payCodes = $trigger['payCodes'] ?? [];
+                foreach ($payCodes as $payCode) {
+                    if (isset($payCode['qualifier'])) {
+                        $paycodeNames[] = $payCode['qualifier'];
+                    }
+                }
+            }
         }
+
+        // Remove duplicates and return as comma-separated string
+        $uniqueNames = array_unique($paycodeNames);
+
+        return implode(', ', $uniqueNames);
     }
 }
