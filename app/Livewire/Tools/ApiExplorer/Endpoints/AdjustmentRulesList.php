@@ -2,141 +2,31 @@
 
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
-use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
-use App\Traits\ExportsCsvData;
-use App\Traits\PaginatesApiData;
-use Exception;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\Client\Response;
-use Illuminate\Http\RedirectResponse;
+use App\Livewire\Tools\ApiExplorer\BaseApiComponent;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class AdjustmentRulesList extends BaseApiEndpoint
+class AdjustmentRulesList extends BaseApiComponent
 {
-    use ExportsCsvData;
-    use PaginatesApiData;
+    public string $errorMessage = '';
 
-    public function render(): View
+    public function getCacheKey(): string
     {
-        $paginatedData = $this->getPaginatedData();
+        $id = md5(session()?->id());
 
-        return view('livewire.tools.api-explorer.endpoints.adjustment-rules-list', [
-            'paginatedData' => $paginatedData,
-        ]);
+        return 'adjustment_rules'.$id;
+    }
+
+    public function getCacheTtl(): int
+    {
+        return 3600; // 1 hour
     }
 
     /**
-     * Override exportToCsv to use flattened data structure
+     * Transform data for CSV export (flattens nested structure)
      */
-    public function exportAllToCsv(): StreamedResponse|RedirectResponse
+    public function transformForCsv(array $data): array
     {
-        try {
-            $allData = $this->getAllDataForExport();
-
-            if ($allData->isEmpty()) {
-                session()?->flash('error', 'No data available to export.');
-
-                return back();
-            }
-
-            // Apply current search and sort filters
-            $filteredData = $this->applyFiltersAndSort($allData);
-
-            // Flatten the data for CSV export
-            $flattenedData = $this->flattenAdjustmentRulesForCsv($filteredData);
-
-            $filename = $this->generateExportFilename('all');
-
-            return $this->generateCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error - All Data', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-            ]);
-
-            session()?->flash('error', 'Failed to export data. Please try again.');
-
-            return back();
-        }
-    }
-
-    /**
-     * Custom method for getting all data for export - required by ExportsCsvData trait
-     */
-    protected function getAllDataForExport(): Collection
-    {
-        $response = $this->fetchData();
-
-        if (! $response || ! $response->successful()) {
-            return collect();
-        }
-
-        $allData = $this->extractDataFromResponse($response);
-
-        // Process the data to add custom fields
-        $processedData = $this->processDataForDisplay($allData);
-
-        return collect($processedData);
-    }
-
-    /**
-     * Fetch data from WFM API
-     */
-    protected function fetchData(): ?Response
-    {
-        return $this->makeAuthenticatedApiCall(function () {
-            return $this->wfmService->getAdjustmentRules();
-        });
-    }
-
-    /**
-     * Process raw API data to add custom fields
-     */
-    protected function processDataForDisplay(array $data): array
-    {
-        return array_map(function ($item) {
-            $item['paycode_names'] = $this->extractPaycodeNames($item);
-
-            return $item;
-        }, $data);
-    }
-
-    /**
-     * Extract ALL paycode names (both trigger and allocation) for the main table display
-     */
-    private function extractPaycodeNames($item): string
-    {
-        $paycodeNames = [];
-
-        // Navigate through the nested structure to get paycodes
-        $ruleVersions = $item['ruleVersions']['adjustmentRuleVersion'] ?? [];
-
-        foreach ($ruleVersions as $ruleVersion) {
-            $triggers = $ruleVersion['triggers']['adjustmentTriggerForRule'] ?? [];
-
-            foreach ($triggers as $trigger) {
-                // Extract paycodes from trigger payCodes array (conditions)
-                $payCodes = $trigger['payCodes'] ?? [];
-                foreach ($payCodes as $payCode) {
-                    if (isset($payCode['qualifier'])) {
-                        $paycodeNames[] = $payCode['qualifier'];
-                    }
-                }
-
-                // Extract paycode from adjustment allocation (what gets paid)
-                $allocation = $trigger['adjustmentAllocation']['adjustmentAllocation'] ?? null;
-                if ($allocation && isset($allocation['payCode']['qualifier'])) {
-                    $paycodeNames[] = $allocation['payCode']['qualifier'];
-                }
-            }
-        }
-
-        // Remove duplicates and return as comma-separated string
-        $uniqueNames = array_unique($paycodeNames);
-
-        return implode(', ', $uniqueNames);
+        return $this->flattenAdjustmentRulesForCsv($data);
     }
 
     /**
@@ -262,28 +152,115 @@ class AdjustmentRulesList extends BaseApiEndpoint
     }
 
     /**
-     * Custom filename generation for exports
+     * Transform data for view (adds extracted paycode names for display)
      */
-    protected function generateExportFilename(string $type): string
+    public function transformForView(array $data): array
     {
-        $parts = ['adjustment-rules', $type];
+        return collect($data)->map(function ($item) {
+            // Add extracted paycode names for table display
+            $item['paycode_names'] = $this->extractPaycodeNames($item);
 
-        // Add search term if present
-        if (! empty($this->search)) {
-            $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
-            $parts[] = "search-{$searchSlug}";
-        }
-
-        // Add timestamp
-        $parts[] = now()->format('Y-m-d_H-i-s');
-
-        return implode('-', $parts);
+            return $item;
+        })->toArray();
     }
 
     /**
-     * Define CSV columns for the flattened data
+     * Extract ALL paycode names (both trigger and allocation) for the main table display
      */
-    private function defineCSVColumnsForTheFlattenedData(): array
+    private function extractPaycodeNames($item): string
+    {
+        $paycodeNames = [];
+
+        // Navigate through the nested structure to get paycodes
+        $ruleVersions = $item['ruleVersions']['adjustmentRuleVersion'] ?? [];
+
+        foreach ($ruleVersions as $ruleVersion) {
+            $triggers = $ruleVersion['triggers']['adjustmentTriggerForRule'] ?? [];
+
+            foreach ($triggers as $trigger) {
+                // Extract paycodes from trigger payCodes array (conditions)
+                $payCodes = $trigger['payCodes'] ?? [];
+                foreach ($payCodes as $payCode) {
+                    if (isset($payCode['qualifier'])) {
+                        $paycodeNames[] = $payCode['qualifier'];
+                    }
+                }
+
+                // Extract paycode from adjustment allocation (what gets paid)
+                $allocation = $trigger['adjustmentAllocation']['adjustmentAllocation'] ?? null;
+                if ($allocation && isset($allocation['payCode']['qualifier'])) {
+                    $paycodeNames[] = $allocation['payCode']['qualifier'];
+                }
+            }
+        }
+
+        // Remove duplicates and return as comma-separated string
+        $uniqueNames = array_unique($paycodeNames);
+
+        return implode(', ', $uniqueNames);
+    }
+
+    protected function getApiParams(): array
+    {
+        return [
+            'all_details' => 'true',
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getApiServiceCall(): callable
+    {
+        return fn ($params) => $this->wfmService->getAdjustmentRules($params);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDataKeyFromResponse(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTotalFromResponseData(array $data): ?int
+    {
+        return count($data);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTableColumns(): array
+    {
+        return [
+            ['field' => 'id', 'label' => 'Rule ID'],
+            ['field' => 'name', 'label' => 'Rule Name'],
+            ['field' => 'paycode_names', 'label' => 'Pay Codes'],
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDataForCsvExport(): Collection
+    {
+        // First, try to get from cached data (much faster)
+        if (! empty($this->data)) {
+            return collect($this->data);
+        }
+
+        // Fall back to fetching fresh data if no cached data
+        return collect($this->fetchDataFromApi());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getCsvColumns(): array
     {
         return [
             ['field' => 'rule_id', 'label' => 'Rule ID'],
@@ -304,71 +281,6 @@ class AdjustmentRulesList extends BaseApiEndpoint
             ['field' => 'bonus_rate_hourly_rate', 'label' => 'Bonus Rate Hourly Rate'],
             ['field' => 'cost_center', 'label' => 'Cost Center'],
         ];
-    }
 
-    /**
-     * Override exportSelectionsToCsv to use flattened data structure
-     */
-    public function exportSelectionsToCsv(): StreamedResponse|RedirectResponse
-    {
-        try {
-            $exportData = $this->getAllData();
-            $filteredData = $this->applyFiltersAndSort($exportData);
-
-            if ($filteredData->isEmpty()) {
-                session()?->flash('error', 'No data available to export.');
-
-                return back();
-            }
-
-            // Flatten the data for CSV export
-            $flattenedData = $this->flattenAdjustmentRulesForCsv($filteredData);
-
-            $filename = $this->generateExportFilename('selections');
-
-            return $this->generateCsv($flattenedData, $this->defineCSVColumnsForTheFlattenedData(), $filename);
-        } catch (Exception $e) {
-            Log::error('CSV Export Error - Selections', [
-                'error' => $e->getMessage(),
-                'component' => get_class($this),
-            ]);
-
-            session()?->flash('error', 'Failed to export CSV. Please try again.');
-
-            return back();
-        }
-    }
-
-    /**
-     * Initialize endpoint configuration
-     */
-    protected function initializeEndpoint(): void
-    {
-        $this->tableColumns = [
-            ['field' => 'name', 'label' => 'Name'],
-            ['field' => 'ruleVersions.adjustmentRuleVersion.0.description', 'label' => 'Description'],
-            ['field' => 'ruleVersions.adjustmentRuleVersion.0.effectiveDate', 'label' => 'Effective Date'],
-            ['field' => 'ruleVersions.adjustmentRuleVersion.0.expirationDate', 'label' => 'Expiration Date'],
-            ['field' => 'paycode_names', 'label' => 'Pay Codes'],
-        ];
-
-        $this->initializePaginationData();
-    }
-
-    /**
-     * Override the storeData method to include custom processing
-     */
-    protected function storeData(array $data): void
-    {
-        // Process data to add custom fields
-        $processedData = $this->processDataForDisplay($data);
-
-        $this->tableData = $processedData;
-        $this->totalRecords = count($processedData);
-
-        // Cache the processed data
-        if (! empty($this->cacheKey)) {
-            cache()->put($this->cacheKey, collect($processedData), now()->addMinutes(30));
-        }
     }
 }
