@@ -279,8 +279,6 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
 
     abstract protected function getApiParams(): array;
 
-    // Abstract methods for response handling - must be implemented
-
     /**
      * Get API service call
      *
@@ -300,7 +298,7 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
      */
     abstract protected function getApiServiceCall(): callable;
 
-    // Default implementation that can be overridden in a concrete class
+    // Abstract methods for response handling - must be implemented
 
     protected function handleDataLoadingError(Exception $e): void
     {
