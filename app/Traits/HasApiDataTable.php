@@ -58,7 +58,16 @@ trait HasApiDataTable
         if (! empty($this->search)) {
             $collection = $collection->filter(function ($item) {
                 return collect($item)->contains(function ($value) {
-                    return stripos((string) $value, $this->search) !== false;
+                    // Handle array values by converting to JSON or joining
+                    if (is_array($value)) {
+                        $searchableValue = json_encode($value);
+                    } elseif (is_object($value)) {
+                        $searchableValue = json_encode($value);
+                    } else {
+                        $searchableValue = (string) $value;
+                    }
+
+                    return stripos((string) $searchableValue, $this->search) !== false;
                 });
             });
         }
