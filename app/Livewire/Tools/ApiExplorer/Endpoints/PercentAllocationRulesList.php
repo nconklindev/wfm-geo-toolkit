@@ -182,7 +182,9 @@ class PercentAllocationRulesList extends BaseApiComponent
 
     protected function getApiParams(): array
     {
-        return []; // No parameters needed for this endpoint
+        return [
+            'all_details' => 'true',
+        ];
     }
 
     protected function getApiServiceCall(): callable
