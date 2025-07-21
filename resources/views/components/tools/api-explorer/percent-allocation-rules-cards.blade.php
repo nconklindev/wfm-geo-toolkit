@@ -45,18 +45,8 @@
                     icon="arrow-down-tray"
                     class="flex-1 sm:flex-none"
                 >
-                    <span class="hidden sm:inline">Export All (CSV)</span>
+                    <span class="hidden sm:inline">Export (CSV)</span>
                     <span class="sm:hidden">Export All</span>
-                </flux:button>
-                <flux:button
-                    wire:click="exportSelectionsToCsv"
-                    variant="subtle"
-                    size="sm"
-                    icon="arrow-down-tray"
-                    class="flex-1 sm:flex-none"
-                >
-                    <span class="hidden sm:inline">Export Selections (CSV)</span>
-                    <span class="sm:hidden">Export Selections</span>
                 </flux:button>
             </div>
         </div>
