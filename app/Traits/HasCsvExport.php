@@ -151,6 +151,8 @@ trait HasCsvExport
      *     ['field' => 'created_at', 'label' => 'Created Date'],
      * ];
      *
+     * This implementation may be similar to {@see self::getTableColumns()}
+     *
      * @return array Array of column definitions with 'field' and 'label' keys
      */
     abstract protected function getCsvColumns(): array;

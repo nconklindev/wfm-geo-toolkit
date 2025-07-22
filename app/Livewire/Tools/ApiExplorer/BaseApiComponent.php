@@ -334,6 +334,8 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
      * Check the Developer Portal to see an example response for each WFM
      * endpoint.
      *
+     * If the endpoint returns a `records` key, it does not need to be defined in this method
+     *
      * @return string|null The data key if available, otherwise null.
      */
     abstract protected function getDataKeyFromResponse(): ?string;
