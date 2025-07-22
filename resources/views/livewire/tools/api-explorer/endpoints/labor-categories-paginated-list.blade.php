@@ -24,11 +24,11 @@
                             @if ($isAuthenticated && ! empty($laborCategories))
                                 @foreach ($laborCategories as $category)
                                     <option
-                                        value="{{ $category }}"
-                                        wire:key="{{ Str::kebab($category) }}"
+                                        value="{{ $category['id'] }}"
+                                        wire:key="labor-category-{{ $category['id'] }}"
                                         class="selected:bg-blue-700/50"
                                     >
-                                        {{ $category }}
+                                        {{ $category['name'] }}
                                     </option>
                                 @endforeach
                             @else
@@ -46,7 +46,8 @@
                     </div>
                     <flux:description class="text-xs">
                         @if ($isAuthenticated && ! empty($laborCategories))
-                            Hold Ctrl (Windows) or Cmd (Mac) to select multiple categories
+                            Hold Ctrl (Windows) or Cmd (Mac) to select multiple categories. Leave empty to retrieve all
+                            entries.
                         @elseif (! $isAuthenticated)
                             Authentication required to load labor categories
                         @else
@@ -60,19 +61,25 @@
                     <div class="mt-2">
                         <flux:label>Selected Categories:</flux:label>
                         <div class="mt-1 flex flex-wrap items-center gap-2">
-                            @foreach ($selectedLaborCategories as $selected)
-                                <span
-                                    wire:key="selected-labor-category-{{ $selected }}"
-                                    class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-700/50 dark:text-zinc-300"
-                                >
-                                    {{ $selected }}
-                                    <button
-                                        wire:click="removeCategory('{{ $selected }}')"
-                                        class="ml-1 inline-flex cursor-pointer text-blue-500 hover:text-blue-700"
+                            @foreach ($selectedLaborCategories as $selectedId)
+                                @php
+                                    $selectedCategory = collect($laborCategories)->firstWhere('id', $selectedId);
+                                @endphp
+
+                                @if ($selectedCategory)
+                                    <span
+                                        wire:key="selected-labor-category-{{ $selectedId }}"
+                                        class="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-700/50 dark:text-zinc-300"
                                     >
-                                        <flux:icon.x-mark class="h-4 w-4" />
-                                    </button>
-                                </span>
+                                        {{ $selectedCategory['name'] }}
+                                        <button
+                                            wire:click="removeCategory('{{ $selectedId }}')"
+                                            class="ml-1 inline-flex cursor-pointer text-blue-500 hover:text-blue-700"
+                                        >
+                                            <flux:icon.x-mark class="h-4 w-4" />
+                                        </button>
+                                    </span>
+                                @endif
                             @endforeach
                         </div>
                     </div>
@@ -112,8 +119,8 @@
                 <flux:heading size="sm" class="mb-2">About This Endpoint</flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm">
                     <li>Retrieves labor category entries from the system</li>
-                    <li>Select from the populated list of Labor Categories to load only those entries</li>
-                    <li>Returns the matching Labor Category Entry from the system</li>
+                    <li>Select specific Labor Categories to filter results, or leave empty to retrieve all entries</li>
+                    <li>Returns the matching Labor Category Entries from the system</li>
                 </ul>
             </div>
 
