@@ -132,9 +132,12 @@ trait HasApiDataTable
         return $this->paginatedData;
     }
 
+    // Called whenever the property `perPage` is updated
+    // This is updated through the "Show" dropdown in each data table
     public function updatedPerPage(): void
     {
         $this->createPaginatedData();
+        $this->resetPage(); // Reset the page to prevent no data showing
     }
 
     protected function initializeTableData(): void
