@@ -142,11 +142,11 @@
                         size="sm"
                         class="cursor-pointer"
                         wire:click="saveCredentials"
-                        icon="check"
+                        icon="lock-closed"
                         :disabled="$isLoading"
                     >
-            <span wire:loading.remove wire:target="saveCredentials">
-                {{ $isAuthenticated ? 'Re-authenticate' : 'Save Credentials' }}
+                    <span wire:loading.remove wire:target="saveCredentials">
+                {{ $isAuthenticated ? 'Re-authenticate' : 'Authenticate' }}
             </span>
                         <span wire:loading wire:target="saveCredentials">Authenticating...</span>
                     </flux:button>
@@ -275,6 +275,13 @@
                         method="GET"
                     >
                         Retrieve All Percentage Allocation Rules
+                    </x-api-endpoint-item>
+                    <x-api-endpoint-item
+                        value="pay-rules-list"
+                        label="Retrieve All Timekeeping Pay Rules"
+                        method="GET"
+                    >
+                        Retrieve All Timekeeping Pay Rules
                     </x-api-endpoint-item>
                     <x-api-endpoint-item
                         value="paycodes-list"

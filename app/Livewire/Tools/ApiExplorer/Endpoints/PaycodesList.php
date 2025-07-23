@@ -9,6 +9,8 @@ class PaycodesList extends BaseApiComponent
 {
     public string $errorMessage = '';
 
+    public string $sortField = 'name';
+
     public function getCacheKey(): string
     {
         $id = md5(session()?->id());

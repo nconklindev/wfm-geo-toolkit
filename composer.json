@@ -13,7 +13,6 @@
         "algolia/algoliasearch-client-php": "^4.18",
         "kalnoy/nestedset": "^6.0",
         "laravel/framework": "^12.0",
-        "laravel/nightwatch": "^1.7",
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.0",
         "laravel/scout": "^10.14",
