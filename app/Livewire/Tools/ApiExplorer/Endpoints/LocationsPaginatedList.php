@@ -2,16 +2,13 @@
 
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
-use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
-use App\Traits\ExportsCsvData;
-use App\Traits\PaginatesApiData;
-use Illuminate\Http\Client\Response;
+use App\Livewire\Tools\ApiExplorer\BaseApiComponent;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Validate;
 
-class LocationsPaginatedList extends BaseApiEndpoint
+class LocationsPaginatedList extends BaseApiComponent
 {
-    use ExportsCsvData;
-    use PaginatesApiData;
+    public string $errorMessage = '';
 
     #[Validate('required|string|max:255')]
     public string $qualifier = '';
@@ -19,19 +16,88 @@ class LocationsPaginatedList extends BaseApiEndpoint
     #[Validate('required|date|max:255')]
     public string $date = '';
 
-    public function render()
+    public function getCacheKey(): string
     {
-        $paginatedData = $this->getPaginatedData();
+        $id = md5(session()?->id());
 
-        return view(
-            'livewire.tools.api-explorer.endpoints.locations-paginated-list',
-            ['paginatedData' => $paginatedData],
-        );
+        return 'locations_'.$id;
     }
 
-    protected function initializeEndpoint(): void
+    public function getCacheTtl(): int
     {
-        $this->tableColumns = [
+        return 3600;
+    }
+
+    protected function getApiParams(): array
+    {
+        return [
+            'where' => ['descendantsOf' => ['context' => 'ORG',
+                'date' => $this->date,
+                'locationRef' => ['qualifier' => $this->qualifier],
+            ],
+            ],
+        ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getApiServiceCall(): callable
+    {
+        return fn ($params) => $this->wfmService->getLocationsPaginated($params);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDataKeyFromResponse(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTotalFromResponseData(array $data): ?int
+    {
+        return count($data);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDataForCsvExport(): Collection
+    {
+        // Try to get cached data first
+        if (! empty($this->data)) {
+            return collect($this->data);
+        }
+
+        // If no cached data and we're authenticated, fetch fresh data
+        if ($this->isAuthenticated) {
+            $this->loadData();
+
+            return collect($this->data);
+        }
+
+        // Return an empty collection if not authenticated or no data
+        return collect();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getCsvColumns(): array
+    {
+        return $this->getTableColumns();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTableColumns(): array
+    {
+        return [
             ['field' => 'nodeId', 'label' => 'ID'],
             ['field' => 'orgNodeTypeRef.qualifier', 'label' => 'Type'],
             ['field' => 'name', 'label' => 'Name'],
@@ -42,25 +108,5 @@ class LocationsPaginatedList extends BaseApiEndpoint
             ['field' => 'transferable', 'label' => 'Transferable'],
             ['field' => 'costCenterRef.qualifier', 'label' => 'Cost Center' ?? '-'],
         ];
-
-        $this->initializePaginationData();
-    }
-
-    protected function fetchData(): ?Response
-    {
-        $this->validate();
-
-        $body = [
-            'where' => ['descendantsOf' => ['context' => 'ORG',
-                'date' => $this->date,
-                'locationRef' => ['qualifier' => $this->qualifier],
-            ],
-            ],
-        ];
-
-        return $this->makeAuthenticatedApiCall(function () use ($body,
-        ) {
-            return $this->wfmService->getLocationsPaginated($body);
-        });
     }
 }

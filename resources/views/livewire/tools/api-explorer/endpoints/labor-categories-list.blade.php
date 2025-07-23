@@ -22,7 +22,7 @@
                     variant="primary"
                     wire:click="executeRequest"
                     :loading="false"
-                    :disabled="!$isAuthenticated || $isLoading"
+                    :disabled="!$isAuthenticated || $this->isLoading"
                     class="disabled:opacity-50"
                 >
                     <span wire:loading.remove>Execute Request</span>
@@ -47,21 +47,30 @@
                 <ul class="list-inside list-disc space-y-1 text-sm">
                     <li>Retrieves Labor Category Entries from WFM</li>
                     <li>Enter a Labor Category Entry Name to retrieve its data</li>
+                    <li>Only retrieves one entry at a time</li>
                 </ul>
             </div>
 
-            <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                <flux:heading size="sm" class="mb-2 text-blue-800 dark:text-blue-200">
-                    <flux:icon.information-circle class="mr-1 inline h-4 w-4" />
-                    Response Format
-                </flux:heading>
-                <ul class="list-inside list-disc space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                    <li>Each entry includes ID, name, description, and Labor Category it belongs to</li>
-                    <li>Status codes: 200 (success), 401 (unauthorized)</li>
-                </ul>
-            </div>
+            <flux:callout
+                heading="To retrieve all Labor Category Entries, use 'Retrieve Paginated List of Labor Category Entries'"
+                color="blue"
+                icon="information-circle"
+            />
         </div>
     </div>
+
+    @if (! empty($tableColumns) && $totalRecords > 0)
+        <x-api-data-table
+            :paginated-data="$paginatedData"
+            :columns="$tableColumns"
+            title="Labor Category Entry"
+            :total-records="$totalRecords"
+            :search="$search"
+            :sort-field="$sortField"
+            :sort-direction="$sortDirection"
+            :per-page="$perPage"
+        />
+    @endif
 
     <!-- Response Section -->
     <x-api-response :response="$apiResponse" :error="$errorMessage" :raw-json-cache-key="$rawJsonCacheKey" />

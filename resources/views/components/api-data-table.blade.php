@@ -19,11 +19,8 @@
             <flux:heading size="md">{{ $title }} ({{ $totalRecords }} total)</flux:heading>
 
             <div class="flex items-center space-x-2">
-                <flux:button wire:click="exportAllToCsv" variant="subtle" size="sm" icon="arrow-down-tray">
-                    Export All (CSV)
-                </flux:button>
-                <flux:button wire:click="exportSelectionsToCsv" variant="subtle" size="sm" icon="arrow-down-tray">
-                    Export Selections (CSV)
+                <flux:button wire:click="exportToCsv" variant="subtle" size="sm" icon="arrow-down-tray">
+                    Export (CSV)
                 </flux:button>
             </div>
         </div>

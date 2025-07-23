@@ -575,6 +575,15 @@ class WfmService
         );
     }
 
+    public function getHyperfindQueries(array $requestData)
+    {
+        return $this->callWfmApi(
+            'GET',
+            'api/v1/commons/hyperfind/public',
+            $requestData,
+        );
+    }
+
     /**
      * Helper method to analyze data types in the request
      *
