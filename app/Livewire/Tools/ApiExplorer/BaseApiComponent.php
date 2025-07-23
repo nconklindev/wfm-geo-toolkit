@@ -192,7 +192,17 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
 
             // Get cached raw response data or fetch fresh if not cached
             $this->data = $this->rememberCachedData($cacheKey, function () {
-                return $this->fetchDataFromApi();
+                $fetchedData = $this->fetchDataFromApi();
+
+                // Don't cache empty results - this can indicate an auth/API failure
+                if (empty($fetchedData)) {
+                    // Clear any existing cache since we got empty data
+                    $this->clearCache();
+
+                    throw new Exception('API returned empty data. Make sure you are authenticated and have the correct permissions.');
+                }
+
+                return $fetchedData;
             }, $this->getCacheTtl());
 
             // Initialize table data after fetching
@@ -205,12 +215,21 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
         }
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function fetchDataFromApi(): array
     {
         Log::info('BaseApiComponent: fetchDataFromApi started', [
             'component' => get_class($this),
             'isAuthenticated' => $this->isAuthenticated,
         ]);
+
+        // Double-check authentication before making API call
+        if (! $this->isAuthenticated) {
+            Log::warning('BaseApiComponent: Not authenticated during fetchDataFromApi');
+            throw new Exception('Authentication required.');
+        }
 
         // Merge the parameters with those set in the endpoint component
         // We don't set any defaults here because parameters vary
@@ -228,6 +247,7 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
             'component' => get_class($this),
         ]);
 
+        // Make the API call
         $response = $this->makeAuthenticatedApiCall(
             fn () => $apiServiceCall($params),
         );
@@ -242,9 +262,11 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
 
         if (! $response) {
             $this->totalRecords = 0;
-            Log::warning('BaseApiComponent: No response from API');
-
-            return [];
+            Log::warning('BaseApiComponent: No response from API', [
+                'status' => $response->status(),
+                'component' => get_class($this),
+            ]);
+            throw new Exception('No response received from API - possible authentication failure');
         }
 
         // Store the raw response data in the cache for the raw JSON viewer
@@ -255,7 +277,6 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
             $rawResponseData,
             $this->getCacheTtl(),
         );
-        //        cache()->put($rawJsonCacheKey, $rawResponseData, $this->getCacheTtl());
 
         Log::info('BaseApiComponent: Stored raw response in cache', [
             'component' => get_class($this),

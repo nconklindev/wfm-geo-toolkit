@@ -142,11 +142,11 @@
                         size="sm"
                         class="cursor-pointer"
                         wire:click="saveCredentials"
-                        icon="check"
+                        icon="lock-closed"
                         :disabled="$isLoading"
                     >
-            <span wire:loading.remove wire:target="saveCredentials">
-                {{ $isAuthenticated ? 'Re-authenticate' : 'Save Credentials' }}
+                    <span wire:loading.remove wire:target="saveCredentials">
+                {{ $isAuthenticated ? 'Re-authenticate' : 'Authenticate' }}
             </span>
                         <span wire:loading wire:target="saveCredentials">Authenticating...</span>
                     </flux:button>
