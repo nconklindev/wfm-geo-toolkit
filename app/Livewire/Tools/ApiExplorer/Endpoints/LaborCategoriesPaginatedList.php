@@ -2,25 +2,16 @@
 
 namespace App\Livewire\Tools\ApiExplorer\Endpoints;
 
-use App\Livewire\Tools\ApiExplorer\BaseApiEndpoint;
-use App\Traits\CombinesMultipleApiCalls;
-use App\Traits\ExportsCsvData;
-use App\Traits\HandlesBatchedApiRequests;
-use App\Traits\PaginatesApiData;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Response;
+use App\Livewire\Tools\ApiExplorer\BaseBatchableApiComponent;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Validate;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use stdClass;
 
-class LaborCategoriesPaginatedList extends BaseApiEndpoint
+class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
 {
-    use CombinesMultipleApiCalls;
-    use ExportsCsvData;
-    use HandlesBatchedApiRequests;
-    use PaginatesApiData;
+    public string $errorMessage = '';
 
     #[Validate('array')]
     public array $laborCategories = [];
@@ -28,415 +19,405 @@ class LaborCategoriesPaginatedList extends BaseApiEndpoint
     #[Validate('array')]
     public array $selectedLaborCategories = [];
 
-    public function render(): View
-    {
-        $paginatedData = $this->getPaginatedData();
+    public bool $laborCategoriesLoaded = false;
 
-        return view(
-            'livewire.tools.api-explorer.endpoints.labor-categories-paginated-list',
-            [
-                'paginatedData' => $paginatedData,
-            ],
-        );
+    /**
+     * Handle when labor category selection changes
+     */
+    public function updatedSelectedLaborCategories(): void
+    {
+        // Clear existing data when selection changes
+        $this->data = [];
+        $this->paginatedData = null;
+        $this->apiResponse = null;
+
+        // Reset pagination
+        $this->page = 1;
+
+        Log::info('Labor category selection updated', [
+            'component' => get_class($this),
+            'selected_count' => count($this->selectedLaborCategories),
+        ]);
     }
 
     /**
-     * Remove a category from the selected categories and refresh data
+     * Remove a category from selection
      */
-    public function removeCategory(string $category): void
+    public function removeCategory(string $categoryId): void
     {
         $this->selectedLaborCategories = array_values(
-            array_filter(
-                $this->selectedLaborCategories,
-                static fn ($item) => $item !== $category,
-            ),
+            array_filter($this->selectedLaborCategories, function ($id) use ($categoryId) {
+                return $id !== $categoryId;
+            })
         );
-        $this->resetPage();
-        $this->clearPaginationCache();
-        $this->executeRequest();
     }
 
-    /**
-     * Export all labor category entries data as CSV
-     */
-    public function exportAllToCsv(): StreamedResponse
+    public function mount(): void
     {
-        // Get ALL data regardless of category selections
-        $allDataForExport = $this->getAllDataForExport();
+        parent::mount();
 
-        // Apply current search and sort to the full dataset
-        $filteredData = $this->applyFiltersAndSort($allDataForExport);
-
-        $filename = 'labor-category-entries-all_'.now()->format('Y-m-d_H-i-s');
-
-        return $this->generateCsv(
-            $filteredData->toArray(),
-            $this->tableColumns,
-            $filename,
-        );
+        if ($this->isAuthenticated && ! $this->laborCategoriesLoaded) {
+            $this->loadLaborCategories();
+        }
     }
 
     /**
-     * Get all data for export (ignoring category filters)
-     * TODO: This looks really similar to fetchAllRecordsWithSmartBatching
+     * Load labor categories for the dropdown selection
      */
-    protected function getAllDataForExport(): Collection
+    public function loadLaborCategories(): void
     {
         if (! $this->isAuthenticated) {
-            return collect();
-        }
-
-        $batchSize = 250;
-        $index = 0;
-        $allRecords = collect();
-        $hasMoreData = true;
-
-        while ($hasMoreData) {
-            $requestData = [
-                'count' => $batchSize,
-                'index' => $index,
-            ];
-
-            $response = $this->makeAuthenticatedApiCall(
-                function () use ($requestData) {
-                    return $this->wfmService->getLaborCategoryEntriesPaginated(
-                        $requestData,
-                    );
-                },
-            );
-
-            if (! $response || ! $response->successful()) {
-                break;
-            }
-
-            $data = $response->json();
-            $records = collect($data['records'] ?? []);
-
-            if ($records->isEmpty()) {
-                $hasMoreData = false;
-            } else {
-                // Transform data for export too
-                $transformedRecords = $this->transformApiData(
-                    $records->toArray(),
-                );
-                $allRecords = $allRecords->concat(
-                    $transformedRecords->toArray(),
-                );
-                $index += $batchSize;
-
-                // If the count is less than the batch size, then we've reached the end
-                if ($records->count() < $batchSize) {
-                    $hasMoreData = false;
-                }
-            }
-        }
-
-        return $allRecords;
-    }
-
-    /**
-     * Transform API data - convert boolean fields and clean up data structure
-     */
-    protected function transformApiData(array $data): Collection
-    {
-        // Don't transform boolean fields here - let the view handle the display
-        // The view template expects actual boolean values to show icons and colors
-        return collect($data);
-    }
-
-    /**
-     * Export current page/filtered data as CSV
-     */
-    public function exportSelectionsToCsv(): StreamedResponse
-    {
-        // Get the current filtered and sorted data (what the user is seeing)
-        $exportData = $this->getAllData();
-        $filteredData = $this->applyFiltersAndSort($exportData);
-
-        $categoryNames = empty($this->selectedLaborCategories)
-            ? 'current-view'
-            : implode('-', array_slice($this->selectedLaborCategories, 0, 3));
-
-        if (count($this->selectedLaborCategories) > 3) {
-            $categoryNames .= '-and-'.(count($this->selectedLaborCategories)
-                    - 3).'-more';
-        }
-
-        $filename = 'labor-category-entries-'.$categoryNames.'_'.now()->format(
-            'Y-m-d_H-i-s',
-        );
-
-        return $this->generateCsv(
-            $filteredData->toArray(),
-            $this->tableColumns,
-            $filename,
-        );
-    }
-
-    /**
-     * Load all data based on selected categories
-     */
-    protected function loadDataBasedOnFilters(): void
-    {
-        if (! $this->isAuthenticated) {
-            $this->totalRecords = 0;
-            $this->cacheKey = '';
+            $this->errorMessage = 'Please authenticate first using the credentials form above.';
 
             return;
         }
 
         try {
-            $startTime = microtime(true);
+            Log::info('Loading labor categories', [
+                'component' => get_class($this),
+            ]);
 
-            if (empty($this->selectedLaborCategories)) {
-                // Fetch ALL data in one API call
-                $this->fetchAllRecordsWithSmartBatching(
-                    fn ($apiCall) => $this->makeAuthenticatedApiCall($apiCall),
-                    fn ($requestData,
-                    ) => $this->wfmService->getLaborCategoryEntriesPaginated(
-                        $requestData,
-                    ),
-                    250,
-                    1000,
-                    'LaborCategoriesPaginatedList',
-                );
+            $response = $this->makeAuthenticatedApiCall(
+                fn () => $this->wfmService->getLaborCategories([]),
+            );
+
+            if ($response && $response->successful()) {
+                $data = $response->json();
+
+                // Transform the data for dropdown display
+                $this->laborCategories = collect($data)
+                    ->map(function ($category) {
+                        return [
+                            'id' => $category['id'] ?? '',
+                            'name' => $category['name'] ?? 'Unknown',
+                            'qualifier' => $category['qualifier'] ?? '',
+                        ];
+                    })
+                    ->toArray();
+
+                $this->laborCategoriesLoaded = true;
+
+                Log::info('Labor categories loaded successfully', [
+                    'component' => get_class($this),
+                    'count' => count($this->laborCategories),
+                ]);
             } else {
-                // Load filtered data using multiple API calls
-                $this->loadFilteredData();
+                $this->errorMessage = 'Failed to load labor categories. Please try again.';
+                Log::error('Failed to load labor categories', [
+                    'component' => get_class($this),
+                    'status' => $response ? $response->status() : 'no_response',
+                ]);
             }
+        } catch (Exception $e) {
+            $this->errorMessage = 'Error loading labor categories: '.$e->getMessage();
+            Log::error('Error loading labor categories', [
+                'component' => get_class($this),
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
-            $this->logPerformanceMetrics($startTime);
-        } catch (ConnectionException $ce) {
-            $this->errorMessage
-                = 'Unable to connect to API. Please check your network connection and try again.';
-            Log::error('Connection error in LaborCategoriesPaginatedList', [
-                'error' => $ce->getMessage(),
-                'selected_categories' => $this->selectedLaborCategories,
+    // We override mount in this one endpoint because we need to load
+    // the labor categories when the component is loaded
+
+    /**
+     * Override shouldBatch to disable batching for this component
+     * since we need to make multiple separate API calls
+     */
+    public function shouldBatch(): bool
+    {
+        return false; // Disable smart batching for multiple labor category calls
+    }
+
+    protected function getApiParams(): array
+    {
+        // We only handle the case where no Labor Categories are selected here
+        // and return all by default
+        return ['where' => new stdClass];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getApiServiceCall(): callable
+    {
+        return fn ($params) => $this->wfmService->getLaborCategoryEntriesPaginated($params);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDataKeyFromResponse(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTotalFromResponseData(array $data): ?int
+    {
+        return count($data);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getDataForCsvExport(): Collection
+    {
+        // Try to get cached data first
+        if (! empty($this->data)) {
+            return collect($this->data);
+        }
+
+        // If no cached data and we're authenticated, fetch fresh data
+        if ($this->isAuthenticated) {
+            $this->loadData();
+
+            return collect($this->data);
+        }
+
+        // Return an empty collection if not authenticated or no data
+        return collect();
+    }
+
+    /**
+     * Override the loadData method to handle multiple labor categories
+     */
+    public function loadData(): void
+    {
+        // First, ensure labor categories are loaded
+        if (! $this->laborCategoriesLoaded) {
+            $this->loadLaborCategories();
+            Log::info('labor categories loaded');
+        }
+
+        // Handle multiple labor category calls ourselves
+        if (! empty($this->selectedLaborCategories)) {
+            $this->loadMultipleLaborCategoryData();
+        } else {
+            // If no categories selected, call parent (which will return empty due to getApiParams)
+            parent::loadData();
+        }
+    }
+
+    /**
+     * Handle loading data for multiple labor categories
+     */
+    protected function loadMultipleLaborCategoryData(): void
+    {
+        if (! $this->isAuthenticated) {
+            $this->errorMessage = 'Please authenticate first using the credentials form above.';
+
+            return;
+        }
+
+        $this->isLoading = true;
+        $this->errorMessage = '';
+
+        try {
+            $cacheKey = $this->getCacheKey();
+
+            // Get cached data or fetch fresh
+            $this->data = $this->rememberCachedData($cacheKey, function () {
+                return $this->fetchMultipleLaborCategoryData();
+            }, $this->getCacheTtl());
+
+            // Initialize table data after fetching
+            $this->initializeTableData();
+            $this->setSuccessfulMultipleCategoryResponse();
+        } catch (Exception $e) {
+            $this->handleDataLoadingError($e);
+        } finally {
+            $this->isLoading = false;
+        }
+    }
+
+    public function getCacheKey(): string
+    {
+        $id = md5(session()?->id());
+        $selectedLaborCategories = md5(implode(',', $this->selectedLaborCategories));
+
+        return 'labor_category_entries_'.$selectedLaborCategories.'_'.$id;
+    }
+
+    /**
+     * Fetch data for multiple labor categories
+     */
+    protected function fetchMultipleLaborCategoryData(): array
+    {
+        Log::info('LaborCategoriesPaginatedList: fetchMultipleLaborCategoryData started', [
+            'component' => get_class($this),
+            'selectedCount' => count($this->selectedLaborCategories),
+            'selectedLaborCategories' => $this->selectedLaborCategories,
+        ]);
+
+        // Convert selected IDs to integers for consistent comparison
+        $selectedIds = array_map('intval', $this->selectedLaborCategories);
+
+        // Get the selected categories
+        $selectedCategories = collect($this->laborCategories)
+            ->whereIn('id', $selectedIds)
+            ->toArray();
+
+        Log::info('Debug matched categories', [
+            'selectedCategories' => $selectedCategories,
+            'matchedCount' => count($selectedCategories),
+        ]);
+
+        if (empty($selectedCategories)) {
+            Log::warning('No categories found for selected IDs', [
+                'selectedIds' => $selectedIds,
+                'laborCategories_ids' => collect($this->laborCategories)->pluck('id')->toArray(),
             ]);
             $this->totalRecords = 0;
-            $this->cacheKey = '';
+
+            return [];
         }
-    }
 
-    /**
-     * Load filtered data using multiple API calls
-     */
-    protected function loadFilteredData(): void
-    {
-        $apiCallFunctions = [];
+        $allData = [];
+        $allRawResponses = [];
+        $successfulCalls = 0;
+        $failedCalls = 0;
 
-        foreach ($this->selectedLaborCategories as $category) {
-            $apiCallFunctions[] = function () use ($category) {
-                return $this->wfmService->getLaborCategoryEntriesPaginated([
-                    'count' => 1000, // Respect the API limit
-                    'index' => 0,
-                    'where' => ['laborCategory' => ['qualifier' => $category]],
+        // Make one API call per selected category
+        foreach ($selectedCategories as $category) {
+            try {
+                Log::info('Making API call for category', [
+                    'categoryId' => $category['id'],
+                    'categoryName' => $category['name'],
+                    'originalQualifier' => $category['qualifier'],
                 ]);
-            };
-        }
 
-        $combinedData = $this->makeMultipleApiCalls(
-            $apiCallFunctions,
-            function ($item) {
-                return $item['id'] ?? ($item['name'] ?? '').'_'.data_get(
-                    $item,
-                    'laborCategory.name',
-                    '',
-                );
-            },
-        );
-
-        // Transform the combined data
-        $transformedData = $this->transformApiData($combinedData->toArray());
-
-        // Store data in base class properties AND cache
-        $this->storeDataInComponent($transformedData);
-
-        Log::info('Combined Data Cached', [
-            'component' => 'LaborCategoriesPaginatedList',
-            'total_records_available' => $this->totalRecords,
-            'selected_categories' => count($this->selectedLaborCategories),
-            'cache_key' => $this->cacheKey,
-            'memory_usage_mb' => round(
-                memory_get_peak_usage(true) / 1024 / 1024,
-                2,
-            ),
-        ]);
-    }
-
-    /**
-     * Store data in both component properties and cache
-     */
-    protected function storeDataInComponent(Collection $data): void
-    {
-        // Convert collection to array for storage
-        $dataArray = $data->toArray();
-
-        // Store in base class properties (required for pagination trait)
-        $this->tableData = $dataArray;
-        $this->totalRecords = count($dataArray);
-
-        // Generate cache key and store in cache
-        $this->cacheKey = $this->generateCacheKey();
-        cache()->put($this->cacheKey, $data, now()->addMinutes(30));
-
-        // Clear pagination cache when new data is loaded
-        $this->clearPaginationCache();
-    }
-
-    /**
-     * Override the generateCacheKey method to include selected categories
-     */
-    protected function generateCacheKey(): string
-    {
-        $categoriesHash = empty($this->selectedLaborCategories)
-            ? 'all'
-            : hash('sha256', json_encode($this->getSortedCategories()));
-
-        $userId = auth()->id() ?? 'anonymous';
-        $sessionId = session()->getId();
-
-        return 'api_data_'.class_basename($this).'_'.hash(
-            'sha256',
-            $this->hostname.'_'.$userId.'_'.$sessionId.'_'.$categoriesHash,
-        );
-    }
-
-    /**
-     * Get sorted categories for consistent cache key generation
-     */
-    private function getSortedCategories(): array
-    {
-        $categories = array_values($this->selectedLaborCategories);
-        sort($categories);
-
-        return $categories;
-    }
-
-    /**
-     * Log performance metrics
-     */
-    private function logPerformanceMetrics(float $startTime): void
-    {
-        $executionTime = (microtime(true) - $startTime) * 1000;
-        $memoryUsage = memory_get_peak_usage(true) / 1024 / 1024;
-
-        Log::info('LaborCategoriesPaginatedList Performance Metrics', [
-            'execution_time_ms' => round($executionTime, 2),
-            'memory_usage_mb' => round($memoryUsage, 2),
-            'total_records' => $this->totalRecords,
-            'selected_categories' => count($this->selectedLaborCategories),
-            'data_source' => empty($this->selectedLaborCategories)
-                ? 'api_all' : 'api_filtered',
-            'cache_key' => $this->cacheKey,
-        ]);
-    }
-
-    /**
-     * Fetch data using smart batching and API calls, and return a formatted
-     * response.
-     *
-     * This method utilizes smart batching to minimize the number of API calls
-     * while efficiently fetching all relevant records. It processes the data
-     * with respect to the selected labor categories, generates a response with
-     * the records, and returns the total count of records.
-     *
-     * @return Response|null A formatted response containing the fetched
-     *                       records and their count, or null if no data is retrieved.
-     *
-     * @throws \JsonException
-     */
-    protected function fetchData(): ?Response
-    {
-        // Use the smart batching trait to get all records
-        $allRecords = $this->fetchAllRecordsWithSmartBatching(
-            fn ($apiCall) => $this->makeAuthenticatedApiCall($apiCall),
-            fn ($requestData,
-            ) => $this->wfmService->getLaborCategoryEntriesPaginated(
-                array_merge($requestData, [
+                $params = [
                     'where' => [
                         'laborCategory' => [
-                            'qualifier' => $this->selectedLaborCategories[0] ??
-                                null,
+                            'id' => $category['id'],
+                            'qualifier' => $category['name'], // Use name as qualifier string
                         ],
                     ],
-                ]),
-            ),
-            250, // initial batch size
-            1000, // max batch size
-            'LaborCategoriesPaginatedList',
-        );
+                ];
 
-        // If you need to handle multiple categories, you could do multiple calls
-        // and combine them, or modify the batching method to handle this use case
+                $response = $this->makeAuthenticatedApiCall(
+                    fn () => $this->wfmService->getLaborCategoryEntriesPaginated($params)
+                );
 
-        // Create a mock response object since we already have the processed data
-        return new Response(
-            new \GuzzleHttp\Psr7\Response(200, [], json_encode([
-                'records' => $allRecords->toArray(),
-                'total' => $allRecords->count(),
-            ], JSON_THROW_ON_ERROR)),
-        );
+                if ($response && $response->successful()) {
+                    $responseData = $response->json();
+
+                    $allRawResponses[] = [
+                        'laborCategory' => $category['name'],
+                        'categoryName' => $category['name'],
+                        'categoryId' => $category['id'],
+                        'data' => $responseData,
+                    ];
+
+                    $extractedData = $this->extractDataFromResponse($response);
+
+                    // Add source tracking
+                    $extractedData = array_map(function ($item) use ($category) {
+                        if (is_array($item)) {
+                            $item['_source_labor_category'] = $category['name'];
+                            $item['_source_qualifier'] = $category['name'];
+                            $item['_source_category_id'] = $category['id'];
+                        }
+
+                        return $item;
+                    }, $extractedData);
+
+                    $allData = array_merge($allData, $extractedData);
+                    $successfulCalls++;
+
+                    Log::info('API call successful', [
+                        'categoryName' => $category['name'],
+                        'categoryId' => $category['id'],
+                        'recordCount' => count($extractedData),
+                    ]);
+                } else {
+                    $failedCalls++;
+                    Log::warning('API call failed', [
+                        'categoryName' => $category['name'],
+                        'categoryId' => $category['id'],
+                        'status' => $response ? $response->status() : 'no_response',
+                    ]);
+                }
+            } catch (Exception $e) {
+                $failedCalls++;
+                Log::error('Exception during API call', [
+                    'categoryName' => $category['name'] ?? 'unknown',
+                    'categoryId' => $category['id'] ?? 'unknown',
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // Store combined raw responses
+        $combinedRawResponse = [
+            'multiple_labor_category_calls' => true,
+            'successful_calls' => $successfulCalls,
+            'failed_calls' => $failedCalls,
+            'total_records' => count($allData),
+            'responses' => $allRawResponses,
+        ];
+
+        $this->storeCachedData($this->getCacheKey(), $combinedRawResponse, $this->getCacheTtl());
+        $this->totalRecords = count($allData);
+
+        Log::info('fetchMultipleLaborCategoryData completed', [
+            'totalRecords' => $this->totalRecords,
+            'successfulCalls' => $successfulCalls,
+            'failedCalls' => $failedCalls,
+        ]);
+
+        return $allData;
+    }
+
+    public function getCacheTtl(): int
+    {
+        return 3600; // 1 hour
     }
 
     /**
-     * Initialize endpoint configuration
+     * Set successful response for multiple category calls
      */
-    protected function initializeEndpoint(): void
+    protected function setSuccessfulMultipleCategoryResponse(): void
     {
-        // Configure the table structure
-        $this->tableColumns = [
+        $recordCount = count($this->data);
+        $categoryCount = count($this->selectedLaborCategories);
+
+        $this->apiResponse = [
+            'status' => 200,
+            'data' => [
+                'message' => $categoryCount > 1
+                    ? "Multiple API calls completed - $recordCount total records from $categoryCount labor categories"
+                    : "API call completed - $recordCount records",
+                'record_count' => $recordCount,
+                'labor_categories_queried' => $categoryCount,
+                'click_to_view' => 'Click "Show Raw JSON" below to view combined response data',
+            ],
+        ];
+
+        $this->rawJsonCacheKey = $this->getCacheKey();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getCsvColumns(): array
+    {
+        return $this->getTableColumns();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function getTableColumns(): array
+    {
+        return [
             ['field' => 'name', 'label' => 'Name'],
             ['field' => 'description', 'label' => 'Description'],
             ['field' => 'inactive', 'label' => 'Inactive'],
             ['field' => 'laborCategory.name', 'label' => 'Labor Category'],
         ];
-
-        // Initialize pagination with cache key
-        $this->initializePaginationData();
-
-        // Load available labor categories for the filter dropdown
-        $this->loadLaborCategories();
-    }
-
-    /**
-     * Load available labor categories for the filter dropdown
-     */
-    protected function loadLaborCategories(): void
-    {
-        if (! $this->isAuthenticated) {
-            return;
-        }
-
-        $response = $this->makeAuthenticatedApiCall(function () {
-            return $this->wfmService->getLaborCategories();
-        });
-
-        if ($response && $response->successful()) {
-            $data = $response->json();
-            $this->laborCategories = array_column($data, 'name');
-        } else {
-            $this->errorMessage
-                = 'Unable to load labor categories. Please check your network connection and try again.';
-            Log::error(
-                'Failed to load labor categories in initializeEndpoint',
-                [
-                    'component' => get_class($this),
-                    'hostname' => $this->hostname,
-                    'response_status' => $response ? $response->status()
-                        : 'no_response',
-                    'response_body' => $response ? $response->body()
-                        : 'no_response',
-                ],
-            );
-        }
-    }
-
-    /**
-     * Override to specify boolean fields for this endpoint
-     */
-    protected function getBooleanFields(): array
-    {
-        return ['inactive'];
     }
 }

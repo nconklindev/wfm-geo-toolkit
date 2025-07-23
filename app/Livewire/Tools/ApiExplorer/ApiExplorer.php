@@ -161,7 +161,7 @@ class ApiExplorer extends Component
         $this->password = '';
 
         // Clear session authentication data
-        session()->forget(['wfm_authenticated', 'wfm_access_token']);
+        session()?->forget(['wfm_authenticated', 'wfm_access_token']);
 
         // Clear the access token from the service
         $this->wfmService->clearAccessToken();
@@ -170,7 +170,7 @@ class ApiExplorer extends Component
         $this->apiResponse = null;
         $this->errorMessage = null;
 
-        // Optionally dispatch an event to notify other components
+        // Dispatch an event to notify other components
         $this->dispatch('wfm-logged-out');
     }
 

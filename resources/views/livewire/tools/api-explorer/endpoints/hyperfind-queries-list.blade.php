@@ -1,9 +1,9 @@
 <div class="space-y-6">
     <!-- Endpoint Header -->
     <x-api-endpoint-header
-        heading="Retrieve All Percent Allocation Rules"
+        heading="Retrieve Public Hyperfind Queries"
         method="GET"
-        wfm-endpoint="/api/v1/timekeeping/setup/percentage_allocation_rules"
+        wfm-endpoint="/api/v1/commons/hyperfind/public"
     />
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -35,7 +35,7 @@
             <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
                 <flux:heading size="sm" class="mb-2">About This Endpoint</flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm">
-                    <li>Retrieves all available Adjustment Rules</li>
+                    <li>Retrieves all Paycodes</li>
                     <li>Uses API user's access rights</li>
                     <li>Review the table for at-a-glance information or the raw JSON output for additional details</li>
                 </ul>
@@ -44,16 +44,16 @@
     </div>
 
     {{-- Always show the table component once data has been loaded at least once --}}
-    @if ((! empty($tableColumns) && $totalRecords > 0) || $search)
-        <x-tools.api-explorer.percent-allocation-rules-cards
-            :paginated-data="$paginatedData"
+    @if (! empty($tableColumns) && $totalRecords > 0)
+        <x-api-data-table
+            :paginatedData="$paginatedData"
             :columns="$tableColumns"
-            title="Percentage Allocation Rules"
-            :total-records="$totalRecords"
+            title="Public Hyperfind Queries"
+            :totalRecords="$totalRecords"
             :search="$search"
-            :sort-field="$sortField"
-            :sort-direction="$sortDirection"
-            :per-page="$perPage"
+            :sortField="$sortField"
+            :sortDirection="$sortDirection"
+            :perPage="$perPage"
         />
     @endif
 
