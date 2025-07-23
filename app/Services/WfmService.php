@@ -500,6 +500,25 @@ class WfmService
     }
 
     /**
+     * Returns a list of all Timekeeping Pay Rules using the WFM API
+     *
+     * @see https://developer.ukg.com/wfm/reference/retrieve-all-timekeeping-pay-rules
+     *
+     * @return array|Response the Response object from the API
+     *
+     * @throws \Illuminate\Http\Client\ConnectionException
+     * @throws \JsonException
+     */
+    public function getPayRules(array $requestData = []): array|Response
+    {
+        return $this->callWfmApi(
+            'GET',
+            'api/v2/timekeeping/setup/payrules',
+            $requestData,
+        );
+    }
+
+    /**
      * Clear the access token (used for logout)
      */
     public function clearAccessToken(): void

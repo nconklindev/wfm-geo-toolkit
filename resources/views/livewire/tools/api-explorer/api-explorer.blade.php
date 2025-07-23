@@ -277,6 +277,13 @@
                         Retrieve All Percentage Allocation Rules
                     </x-api-endpoint-item>
                     <x-api-endpoint-item
+                        value="pay-rules-list"
+                        label="Retrieve All Timekeeping Pay Rules"
+                        method="GET"
+                    >
+                        Retrieve All Timekeeping Pay Rules
+                    </x-api-endpoint-item>
+                    <x-api-endpoint-item
                         value="paycodes-list"
                         label="Retrieve Paycodes as a Manager"
                         method="GET"
