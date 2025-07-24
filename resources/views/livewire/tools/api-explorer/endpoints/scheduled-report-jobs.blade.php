@@ -1,9 +1,9 @@
 <div class="space-y-6">
     <!-- Endpoint Header -->
     <x-api-endpoint-header
-        heading="Retrieve All Timekeeping Pay Rules"
-        method="GET"
-        wfm-endpoint="/api/v2/timekeeping/setup/payrules"
+        heading="Retrieve Paginated List of Scheduled Report Requests"
+        method="POST"
+        wfm-endpoint="/api/v1/platform/scheduled_reports/apply_read"
     />
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -35,7 +35,11 @@
             <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
                 <flux:heading size="sm" class="mb-2">About This Endpoint</flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm">
-                    <li>Retrieves all Pay Rules</li>
+                    <li>Retrieves all Scheduled Reporting Jobs</li>
+                    <li>The associated Access Control Point is REPORT_SCHEDULING with action Allowed</li>
+                    <li>
+                        The information provided in the output may require the use of other endpoints to obtain all data
+                    </li>
                     <li>Review the table for at-a-glance information or the raw JSON output for additional details</li>
                 </ul>
             </div>
@@ -47,7 +51,7 @@
         <x-api-data-table
             :paginatedData="$paginatedData"
             :columns="$tableColumns"
-            title="Pay Rules"
+            title="Scheduled Report Jobs"
             :totalRecords="$totalRecords"
             :search="$search"
             :sortField="$sortField"
