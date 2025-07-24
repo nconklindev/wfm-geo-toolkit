@@ -35,6 +35,12 @@
             "labels": [
                 "security"
             ]
+        },
+        {
+            "title": "## 📖 Documentation",
+            "labels": [
+                "documentation"
+            ]
         }
     ],
     "ignore_labels": [
