@@ -1,0 +1,48 @@
+{
+    "categories": [
+        {
+            "title": "## 🚀 Features",
+            "labels": [
+                "feature",
+                "enhancement"
+            ]
+        },
+        {
+            "title": "## 🐛 Bug Fixes",
+            "labels": [
+                "bug",
+                "fix",
+                "(ノಠ益ಠ)ノ彡┻━┻"
+            ]
+        },
+        {
+            "title": "## 🧹 Maintenance",
+            "labels": [
+                "maintenance",
+                "chore"
+            ]
+        },
+        {
+            "title": "## 🔨 Dependencies",
+            "labels": [
+                "dependencies",
+                "php",
+                "javascript"
+            ]
+        },
+        {
+            "title": "## 🔐 Security",
+            "labels": [
+                "security"
+            ]
+        }
+    ],
+    "ignore_labels": [
+        "ignore-for-release"
+    ],
+    "sort": "ASC",
+    "template": "#{{CHANGELOG}}\n\n<details>\n<summary>🤖 Uncategorized</summary>\n\n#{{UNCATEGORIZED}}\n</details>",
+    "pr_template": "- #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
+    "empty_template": "- No changes",
+    "max_tags_to_fetch": 200
+}
