@@ -35,8 +35,7 @@
             <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
                 <flux:heading size="sm" class="mb-2">About This Endpoint</flux:heading>
                 <ul class="list-inside list-disc space-y-1 text-sm">
-                    <li>Retrieves all Paycodes</li>
-                    <li>Uses API user's access rights</li>
+                    <li>Retrieves all Pay Rules</li>
                     <li>Review the table for at-a-glance information or the raw JSON output for additional details</li>
                 </ul>
             </div>
