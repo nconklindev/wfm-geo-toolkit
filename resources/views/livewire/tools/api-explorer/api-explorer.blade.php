@@ -307,6 +307,13 @@
                     >Retrieve Paginated List of Locations
                     </x-api-endpoint-item>
                 </x-api-endpoint-group>
+                <x-api-endpoint-group title="Report Requests" name="document-text">
+                    <x-api-endpoint-item
+                        value="scheduled-report-jobs"
+                        label="Retrieve Paginated List of Scheduled Report Requests"
+                        method="POST">Retrieve Paginated List of Scheduled Report Requests
+                    </x-api-endpoint-item>
+                </x-api-endpoint-group>
             </div>
         </div>
 

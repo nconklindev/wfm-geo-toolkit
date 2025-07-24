@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use JsonException;
+use stdClass;
 use Throwable;
 
 class WfmService
@@ -71,7 +72,7 @@ class WfmService
     private function callWfmApi(
         string $method,
         string $apiPath,
-        array $data = [],
+        array|object $data = [],
         array $headers = [],
         bool $asJson = true,
     ): Response|array {
@@ -98,7 +99,9 @@ class WfmService
             $http = Http::withToken($this->accessToken)->withHeaders($headers);
 
             if (strtolower($method) === 'get') {
-                $response = $http->get($url, $data);
+                // Convert object to array for GET requests
+                $queryData = is_object($data) ? (array) $data : $data;
+                $response = $http->get($url, $queryData);
             } else {
                 $response = $http->post(
                     $url,
@@ -516,6 +519,22 @@ class WfmService
             'api/v2/timekeeping/setup/payrules',
             $requestData,
         );
+    }
+
+    /**
+     * @throws \Illuminate\Http\Client\ConnectionException
+     * @throws \JsonException
+     */
+    public function getScheduledReportJobs(array $requestData = []): array|Response
+    {
+        // Force empty object if no data provided
+        if (empty($requestData)) {
+            $requestData = new stdClass;
+        }
+
+        return $this->callWfmApi(
+            'POST',
+            'api/v1/platform/scheduled_reports/apply_read', $requestData);
     }
 
     /**
