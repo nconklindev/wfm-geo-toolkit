@@ -22,6 +22,12 @@
                                 >
                                     API Explorer
                                 </flux:menu.item>
+                                <flux:menu.item
+                                    href="{{ route('tools.api-explorer-docs') }}"
+                                    :current="request()->routeIs('tools.api-explorer-docs')"
+                                >
+                                    Guide
+                                </flux:menu.item>
                             </flux:menu.group>
                             <flux:menu.group heading="Mobile">
                                 <flux:menu.item
@@ -58,6 +64,12 @@
                                     :current="request()->routeIs('tools.api-explorer')"
                                 >
                                     API Explorer
+                                </flux:menu.item>
+                                <flux:menu.item
+                                    href="{{ route('tools.api-explorer-docs') }}"
+                                    :current="request()->routeIs('tools.api-explorer-docs')"
+                                >
+                                    Guide
                                 </flux:menu.item>
                             </flux:menu.group>
                             <flux:menu.group heading="Mobile">
