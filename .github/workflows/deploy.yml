@@ -1,14 +1,16 @@
 name: 'Deploy and Release with Changelog'
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  pull_request:
+    types: [closed]
+    branches:
+      - main
 
 jobs:
   create-release:
     name: 'Create Release'
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/v')
     permissions:
       contents: write
 
