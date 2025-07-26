@@ -3,7 +3,6 @@ name: tests
 on:
   pull_request:
     branches:
-      - production
       - main
 
 jobs:
