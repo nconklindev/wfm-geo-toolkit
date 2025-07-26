@@ -4,13 +4,6 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  workflow_dispatch: # Enables manual "Run workflow" button
-    inputs:
-      test_mode:
-        description: 'Run in test mode (no actual release/deploy)'
-        required: false
-        default: true
-        type: boolean
 
 jobs:
   create-release:
