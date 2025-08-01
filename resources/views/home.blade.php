@@ -212,7 +212,7 @@
                 </div>
                 <flux:heading level="3" size="lg" class="mb-2 font-semibold">Instant Access</flux:heading>
                 <flux:text class="text-sm">
-                    No downloads, no installation. All tools work directly in your browser with instant access.
+                    No downloads, no installation. All tools work directly in your browser.
                 </flux:text>
             </div>
 
@@ -224,8 +224,8 @@
                 </div>
                 <flux:heading level="3" size="lg" class="mb-2 font-semibold">Easy to Use</flux:heading>
                 <flux:text class="text-sm">
-                    We developed our tools to be intuitive and easy to use. No account required. Just pick from our
-                    selection of tools, and get started.
+                    We developed our tools to be intuitive and easy to use. No account required. Just pick from our assorted
+                    collection, and get started.
                 </flux:text>
             </div>
 
@@ -237,7 +237,8 @@
                 </div>
                 <flux:heading level="3" size="lg" class="mb-2 font-semibold">Pro WFM Focused</flux:heading>
                 <flux:text class="text-sm">
-                    Built specifically for Pro WFM environments with deep understanding of workforce management needs.
+                    We built our tools to be focused on Pro WFM environments.
+                    Built with Pro WFM environments with deep understanding of workforce management needs.
                 </flux:text>
             </div>
         </div>
