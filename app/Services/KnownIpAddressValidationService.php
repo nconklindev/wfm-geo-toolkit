@@ -6,7 +6,7 @@ use App\Models\KnownIpAddress;
 use App\Notifications\KnownIpAddressNotification;
 use Illuminate\Support\Facades\Log;
 
-class IpAddressValidationService
+class KnownIpAddressValidationService
 {
     /**
      * Validate an IP address range and send a notification if issues are detected.

@@ -3,14 +3,13 @@
 namespace App\Observers;
 
 use App\Models\KnownIpAddress;
-use App\Services\IpAddressValidationService;
+use App\Services\KnownIpAddressValidationService;
 
 class KnownIpAddressObserver
 {
     public function __construct(
-        private readonly IpAddressValidationService $validationService
-    ) {
-    }
+        private readonly KnownIpAddressValidationService $validationService
+    ) {}
 
     /**
      * Handle the KnownIpAddress "created" event.
