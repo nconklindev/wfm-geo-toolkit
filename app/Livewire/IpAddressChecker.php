@@ -59,6 +59,7 @@ class IpAddressChecker extends Component
 
     public function formatNumber($number): string
     {
+        // Use Laravel's Number helper to abbreviate
         if ($number >= 1000000) {
             return Number::abbreviate($number, 2);
         }
