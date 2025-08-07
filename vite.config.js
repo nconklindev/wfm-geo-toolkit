@@ -9,26 +9,25 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/coloris.css',
                 'resources/js/app.js',
-                'resources/js/map.js',
                 'resources/js/echo.js',
                 'resources/js/plotter.js',
-                'resources/js/coloris.js',
+                'resources/js/coloris.js'
             ],
-            refresh: true,
+            refresh: true
         }),
-        tailwindcss(),
+        tailwindcss()
     ],
     optimizeDeps: {
-        include: ['leaflet'],
+        include: ['leaflet']
     },
     server: {
         host: 'localhost',
         watch: {
-            usePolling: false,
+            usePolling: false
         },
         cors: true,
         hmr: {
-            host: 'localhost',
-        },
-    },
+            host: 'localhost'
+        }
+    }
 });

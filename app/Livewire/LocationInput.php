@@ -23,9 +23,7 @@ class LocationInput extends Component
             one full path at a time.';
 
     /**
-     * Initialise the component.
-     *
-     * @param  array  $existingLocations  Pre-populate with existing locations if editing. Should be in the format [['Seg1', 'Seg2'], ['Path2']].
+     * Initialize the component.
      */
     public function mount(array $assignedLocations = []): void
     {

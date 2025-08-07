@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\Http\ViewComposers\HeaderViewComposer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,7 +29,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::preventLazyLoading(); // Prevent lazy loading of models
 
-        View::composer('*', HeaderViewComposer::class);
         Paginator::defaultView('pagination::tailwind');
     }
 }

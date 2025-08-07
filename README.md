@@ -2,7 +2,8 @@
 
 ## Disclaimer ❗
 
-This project is an independent, unofficial tool developed by community members. It is not affiliated with, endorsed, sponsored, or supported by Ultimate Kronos Group (UKG) or any of its subsidiaries. 
+This project is an independent, unofficial tool developed by community members. It is not affiliated with, endorsed,
+sponsored, or supported by Ultimate Kronos Group (UKG) or any of its subsidiaries.
 
 - This tool is provided "as is" without warranty of any kind
 - UKG is not responsible for any issues arising from its use
@@ -13,63 +14,52 @@ With that out of the way, keep reading to learn more about what this is.
 
 ## What is this? 🤔
 
-This started as a tool to aid in the troubleshooting of geofencing issues that users of Pro WFM face while using the companion mobile app. Since then, it has evolved to be a broader toolkit that includes other functionality to help make the user experience smoother and easier to troubleshoot. 
+This started as a tool to aid in the troubleshooting of geofencing issues that users of Pro WFM face while using the
+companion mobile app. Since then, it has evolved to be a broader toolkit that includes other functionality to help make
+the user experience smoother and easier to troubleshoot.
 
 ## Who is this for? 🧩
 
-It can be used by anyone, but registration has been restricted to UKG employees only at this time. I do not know if this
-will change in the future.
+I built this tool with the goal of making it easier for users of Pro WFM to troubleshoot their geofencing issues. That
+would include those in Support, consultants, and customers. The tool is free to use, so anyone can give it a try
+risk-free.
 
 ## How do I use it?
 
-Guests can simply go to https://wfmgeotoolkit.app and get started by going to **Tools > Plotter**. Or, by going directly
-to the page at https://wfmgeotoolkit.app/tools/plotter. This tool is a very
-basic coordinate
-plotter that allows for search by address as well as manual entering of latitude and longitude coordinates. Enter all
-required fields (though, it is recommended to change the color too), and click "Add to Plot." Plotted points will appear
-in the "Plotted Points" table. Clicking on a row in the table will fly to that point and zoom in. Clicking the trashcan
-icon will delete that point.
-
-Registered users have access to much more within the application. At a high level, here is a list of some things
-available:
-
-- All CRUD operations are related to known places (Create, Read, Update, Delete)
-- Create and edit known IP addresses
-- Adding locations to known places
-- Automatically generated business structure hierarchy based on locations added to known places
-- Dashboard view that displays all created known places, known IP addresses, and locations
-- Notifications for issues with known places and known IP addresses based on Pro WFM logic
-- More!
-
-A registered user can get their bearings by going to the `/welcome` page. Also, any page that requires authentication
-will have a sidebar for easy navigation.
+To get started, you may navigate directly to https://wfmgeotoolkit.app/tools and get started by selecting from any of
+the available tools. Alternatively, select a tool from the Tools dropdown menu in the navigation menu.
 
 ## How do I submit an Issue? 📄
 
-Depending on what you want to submit an issue for, we have two different forms for each thing we support. 
+Depending on what you want to submit an issue for, we have two different forms for each thing we support.
 
 NOTE: We do not accept security issues at this time. These are managed by external reporting tools and our own analysis.
 
 ### Bugs 🐛
 
 You can submit a bug over on the [Issues](https://github.com/nconklindev/wfm-geo-toolkit/issues) page. Click
-the "New issue" button at the top and select "Bug Report." Fill out the required fields and submit the issue. 
+the "New issue" button at the top and select "Bug Report." Fill out the required fields and submit the issue.
 
 I do not guarantee any sort of response time with bug reports.
 
 ### Features ✨
 
-You can submit a Feature Request using the provided [form](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=feature_request.yml).
+You can submit a Feature Request using the
+provided [form](https://github.com/nconklindev/wfm-geo-toolkit/issues/new?template=feature_request.yml).
 
 ## Contributing 🤝
 
 To work on this project, please follow the [contribution guidelines](/.github/CONTRIBUTING.md).
 
-Once you are sure of the guidelines, review the [wiki](https://github.com/nconklindev/wfm-geo-toolkit/wiki/Contributing) page on how to set up the environment and application. I know it looks like a lot, but there's not much to it. 
+Once you are sure of the guidelines, review the [wiki](https://github.com/nconklindev/wfm-geo-toolkit/wiki/Contributing)
+page on how to set up the environment and application. I know it looks like a lot, but there's not much to it.
 
-Please feel free to ask any questions in the [discussion boards](https://github.com/nconklindev/wfm-geo-toolkit/discussions/categories/contributing) if you are stuck. 
+Please feel free to ask any questions in
+the [discussion boards](https://github.com/nconklindev/wfm-geo-toolkit/discussions/categories/contributing) if you are
+stuck.
 
-Also, check out the [resources](https://github.com/nconklindev/wfm-geo-toolkit/wiki/Resources) Wiki page for more information on the framework, programming language, libraries, and more, used in this project.
+Also, check out the [resources](https://github.com/nconklindev/wfm-geo-toolkit/wiki/Resources) Wiki page for more
+information on the framework, programming language, libraries, and more, used in this project.
 
 ## Contributors
 

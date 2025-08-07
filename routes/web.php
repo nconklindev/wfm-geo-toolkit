@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\DashboardController;
 use App\Livewire\IpAddressChecker;
 use App\Livewire\IpAddressImport;
 use App\Livewire\Tools\ApiExplorer\ApiExplorer;
@@ -24,19 +23,3 @@ Route::prefix('tools')->name('tools.')->group(function () {
     Route::get('/api-explorer', ApiExplorer::class)->name('api-explorer');
     Route::get('/api-explorer/docs', ApiExplorerDocs::class)->name('api-explorer-docs');
 });
-
-// Welcome
-Route::get('/welcome', function () {
-    return view('welcome');
-})->middleware(['auth', 'verified'])->name('welcome');
-
-// Dashboard
-Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-
-require __DIR__.'/auth.php';
-require __DIR__.'/known_places.php';
-require __DIR__.'/settings.php';
-require __DIR__.'/locations.php';
-require __DIR__.'/notifications.php';
-require __DIR__.'/known_ips.php';
-require __DIR__.'/groups.php';

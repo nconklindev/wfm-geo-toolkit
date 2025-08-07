@@ -11,10 +11,6 @@
         </div>
         <div>
             <flux:navbar class="flex items-center">
-                @auth
-                    <flux:navbar.item href="{{ route('welcome') }}">Welcome</flux:navbar.item>
-                @endauth
-
                 <flux:navbar.item href="#">Support</flux:navbar.item>
                 <flux:navbar.item href="#">Privacy</flux:navbar.item>
                 <flux:navbar.item href="#">Terms</flux:navbar.item>
