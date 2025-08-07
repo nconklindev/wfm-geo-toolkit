@@ -5,15 +5,14 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-
-    use HasFactory, Notifiable;
+    use HasFactory;
+    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -21,11 +20,12 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var list<string>
      */
     protected $fillable = [
-//        'name',
+        //        'name',
         'username',
         'email',
         'password',
     ];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -50,12 +50,6 @@ class User extends Authenticatable implements MustVerifyEmail
         });
     }
 
-    public function groups(): HasMany
-    {
-        // Automatically load the relationships
-        return $this->hasMany(Group::class, 'user_id');
-    }
-
     /**
      * Get the user's initials
      */
@@ -63,23 +57,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Str::of($this->username)
             ->explode(' ')
-            ->map(fn(string $username) => Str::of($username)->substr(0, 1)->upper())
+            ->map(fn (string $username) => Str::of($username)->substr(0, 1)->upper())
             ->implode('');
-    }
-
-    public function knownIpAddresses(): HasMany
-    {
-        return $this->hasMany(KnownIpAddress::class, 'user_id');
-    }
-
-    public function knownPlaces(): HasMany
-    {
-        return $this->hasMany(KnownPlace::class, 'user_id');
-    }
-
-    public function nodes(): HasMany
-    {
-        return $this->hasMany(BusinessStructureNode::class, 'user_id');
     }
 
     public function receivesBroadcastNotificationsOn(): string
@@ -99,5 +78,4 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
-
 }

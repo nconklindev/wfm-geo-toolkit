@@ -162,25 +162,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Auth-specific Navigation -->
-                @auth
-                    <a href="{{ url('/dashboard') }}"
-                       class="rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 {{ request()->is('dashboard') ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white' }}">
-                        Dashboard
-                    </a>
-                @else
-                    <a href="{{ route('login') }}"
-                       class="rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white">
-                        Log in
-                    </a>
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}"
-                           class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">
-                            Register
-                        </a>
-                    @endif
-                @endauth
             </nav>
 
             <!-- Right Side Actions -->
@@ -271,25 +252,6 @@
                                         @endguest
                                     </div>
                                 </div>
-
-                                <!-- Auth Links -->
-                                @auth
-                                    <a href="{{ url('/dashboard') }}"
-                                       class="rounded-lg px-3 py-2 text-base font-medium transition-colors duration-200 {{ request()->is('dashboard') ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white' }}">
-                                        Dashboard
-                                    </a>
-                                @else
-                                    <a href="{{ route('login') }}"
-                                       class="rounded-lg px-3 py-2 text-base font-medium transition-colors duration-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white">
-                                        Log in
-                                    </a>
-                                    @if (Route::has('register'))
-                                        <a href="{{ route('register') }}"
-                                           class="rounded-lg bg-zinc-900 px-3 py-2 text-base font-medium text-white transition-colors duration-200 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100">
-                                            Register
-                                        </a>
-                                    @endif
-                                @endauth
                             </nav>
                         </div>
                     </div>

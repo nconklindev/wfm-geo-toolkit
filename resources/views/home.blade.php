@@ -16,13 +16,6 @@
                 </flux:text>
                 <div class="flex flex-wrap gap-4">
                     <flux:button variant="primary" href="#tools" class="px-6 py-6">Try Tools Now</flux:button>
-                    <flux:button
-                        variant="ghost"
-                        href="{{ route('register') }}"
-                        class="border border-zinc-400 px-6 py-6 hover:border-zinc-200"
-                    >
-                        Create Account
-                    </flux:button>
                 </div>
             </div>
             <!-- Tool Preview -->
@@ -254,9 +247,6 @@
             </flux:text>
             <div class="mt-4 flex flex-wrap justify-center gap-4">
                 <flux:button variant="ghost" href="#tools">Try Tools Now</flux:button>
-                <flux:button href="{{ route('register') }}" class="border-white text-white hover:bg-white/10">
-                    Create Free Account
-                </flux:button>
             </div>
         </div>
 
