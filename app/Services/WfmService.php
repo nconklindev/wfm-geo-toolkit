@@ -384,6 +384,19 @@ class WfmService
     }
 
     /**
+     * @throws \Illuminate\Http\Client\ConnectionException
+     * @throws \JsonException
+     */
+    public function getKnownIpAddresses(array $requestData = [])
+    {
+        return $this->callWfmApi(
+            'GET',
+            'api/v1/commons/known_ip_addresses',
+            $requestData,
+        );
+    }
+
+    /**
      * Extract place IDs from a list of places
      */
     public function extractPlaceIds(array $places): array
