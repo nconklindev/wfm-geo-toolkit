@@ -8,6 +8,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     environment: Testing
     env:
       ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID }}
