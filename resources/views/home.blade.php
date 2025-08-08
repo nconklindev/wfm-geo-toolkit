@@ -187,6 +187,44 @@
                     </div>
                 </div>
             </div>
+
+            <!-- IP Address Validator -->
+            <div
+                class="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
+            >
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            <div
+                                class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-yellow-900"
+                            >
+                                <flux:icon.network class="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <flux:heading level="3" size="lg" class="mb-2 font-semibold">
+                                IP Address Validator
+                            </flux:heading>
+                            <flux:text class="mb-4 text-sm">
+                                Analyze all of the Known IP Addresses in your Pro WFM environment. Upload the exported list of IP Addresses to identify any ranges that may potentially cause an issue.
+                            </flux:text>
+                            <div class="mb-4 flex flex-wrap gap-2">
+                                <flux:badge variant="pill" size="sm" color="green">Network Analysis</flux:badge>
+                                <flux:badge variant="pill" color="teal" size="sm">Geofencing</flux:badge>
+                                <flux:badge variant="pill" size="sm" color="amber">Performance</flux:badge>
+                                <flux:badge variant="pill" size="sm" color="red">Troubleshooting</flux:badge>
+                            </div>
+                            <flux:button
+                                href="{{ route('tools.ip-checker-import') }}"
+                                size="sm"
+                                icon:trailing="arrow-right"
+                            >
+                                Analyze now
+                            </flux:button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -234,28 +272,6 @@
                     Built with Pro WFM environments with deep understanding of workforce management needs.
                 </flux:text>
             </div>
-        </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="mt-16 w-full">
-        <div class="rounded-lg bg-gradient-to-r from-sky-600 to-blue-800 p-8 text-center">
-            <flux:heading level="2" class="mb-4 text-3xl! text-white">Ready to Get Started?</flux:heading>
-            <flux:text class="text-lg text-white/90">
-                Try our tools now or create an account to save your work and access advanced features
-                <sup><b>*</b></sup>
-            </flux:text>
-            <div class="mt-4 flex flex-wrap justify-center gap-4">
-                <flux:button variant="ghost" href="#tools">Try Tools Now</flux:button>
-            </div>
-        </div>
-
-        <!-- Footnote -->
-        <div class="mt-4 text-center">
-            <flux:text class="text-[11px] text-zinc-500 dark:text-zinc-400">
-                <sup><b>*</b></sup>
-                Advanced features require registration. Registration restricted to ukg.com domain.
-            </flux:text>
         </div>
     </section>
 
