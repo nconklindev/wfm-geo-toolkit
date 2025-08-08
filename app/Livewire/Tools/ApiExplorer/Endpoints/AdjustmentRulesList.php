@@ -11,7 +11,7 @@ class AdjustmentRulesList extends BaseApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return 'adjustment_rules'.$id;
     }
@@ -178,7 +178,7 @@ class AdjustmentRulesList extends BaseApiComponent
             $triggers = $ruleVersion['triggers']['adjustmentTriggerForRule'] ?? [];
 
             foreach ($triggers as $trigger) {
-                // Extract paycodes from trigger payCodes array (conditions)
+                // Extract paycodes from the trigger payCodes array (conditions)
                 $payCodes = $trigger['payCodes'] ?? [];
                 foreach ($payCodes as $payCode) {
                     if (isset($payCode['qualifier'])) {

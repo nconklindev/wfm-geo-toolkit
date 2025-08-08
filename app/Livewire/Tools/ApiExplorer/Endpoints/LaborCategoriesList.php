@@ -15,7 +15,7 @@ class LaborCategoriesList extends BaseApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return "labor_categories_{$id}_$this->name";
     }

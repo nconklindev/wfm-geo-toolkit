@@ -120,9 +120,7 @@ abstract class BaseBatchableApiComponent extends BaseApiComponent implements Bat
         $this->batchingErrors = [];
 
         // Clear the parent's error message if it exists
-        if (property_exists($this, 'errorMessage')) {
-            $this->errorMessage = '';
-        }
+        $this->errorMessage = '';
     }
 
     /**
@@ -138,9 +136,7 @@ abstract class BaseBatchableApiComponent extends BaseApiComponent implements Bat
      */
     protected function handleBatchingException(Throwable $e): void
     {
-        if (property_exists($this, 'errorMessage')) {
-            $this->errorMessage = 'Batching operation failed: '.$e->getMessage();
-        }
+        $this->errorMessage = 'Batching operation failed: '.$e->getMessage();
 
         Log::error('Batching operation failed', [
             'error' => $e->getMessage(),
@@ -163,9 +159,7 @@ abstract class BaseBatchableApiComponent extends BaseApiComponent implements Bat
         ];
 
         // Use parent's error handling if errorMessage property exists
-        if (property_exists($this, 'errorMessage')) {
-            $this->errorMessage = 'API request failed. Retrying with smaller batch size...';
-        }
+        $this->errorMessage = 'API request failed. Retrying with smaller batch size...';
 
         Log::error("$context: API call failed", [
             'status' => $response ? $response->status() : 'no_response',

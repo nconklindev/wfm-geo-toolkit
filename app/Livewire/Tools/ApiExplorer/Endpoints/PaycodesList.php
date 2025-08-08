@@ -13,7 +13,7 @@ class PaycodesList extends BaseApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return 'paycodes_list_'.$id;
     }
@@ -64,14 +64,14 @@ class PaycodesList extends BaseApiComponent
             return collect($this->data);
         }
 
-        // If no cached data and we're authenticated, fetch fresh data
+        // If no cached data, and we're authenticated, fetch fresh data
         if ($this->isAuthenticated) {
             $this->loadData();
 
             return collect($this->data);
         }
 
-        // Return empty collection if not authenticated or no data
+        // Return an empty collection if not authenticated or no data
         return collect();
     }
 

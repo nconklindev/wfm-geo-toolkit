@@ -26,7 +26,7 @@ trait HasSmartBatching
         $hasMoreData = true;
         $requestCount = 0;
 
-        while ($hasMoreData && $this->shouldBatch()) {
+        while ($this->shouldBatch()) {
             $requestCount++;
 
             $requestParams = $this->getBatchParams($pageIndex, $batchSize);
@@ -250,6 +250,6 @@ trait HasSmartBatching
      */
     protected function getTotalRecords(): int
     {
-        return property_exists($this, 'totalRecords') ? $this->totalRecords : 0;
+        return $this->totalRecords ?: 0;
     }
 }

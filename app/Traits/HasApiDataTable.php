@@ -31,7 +31,7 @@ trait HasApiDataTable
         Log::info('HasApiDataTable: createPaginatedData started', [
             'component' => get_class($this),
             'data_empty' => empty($this->data),
-            'data_count' => is_countable($this->data) ? count($this->data) : 'not countable',
+            'data_count' => count($this->data),
             'data_type' => gettype($this->data),
         ]);
 

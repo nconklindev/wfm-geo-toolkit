@@ -19,8 +19,6 @@ trait HandlesAuthentication
 
     protected function setupAuthenticationFromSession(): void
     {
-        // FIXME: If user logs out and logs back in, same session is being used which is loading the cached data
-        // Do we want that behavior?
         if (session('wfm_authenticated') && session('wfm_access_token')) {
             $this->isAuthenticated = true;
             $this->wfmService->setAccessToken(session('wfm_access_token'));
@@ -117,7 +115,7 @@ trait HandlesAuthentication
 
     protected function handleAuthenticationFailure(): void
     {
-        session()?->forget(['wfm_authenticated', 'wfm_access_token']);
+        session()->forget(['wfm_authenticated', 'wfm_access_token']);
         $this->isAuthenticated = false;
         $this->errorMessage = 'Your authentication session has expired. Please re-enter your credentials to continue.';
     }

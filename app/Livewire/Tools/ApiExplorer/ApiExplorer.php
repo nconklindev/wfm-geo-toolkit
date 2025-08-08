@@ -3,6 +3,7 @@
 namespace App\Livewire\Tools\ApiExplorer;
 
 use App\Services\WfmService;
+use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -40,11 +41,11 @@ class ApiExplorer extends Component
 
     // TODO: Add before validation that lets us trim the properties to account for accidental spaces
 
-    public function boot(WfmService $wfmService)
+    public function boot(WfmService $wfmService): void
     {
         $this->wfmService = $wfmService;
 
-        // Load cached credentials from session
+        // Load cached credentials from the session
         $this->loadCredentialsFromSession();
 
         // Check if we have a stored token and credentials
@@ -161,7 +162,7 @@ class ApiExplorer extends Component
         $this->password = '';
 
         // Clear session authentication data
-        session()?->forget(['wfm_authenticated', 'wfm_access_token']);
+        session()->forget(['wfm_authenticated', 'wfm_access_token']);
 
         // Clear the access token from the service
         $this->wfmService->clearAccessToken();
@@ -191,7 +192,7 @@ class ApiExplorer extends Component
 
     #[Layout('components.layouts.guest')]
     #[Title('API Explorer')]
-    public function render()
+    public function render(): View
     {
         return view('livewire.tools.api-explorer.api-explorer');
     }

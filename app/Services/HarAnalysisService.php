@@ -149,7 +149,7 @@ class HarAnalysisService
             $recommendations[] = [
                 'type' => 'error',
                 'title' => 'Multiple Failed Requests',
-                'description' => "{$failedCount} requests failed. Check the Failed Requests tab for specific errors that may indicate WFM service issues.",
+                'description' => "$failedCount requests failed. Check the Failed Requests tab for specific errors that may indicate WFM service issues.",
                 'priority' => 'critical',
             ];
         }
@@ -465,7 +465,7 @@ class HarAnalysisService
             ->toArray();
     }
 
-    private function formatBytes($bytes, $precision = 2): string
+    private function formatBytes($bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
         $bytes = max($bytes, 0);
@@ -473,23 +473,22 @@ class HarAnalysisService
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision).' '.$units[$pow];
+        return round($bytes, 2).' '.$units[$pow];
     }
 
     public function getRequestsByType(): array
     {
-        $typeMap = [
-            'text/html' => 'HTML',
-            'text/css' => 'CSS',
-            'application/javascript' => 'JavaScript',
-            'text/javascript' => 'JavaScript',
-            'image/' => 'Images',
-            'application/json' => 'JSON/API',
-            'font/' => 'Fonts',
-            'application/font' => 'Fonts',
-        ];
-
-        $types = $this->entries->groupBy(function ($entry) use ($typeMap) {
+        $types = $this->entries->groupBy(function ($entry) {
+            $typeMap = [
+                'text/html' => 'HTML',
+                'text/css' => 'CSS',
+                'application/javascript' => 'JavaScript',
+                'text/javascript' => 'JavaScript',
+                'image/' => 'Images',
+                'application/json' => 'JSON/API',
+                'font/' => 'Fonts',
+                'application/font' => 'Fonts',
+            ];
             $mimeType = $entry['response']['content']['mimeType'] ?? '';
 
             foreach ($typeMap as $pattern => $type) {
@@ -566,6 +565,7 @@ class HarAnalysisService
                 'referer',
             )['value'] ?? '';
 
+            /** @noinspection HttpUrlsUsage */
             return str_starts_with($referrerUrl, 'https://')
                 && str_starts_with(
                     $url,
@@ -611,7 +611,7 @@ class HarAnalysisService
 
     public function getTimelineData(): array
     {
-        if (empty($this->entries)) {
+        if ($this->entries->isEmpty()) {
             return [];
         }
 
