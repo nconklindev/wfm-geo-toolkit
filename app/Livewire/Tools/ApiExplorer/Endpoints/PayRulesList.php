@@ -13,7 +13,7 @@ class PayRulesList extends BaseApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return "pay_rules_list_$id";
     }
@@ -211,7 +211,7 @@ class PayRulesList extends BaseApiComponent
      */
     protected function getApiServiceCall(): callable
     {
-        return fn ($params) => $this->wfmService->getPayrules($params);
+        return fn ($params) => $this->wfmService->getPayRules($params);
     }
 
     /**

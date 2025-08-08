@@ -11,7 +11,7 @@ class PercentAllocationRulesList extends BaseApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return 'percent_allocation_rules_'.$id;
     }
@@ -189,7 +189,7 @@ class PercentAllocationRulesList extends BaseApiComponent
 
     protected function getApiServiceCall(): callable
     {
-        return fn ($params) => $this->wfmService->getPercentAllocationRules($params);
+        return fn ($params) => $this->wfmService->getPercentAllocationRules();
     }
 
     protected function getDataKeyFromResponse(): ?string

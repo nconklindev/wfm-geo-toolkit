@@ -15,7 +15,7 @@ class CleanupTempFilesCommand extends Command
 
     public function handle(): int
     {
-        $hours = $this->option('hours');
+        $hours = (int) $this->option('hours');
         $debug = $this->option('debug');
         $force = $this->option('force');
 
@@ -32,7 +32,7 @@ class CleanupTempFilesCommand extends Command
                 return 0;
             }
         } else {
-            $this->info("Cleaning up temporary files older than {$hours} hours...");
+            $this->info("Cleaning up temporary files older than $hours hours...");
         }
 
         if ($debug) {
@@ -40,19 +40,19 @@ class CleanupTempFilesCommand extends Command
         }
         $this->newLine();
 
-        // First pass: count total files to be deleted for progress bar
+        // First pass: count total files to be deleted for the progress bar
         $filesToDelete = [];
         $totalFiles = 0;
 
         foreach ($directories as $directory) {
             if ($debug) {
-                $this->info("Checking directory: {$directory}");
+                $this->info("Checking directory: $directory");
             }
 
-            // Check if directory exists
+            // Check if the directory exists
             if (! Storage::disk('local')->exists($directory)) {
                 if ($debug) {
-                    $this->warn("Directory {$directory} does not exist, skipping...");
+                    $this->warn("Directory $directory does not exist, skipping...");
                 }
                 $filesToDelete[$directory] = [];
 
@@ -63,7 +63,7 @@ class CleanupTempFilesCommand extends Command
             $filesToDelete[$directory] = [];
 
             if ($debug) {
-                $this->info('Found '.count($files)." files in {$directory}");
+                $this->info('Found '.count($files)." files in $directory");
             }
 
             foreach ($files as $file) {
@@ -71,7 +71,7 @@ class CleanupTempFilesCommand extends Command
                     $lastModified = Carbon::createFromTimestamp(Storage::disk('local')->lastModified($file));
 
                     if ($debug) {
-                        $this->line("  File: {$file}");
+                        $this->line("  File: $file");
                         $this->line("    Last modified: {$lastModified->format('Y-m-d H:i:s')}");
                         $this->line('    Will delete: '.($lastModified->lt($cutoff) ? 'YES' : 'NO'));
                     }
@@ -82,13 +82,13 @@ class CleanupTempFilesCommand extends Command
                     }
                 } catch (Exception $e) {
                     if ($debug) {
-                        $this->error("Error processing file {$file}: ".$e->getMessage());
+                        $this->error("Error processing file $file: ".$e->getMessage());
                     }
                 }
             }
 
             if ($debug) {
-                $this->info("Files to delete in {$directory}: ".count($filesToDelete[$directory]));
+                $this->info("Files to delete in $directory: ".count($filesToDelete[$directory]));
                 $this->newLine();
             }
         }
@@ -100,6 +100,7 @@ class CleanupTempFilesCommand extends Command
         }
 
         // Create progress bar (skip if debug mode for cleaner output)
+        $progressBar = null;
         if (! $debug) {
             $progressBar = $this->output->createProgressBar($totalFiles);
             $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% - %message%');
@@ -115,12 +116,12 @@ class CleanupTempFilesCommand extends Command
                 $filename = basename($file);
 
                 if ($debug) {
-                    $this->info("Attempting to delete: {$file}");
+                    $this->info("Attempting to delete: $file");
                 }
 
-                if (! $debug) {
-                    $progressBar->setMessage("Deleting from {$directory}/: {$filename}");
-                }
+                $progressBar?->setMessage(
+                    "Deleting from $directory/: $filename"
+                );
 
                 try {
                     $deleteResult = Storage::disk('local')->delete($file);
@@ -135,26 +136,26 @@ class CleanupTempFilesCommand extends Command
                     }
                 } catch (Exception $e) {
                     if ($debug) {
-                        $this->error("Failed to delete {$file}: ".$e->getMessage());
+                        $this->error("Failed to delete $file: ".$e->getMessage());
                     }
                 }
 
-                if (! $debug) {
+                if ($progressBar !== null) {
                     $progressBar->advance();
                     usleep(10000); // 0.01 seconds
                 }
             }
 
             if ($directoryDeleted > 0) {
-                if (! $debug) {
-                    $progressBar->setMessage("✅  Completed {$directory}/ - deleted {$directoryDeleted} files");
+                if ($progressBar !== null) {
+                    $progressBar->setMessage("✅  Completed $directory/ - deleted $directoryDeleted files");
                 } else {
-                    $this->info("✅  Completed {$directory}/ - deleted {$directoryDeleted} files");
+                    $this->info("✅  Completed $directory/ - deleted $directoryDeleted files");
                 }
             }
         }
 
-        if (! $debug) {
+        if ($progressBar !== null) {
             $progressBar->setMessage('✅  Cleanup completed!');
             $progressBar->finish();
             $this->newLine(2);
@@ -165,14 +166,14 @@ class CleanupTempFilesCommand extends Command
         foreach ($directories as $directory) {
             $deletedCount = count($filesToDelete[$directory]);
             if ($deletedCount > 0) {
-                $this->line("  • {$directory}/: {$deletedCount} files deleted");
+                $this->line("  • $directory/: $deletedCount files deleted");
             } else {
-                $this->line("  • {$directory}/: No files to delete");
+                $this->line("  • $directory/: No files to delete");
             }
         }
 
         $this->newLine();
-        $this->info("📄  Total files deleted: {$totalDeleted}");
+        $this->info("📄  Total files deleted: $totalDeleted");
 
         return 0;
     }

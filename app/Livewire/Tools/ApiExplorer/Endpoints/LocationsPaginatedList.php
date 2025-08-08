@@ -18,7 +18,7 @@ class LocationsPaginatedList extends BaseApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return 'locations_'.$id;
     }
@@ -73,7 +73,7 @@ class LocationsPaginatedList extends BaseApiComponent
             return collect($this->data);
         }
 
-        // If no cached data and we're authenticated, fetch fresh data
+        // If no cached data, and we're authenticated, fetch fresh data
         if ($this->isAuthenticated) {
             $this->loadData();
 
@@ -106,7 +106,7 @@ class LocationsPaginatedList extends BaseApiComponent
             ['field' => 'effectiveDate', 'label' => 'Effective Date'],
             ['field' => 'expirationDate', 'label' => 'Expiration Date'],
             ['field' => 'transferable', 'label' => 'Transferable'],
-            ['field' => 'costCenterRef.qualifier', 'label' => 'Cost Center' ?? '-'],
+            ['field' => 'costCenterRef.qualifier', 'label' => 'Cost Center'],
         ];
     }
 }

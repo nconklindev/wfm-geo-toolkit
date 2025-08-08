@@ -59,23 +59,19 @@ class WfmService
      *                          'GET', 'POST').
      * @param  string  $apiPath  The API endpoint path to append to the base
      *                           hostname.
-     * @param  array  $data  The request payload to send.
-     * @param  array  $headers  Additional headers to include in the request.
-     * @param  bool  $asJson  Indicates whether to encode the payload as JSON.
-     * @return Response|array Returns the API response as a Response object or
-     *                        an array.
+     * @param  array|object  $data  The request payload to send.
+     * @return \Illuminate\Http\Client\Response Returns the API response as a Response object
      *
-     * @throws ConnectionException If there is an error connecting to the API.
-     * @throws JsonException If there is an error with encoding or decoding the
-     *                       JSON payload.
+     * @throws \Illuminate\Http\Client\ConnectionException If there is an error connecting to the API.
+     * @throws \JsonException If there is an error with encoding or decoding the
+     *                        JSON payload.
      */
     private function callWfmApi(
         string $method,
         string $apiPath,
         array|object $data = [],
-        array $headers = [],
-        bool $asJson = true,
-    ): Response|array {
+    ): Response {
+        $headers = [];
         $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
         $ipAddress = $this->request->ip();
         $url = rtrim($this->hostname, '/').'/'.ltrim($apiPath, '/');
@@ -105,7 +101,8 @@ class WfmService
             } else {
                 $response = $http->post(
                     $url,
-                    $asJson ? $data : json_encode($data, JSON_THROW_ON_ERROR),
+                    $data
+                    //                    true ? $data : json_encode($data, JSON_THROW_ON_ERROR),
                 );
             }
 
@@ -137,8 +134,8 @@ class WfmService
      * @param  Response  $response  The response object from the WFM API.
      * @param  string|null  $context  A contextual description of the error
      *                                (default: 'WFM API error').
-     * @return array A structured array containing error details, including
-     *               success status, message, code, and additional details.
+     * @return \Illuminate\Http\Client\Response A structured array containing error details, including
+     *                                          success status, message, code, and additional details.
      */
     private function handleWfmError(
         Response $response,
@@ -156,7 +153,6 @@ class WfmService
         // Attempt to extract more detailed error info
         $errorMessage = $errorData['message'] ??
             $errorData['error'] ?? 'Unknown error';
-        $errorCode = $errorData['code'] ?? $status;
 
         // Check if the passed context is null
         // Set the context to the method that called this
@@ -271,7 +267,7 @@ class WfmService
 
         // Extract the base URL (scheme plus host)
         $parsedUrl = parse_url($this->hostname);
-        if (! isset($parsedUrl['scheme'], $parsedUrl['host']) || ! $parsedUrl
+        if (! isset($parsedUrl['scheme'], $parsedUrl['host'])
         ) {
             return $this->getEvalTokenUrl();
         }
@@ -400,7 +396,7 @@ class WfmService
     /**
      * Get all known places from the WFM using its API
      */
-    public function getKnownPlaces(array $requestData = []): array
+    public function getKnownPlaces(): array
     {
         // TODO: Update how we are getting known places in the Controller so this can return just the $response
         //        return $this->callWfmApi('GET', 'api/v1/commons/known_places', $requestData);
@@ -534,7 +530,9 @@ class WfmService
 
         return $this->callWfmApi(
             'POST',
-            'api/v1/platform/scheduled_reports/apply_read', $requestData);
+            'api/v1/platform/scheduled_reports/apply_read',
+            $requestData
+        );
     }
 
     /**
@@ -584,9 +582,9 @@ class WfmService
      * @throws \Illuminate\Http\Client\ConnectionException
      * @throws \JsonException
      */
-    public function getPercentAllocationRules(array $requestData = []): Response
+    public function getPercentAllocationRules(): Response
     {
-        // Add all_details flag to true to get more information
+        // Add the all_details flag to true to get more information
         return $this->callWfmApi(
             'GET',
             'api/v1/timekeeping/setup/percentage_allocation_rules?all_details=true',
@@ -613,50 +611,17 @@ class WfmService
         );
     }
 
-    public function getHyperfindQueries(array $requestData)
+    /**
+     * @throws \JsonException
+     * @throws \Illuminate\Http\Client\ConnectionException If the connection fails
+     * @throws \JsonException If JSON encoding/decoding fails
+     */
+    public function getHyperfindQueries(array $requestData): array|Response
     {
         return $this->callWfmApi(
             'GET',
             'api/v1/commons/hyperfind/public',
             $requestData,
         );
-    }
-
-    /**
-     * Helper method to analyze data types in the request
-     *
-     * @throws \JsonException
-     */
-    private function getDataTypes(array $data): array
-    {
-        $types = [];
-
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                $types[$key] = 'array';
-                foreach ($value as $index => $item) {
-                    if (is_array($item)) {
-                        foreach ($item as $subKey => $subValue) {
-                            $types[$key."[$index][$subKey]"] = gettype(
-                                $subValue,
-                            ).' ('.json_encode(
-                                $subValue,
-                                JSON_THROW_ON_ERROR,
-                            ).')';
-                        }
-                    } else {
-                        $types[$key."[$index]"] = gettype($item).' ('
-                            .json_encode($item, JSON_THROW_ON_ERROR).')';
-                    }
-                }
-            } else {
-                $types[$key] = gettype($value).' ('.json_encode(
-                    $value,
-                    JSON_THROW_ON_ERROR,
-                ).')';
-            }
-        }
-
-        return $types;
     }
 }

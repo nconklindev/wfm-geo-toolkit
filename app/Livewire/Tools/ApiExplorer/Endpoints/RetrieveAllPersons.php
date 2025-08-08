@@ -16,7 +16,7 @@ class RetrieveAllPersons extends BaseBatchableApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
 
         return 'persons_'.$id;
     }

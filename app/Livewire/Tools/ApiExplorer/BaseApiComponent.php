@@ -263,7 +263,7 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
         if (! $response) {
             $this->totalRecords = 0;
             Log::warning('BaseApiComponent: No response from API', [
-                'status' => $response?->status(),
+                'status' => 500,
                 'component' => get_class($this),
             ]);
             throw new Exception('No response received from API - possible authentication failure');

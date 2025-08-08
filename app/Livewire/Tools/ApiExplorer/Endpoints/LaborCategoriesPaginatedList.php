@@ -32,7 +32,7 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
         $this->apiResponse = null;
 
         // Reset pagination
-        $this->page = 1;
+        $this->resetPage();
 
         Log::info('Labor category selection updated', [
             'component' => get_class($this),
@@ -52,6 +52,8 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
         );
     }
 
+    // We override mount in this one endpoint because we need to load
+    // the labor categories when the component is loaded
     public function mount(): void
     {
         parent::mount();
@@ -78,13 +80,13 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
             ]);
 
             $response = $this->makeAuthenticatedApiCall(
-                fn () => $this->wfmService->getLaborCategories([]),
+                fn () => $this->wfmService->getLaborCategories(),
             );
 
             if ($response && $response->successful()) {
                 $data = $response->json();
 
-                // Transform the data for dropdown display
+                // Transform the data for the dropdown display
                 $this->laborCategories = collect($data)
                     ->map(function ($category) {
                         return [
@@ -116,9 +118,6 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
             ]);
         }
     }
-
-    // We override mount in this one endpoint because we need to load
-    // the labor categories when the component is loaded
 
     /**
      * Override shouldBatch to disable batching for this component
@@ -170,7 +169,7 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
             return collect($this->data);
         }
 
-        // If no cached data and we're authenticated, fetch fresh data
+        // If no cached data, and we're authenticated, fetch fresh data
         if ($this->isAuthenticated) {
             $this->loadData();
 
@@ -235,7 +234,7 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
 
     public function getCacheKey(): string
     {
-        $id = md5(session()?->id());
+        $id = md5(session()->id());
         $selectedLaborCategories = md5(implode(',', $this->selectedLaborCategories));
 
         return 'labor_category_entries_'.$selectedLaborCategories.'_'.$id;
@@ -293,7 +292,7 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
                     'where' => [
                         'laborCategory' => [
                             'id' => $category['id'],
-                            'qualifier' => $category['name'], // Use name as qualifier string
+                            'qualifier' => $category['name'], // Use name as the qualifier string
                         ],
                     ],
                 ];

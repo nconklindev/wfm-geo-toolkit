@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use JsonException;
 use League\Csv\Bom;
 use League\Csv\CannotInsertRecord;
 use League\Csv\ColumnConsistency;
@@ -23,7 +24,7 @@ trait HasCsvExport
             $data = $this->getDataForCsvExport();
 
             if ($data->isEmpty()) {
-                session()?->flash('error', 'No data available to export.');
+                session()->flash('error', 'No data available to export.');
 
                 return back();
             }
@@ -41,8 +42,8 @@ trait HasCsvExport
 
             return $this->generateCsvResponse($csvData, $csvColumns, $filename);
 
-        } catch (Exception $e) {
-            session()?->flash('error', 'Failed to export data. Please try again.');
+        } catch (Exception) {
+            session()->flash('error', 'Failed to export data. Please try again.');
 
             return back();
         }
@@ -74,11 +75,11 @@ trait HasCsvExport
     }
 
     /**
-     * Check if component has search capability
+     * Check if the component has search capability
      */
     protected function hasSearchCapability(): bool
     {
-        return property_exists($this, 'search') && ! empty($this->search);
+        return (bool) $this->search;
     }
 
     /**
@@ -94,7 +95,7 @@ trait HasCsvExport
         $searchTerm = strtolower($this->search);
 
         return $data->filter(function ($item) use ($searchTerm) {
-            // Convert item to array if it's an object
+            // Convert the item to array if it's an object
             $itemArray = is_array($item) ? $item : (array) $item;
 
             // Search through all string values in the item
@@ -109,11 +110,11 @@ trait HasCsvExport
     }
 
     /**
-     * Check if component has sort capability
+     * Check if the component has sort capability
      */
     protected function hasSortCapability(): bool
     {
-        return property_exists($this, 'sortField') && ! empty($this->sortField);
+        return (bool) $this->sortField;
     }
 
     /**
@@ -126,7 +127,7 @@ trait HasCsvExport
             return $data;
         }
 
-        $direction = property_exists($this, 'sortDirection') ? $this->sortDirection : 'asc';
+        $direction = $this->sortDirection ?: 'asc';
 
         return $direction === 'desc'
             ? $data->sortByDesc($this->sortField)->values()
@@ -170,13 +171,13 @@ trait HasCsvExport
         // Add search term if present
         if ($this->hasSearchCapability()) {
             $searchSlug = str_replace([' ', '.', '/', '\\'], '-', strtolower($this->search));
-            $parts[] = "search-{$searchSlug}";
+            $parts[] = "search-$searchSlug";
         }
 
         // Add sort info if present
         if ($this->hasSortCapability()) {
-            $sortDirection = property_exists($this, 'sortDirection') ? $this->sortDirection : 'asc';
-            $parts[] = "sort-{$this->sortField}-{$sortDirection}";
+            $sortDirection = $this->sortDirection ?: 'asc';
+            $parts[] = "sort-$this->sortField-$sortDirection";
         }
 
         // Add timestamp
@@ -213,7 +214,7 @@ trait HasCsvExport
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$safeFilename}.csv\"",
+            'Content-Disposition' => "attachment; filename=\"$safeFilename.csv\"",
             'Charset' => 'utf-8',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
@@ -226,7 +227,7 @@ trait HasCsvExport
     }
 
     /**
-     * Sanitize filename for safe download
+     * Sanitize the filename for safe download
      */
     protected function sanitizeFilename(string $filename): string
     {
@@ -242,10 +243,9 @@ trait HasCsvExport
     }
 
     /**
-     * Write CSV content to output stream
+     * Write CSV content to an output stream
      *
      * @throws \League\Csv\InvalidArgument
-     * @throws \JsonException
      * @throws \League\Csv\CannotInsertRecord
      */
     protected function writeCsvContent(array $data, array $columns): void
@@ -298,8 +298,13 @@ trait HasCsvExport
     protected function formatValueForCsv($value): string
     {
         // Convert arrays/objects to readable strings
-        if (is_array($value) || is_object($value)) {
-            $value = json_encode($value, JSON_THROW_ON_ERROR);
+        try {
+            if (is_array($value) || is_object($value)) {
+                $value = json_encode($value, JSON_THROW_ON_ERROR);
+            }
+        } catch (JsonException $e) {
+            // Handle the error appropriately for your logging context
+            $value = '[JSON encoding failed: '.$e->getMessage().']';
         }
 
         // Handle null values

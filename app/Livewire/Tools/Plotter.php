@@ -104,11 +104,6 @@ class Plotter extends Component
     {
         // Ensure this formats the points correctly for the JS update function
         return array_map(function ($index, $point) {
-            // Ensure Point properties are accessed correctly
-            if (! $point instanceof Point) {
-                return null;
-            } // Basic safety check
-
             return [
                 'id' => $index,
                 'latitude' => $point->latitude,
@@ -119,7 +114,6 @@ class Plotter extends Component
                 'color' => $point->color, // Assuming Point has color
             ];
         }, array_keys($this->points), $this->points);
-
     }
 
     /**
@@ -640,88 +634,5 @@ class Plotter extends Component
         return view('livewire.tools.plotter', [
             'mapPoints' => $this->formatPointsForMap(),
         ]);
-    }
-
-    /**
-     * Get all known places that contain the given punch within their boundaries
-     * Returns array of known places with their distances
-     */
-    private function getKnownPlacesContainingPunch(Point $punch): array
-    {
-        $knownPlaces = array_filter($this->points, function ($point) {
-            return $point->type === 'known_place';
-        });
-
-        if (empty($knownPlaces)) {
-            return [];
-        }
-
-        $containingPlaces = [];
-
-        foreach ($knownPlaces as $index => $knownPlace) {
-            $distance = $this->calculateDistance(
-                $punch->latitude,
-                $punch->longitude,
-                $knownPlace->latitude,
-                $knownPlace->longitude
-            );
-
-            // Check if punch is within this known place's boundary
-            if ($distance <= $knownPlace->radius) {
-                $containingPlaces[] = [
-                    'known_place' => $knownPlace,
-                    'distance' => $distance,
-                    'index' => $index,
-                ];
-            }
-        }
-
-        // Sort by distance (closest first)
-        usort($containingPlaces, function ($a, $b) {
-            return $a['distance'] <=> $b['distance'];
-        });
-
-        return $containingPlaces;
-    }
-
-    /**
-     * Get all known places within a reasonable distance for accuracy comparison
-     * This helps with accuracy validation even if punch is outside boundaries
-     */
-    private function getNearbyKnownPlaces(Point $punch, float $maxDistance = 500): array
-    {
-        $knownPlaces = array_filter($this->points, function ($point) {
-            return $point->type === 'known_place';
-        });
-
-        if (empty($knownPlaces)) {
-            return [];
-        }
-
-        $nearbyPlaces = [];
-
-        foreach ($knownPlaces as $index => $knownPlace) {
-            $distance = $this->calculateDistance(
-                $punch->latitude,
-                $punch->longitude,
-                $knownPlace->latitude,
-                $knownPlace->longitude
-            );
-
-            if ($distance <= $maxDistance) {
-                $nearbyPlaces[] = [
-                    'known_place' => $knownPlace,
-                    'distance' => $distance,
-                    'index' => $index,
-                ];
-            }
-        }
-
-        // Sort by distance (closest first)
-        usort($nearbyPlaces, function ($a, $b) {
-            return $a['distance'] <=> $b['distance'];
-        });
-
-        return $nearbyPlaces;
     }
 }
