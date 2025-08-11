@@ -16,7 +16,7 @@
                 </a>
 
                 <!-- Tools Mega Menu -->
-                <div class="relative" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false">
+                <div class="relative" x-data="{ open: false }" x-cloak @click.away="open = false" @keydown.escape="open = false">
                     <button @click="open = !open"
                             class="flex items-center space-x-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 {{ request()->routeIs('tools.*') ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-white' : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-white' }}"
                             :class="{ 'ring-2 ring-sky-500/20': open }">
@@ -34,8 +34,8 @@
                          x-transition:leave="transition ease-in duration-200"
                          x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                          x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                         class="absolute -left-20 mt-3 w-[28rem] origin-top rounded-2xl border border-zinc-200/60 bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-zinc-900/5 dark:border-zinc-700/60 dark:bg-zinc-800/95 dark:ring-white/10"
-                         style="display: none;">
+                         class="absolute hidden md:block -left-20 mt-3 w-[28rem] origin-top rounded-2xl border border-zinc-200/60 bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-zinc-900/5 dark:border-zinc-700/60 dark:bg-zinc-800/95 dark:ring-white/10"
+                         >
 
                         <!-- Header with sky gradient -->
                         <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-cyan-500 p-4">
@@ -261,48 +261,4 @@
     </div>
 </header>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Dark mode toggle functionality
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const html = document.documentElement;
 
-        const savedTheme = localStorage.getItem('theme' || 'flux.appearance');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-            html.classList.add('dark');
-        } else {
-            html.classList.remove('dark');
-        }
-
-        darkModeToggle.addEventListener('click', function () {
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                localStorage.setItem('flux.appearance', 'light');
-            } else {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                localStorage.setItem('flux.appearance', 'dark');
-            }
-        });
-
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-            if (!localStorage.getItem('theme' || 'flux.appearance')) {
-                if (e.matches) {
-                    html.classList.add('dark');
-                } else {
-                    html.classList.remove('dark');
-                }
-            }
-        });
-
-        // Close mobile menu on window resize (CSS-only approach doesn't need this but it's good UX)
-        window.addEventListener('resize', function () {
-            if (window.innerWidth >= 768) {
-                document.getElementById('mobile-menu-toggle').checked = false;
-            }
-        });
-    });
-</script>

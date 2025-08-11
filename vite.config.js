@@ -7,10 +7,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/css/coloris.css',
                 'resources/js/app.js',
-                'resources/js/echo.js',
-                'resources/js/plotter.js',
                 'resources/js/coloris.js'
             ],
             refresh: true

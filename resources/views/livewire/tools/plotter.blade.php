@@ -335,7 +335,7 @@
                                     <div class="flex items-center">
                                         <div
                                             class="mr-2 h-5 w-5 rounded-full"
-                                            style="background-color: {{ $point->color }}"
+                                            :class="{{$point->color}}"
                                         ></div>
                                         <span class="text-zinc-600 dark:text-zinc-300">{{ $point->color }}</span>
                                     </div>
@@ -506,6 +506,4 @@
     </div>
 </div>
 
-@push('scripts')
-    @vite(['resources/js/plotter.js'])
-@endpush
+<script type="module" @cspNonce src="/resources/js/plotter.js"></script>

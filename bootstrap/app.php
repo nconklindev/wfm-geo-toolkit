@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeadersMiddleware;
+use App\Http\Middleware\AddViteNonceMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Sentry\Laravel\Integration;
+use Spatie\Csp\AddCspHeaders;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,7 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->append(AddSecurityHeadersMiddleware::class);
+        $middleware->append(AddViteNonceMiddleware::class);
+        $middleware->append(AddCspHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         Integration::handles($exceptions);
