@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
+
+class AddViteNonceMiddleware
+{
+    public function handle(Request $request, Closure $next)
+    {
+        Vite::useCspNonce();
+
+        return $next($request);
+    }
+}
