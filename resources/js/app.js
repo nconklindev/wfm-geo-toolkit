@@ -1,10 +1,11 @@
 import 'leaflet/dist/leaflet.css';
 import './coloris.js';
+import './plotter.js';
 import './clipboard.js';
 
 import.meta.glob(['../fonts/**']);
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     // Basic configuration
     Coloris({
         el: '[data-color]',
@@ -24,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '#9B59B6', // Soft Purple
             '#E67E22', // Warm Brownish Orange
             '#1ABC9C', // Aqua Cyan
-            '#34495E', // Neutral Dark Gray
-        ],
+            '#34495E' // Neutral Dark Gray
+        ]
     });
 });
