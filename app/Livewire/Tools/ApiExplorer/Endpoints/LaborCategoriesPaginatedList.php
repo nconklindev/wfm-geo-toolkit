@@ -54,8 +54,9 @@ class LaborCategoriesPaginatedList extends BaseBatchableApiComponent
 
     // We override mount in this one endpoint because we need to load
     // the labor categories when the component is loaded
-    public function mount(): void
+    public function mount(?string $accessToken = null, ?string $hostname = null): void
     {
+        // the parent mount method will handle the authentication
         parent::mount();
 
         if ($this->isAuthenticated && ! $this->laborCategoriesLoaded) {
