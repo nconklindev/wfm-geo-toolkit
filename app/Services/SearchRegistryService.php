@@ -16,14 +16,14 @@ class SearchRegistryService
     {
         $config = self::getModelConfig($modelType);
 
-        if (!$config) {
+        if (! $config) {
             throw new Exception("Model type '{$modelType}' is not registered as searchable");
         }
 
         return [
             'route_name' => $config['route_name'],
             'route_parameter' => $config['route_parameter'],
-            'has_parameter' => !is_null($config['route_parameter']),
+            'has_parameter' => ! is_null($config['route_parameter']),
         ];
     }
 
@@ -78,12 +78,12 @@ class SearchRegistryService
      */
     public static function searchAll(string $query, int $userId): EloquentCollection
     {
-        $allResults = new EloquentCollection();
+        $allResults = new EloquentCollection;
 
         foreach (self::$searchableModels as $config) {
             $modelClass = $config['class'];
 
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 
