@@ -76,7 +76,7 @@ class SearchRegistryService
      * Search across all registered models using Scout/Algolia
      * Returns an Eloquent Collection to maintain type compatibility
      */
-    public static function searchAll(string $query, int $userId): EloquentCollection
+    public static function searchAll(string $query, int $userId): \Illuminate\Support\Collection
     {
         $allResults = new EloquentCollection;
 
