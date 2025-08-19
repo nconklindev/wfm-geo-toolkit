@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class SearchRegistryService
@@ -76,7 +77,7 @@ class SearchRegistryService
      * Search across all registered models using Scout/Algolia
      * Returns an Eloquent Collection to maintain type compatibility
      */
-    public static function searchAll(string $query, int $userId): \Illuminate\Support\Collection
+    public static function searchAll(string $query, int $userId): Collection
     {
         $allResults = new EloquentCollection;
 
