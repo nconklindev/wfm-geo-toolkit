@@ -32,7 +32,7 @@ class WfmService
     /**
      * Retrieve paginated locations from the WFM using its API.
      *
-     * @throws \Illuminate\Http\Client\ConnectionException|\JsonException
+     * @throws ConnectionException|JsonException
      */
     public function getLocationsPaginated(array $requestData = []): Response|array
     {
@@ -60,11 +60,11 @@ class WfmService
      * @param  string  $apiPath  The API endpoint path to append to the base
      *                           hostname.
      * @param  array|object  $data  The request payload to send.
-     * @return \Illuminate\Http\Client\Response Returns the API response as a Response object
+     * @return Response Returns the API response as a Response object
      *
-     * @throws \Illuminate\Http\Client\ConnectionException If there is an error connecting to the API.
-     * @throws \JsonException If there is an error with encoding or decoding the
-     *                        JSON payload.
+     * @throws ConnectionException If there is an error connecting to the API.
+     * @throws JsonException If there is an error with encoding or decoding the
+     *                       JSON payload.
      */
     private function callWfmApi(
         string $method,
@@ -134,8 +134,8 @@ class WfmService
      * @param  Response  $response  The response object from the WFM API.
      * @param  string|null  $context  A contextual description of the error
      *                                (default: 'WFM API error').
-     * @return \Illuminate\Http\Client\Response A structured array containing error details, including
-     *                                          success status, message, code, and additional details.
+     * @return Response A structured array containing error details, including
+     *                  success status, message, code, and additional details.
      */
     private function handleWfmError(
         Response $response,
@@ -228,6 +228,7 @@ class WfmService
 
             if ($response->successful()) {
                 $this->accessToken = $response->json('access_token');
+                session(['wfm_access_token' => $this->accessToken, 'hostname' => $this->hostname]);
 
                 Log::info('WFM Authentication successful', [
                     'app_user' => $appUsername,
@@ -304,21 +305,6 @@ class WfmService
     }
 
     /**
-     * Create a new known place in WFM using its API
-     *
-     *
-     * @throws ConnectionException|\JsonException
-     */
-    public function createKnownPlace(array $requestData): Response
-    {
-        return $this->callWfmApi(
-            'POST',
-            'api/v1/commons/known_places',
-            $requestData,
-        );
-    }
-
-    /**
      * Returns a list of paycodes available to a manager
      *
      * - When this operation is executed with no parameters, the system returns
@@ -370,7 +356,7 @@ class WfmService
     }
 
     /**
-     * @throws ConnectionException|\JsonException
+     * @throws ConnectionException|JsonException
      *
      * @see https://developer.ukg.com/wfm/reference/retrieve-all-persons
      */
@@ -384,74 +370,16 @@ class WfmService
     }
 
     /**
-     * @throws \Illuminate\Http\Client\ConnectionException
-     * @throws \JsonException
+     * @throws ConnectionException
+     * @throws JsonException
      */
-    public function getKnownIpAddresses(array $requestData = [])
+    public function getKnownIpAddresses(array $requestData = []): Response
     {
         return $this->callWfmApi(
             'GET',
             'api/v1/commons/known_ip_addresses',
             $requestData,
         );
-    }
-
-    /**
-     * Extract place IDs from a list of places
-     */
-    public function extractPlaceIds(array $places): array
-    {
-        return array_map(static function ($place) {
-            return $place['id'];
-        }, $places);
-    }
-
-    /**
-     * Get all known places from the WFM using its API
-     */
-    public function getKnownPlaces(): array
-    {
-        // TODO: Update how we are getting known places in the Controller so this can return just the $response
-        //        return $this->callWfmApi('GET', 'api/v1/commons/known_places', $requestData);
-        try {
-            $response = Http::withToken($this->accessToken)
-                ->get("$this->hostname/api/v1/commons/known_places");
-
-            if ($response->successful()) {
-                return $response->json();
-            }
-
-            Log::error('Failed to get known places', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-
-            return [];
-        } catch (Throwable $e) {
-            Log::error('Exception when getting known places', [
-                'message' => $e->getMessage(),
-            ]);
-
-            return [];
-        }
-    }
-
-    /**
-     * Find the next available ID from existing place IDs
-     */
-    public function getNextAvailableId(array $placeIds, int $startFrom = 1): int
-    {
-        sort($placeIds);
-        $nextId = $startFrom;
-
-        foreach ($placeIds as $id) {
-            if ($id > $nextId) {
-                break;
-            }
-            $nextId = $id + 1;
-        }
-
-        return $nextId;
     }
 
     /**
@@ -479,7 +407,7 @@ class WfmService
     }
 
     /**
-     * @throws ConnectionException|\JsonException
+     * @throws ConnectionException|JsonException
      */
     public function getAdjustmentRules(array $requestData = []): Response
     {
@@ -498,7 +426,7 @@ class WfmService
      * @param  array  $requestData  request parameters
      * @return Response the response from the API
      *
-     * @throws ConnectionException|\JsonException
+     * @throws ConnectionException|JsonException
      *
      * @see https://developer.ukg.com/wfm/reference/retrieve-paginated-list-of-labor-category-entries
      */
@@ -518,8 +446,8 @@ class WfmService
      *
      * @return array|Response the Response object from the API
      *
-     * @throws \Illuminate\Http\Client\ConnectionException
-     * @throws \JsonException
+     * @throws ConnectionException
+     * @throws JsonException
      */
     public function getPayRules(array $requestData = []): array|Response
     {
@@ -531,8 +459,8 @@ class WfmService
     }
 
     /**
-     * @throws \Illuminate\Http\Client\ConnectionException
-     * @throws \JsonException
+     * @throws ConnectionException
+     * @throws JsonException
      */
     public function getScheduledReportJobs(array $requestData = []): array|Response
     {
@@ -549,11 +477,84 @@ class WfmService
     }
 
     /**
+     * Authenticate with the WFM API using client credentials flow (non-interactive).
+     *
+     * @param  string  $clientId  The client ID for the API.
+     * @param  string  $clientSecret  The client secret for the API.
+     * @param  string  $orgId  The organization ID for authentication.
+     * @return bool Returns true if authentication is successful, otherwise false.
+     */
+    public function authenticateNonInteractive(
+        string $clientId,
+        string $clientSecret,
+        string $orgId,
+    ): bool {
+        $grantType = 'client_credentials';
+        $audience = 'https://wfm.ukg.net/api';
+        $tokenUrl = $this->getTokenUrl();
+
+        // Get the authenticated user and IP address
+        $appUsername = Auth::check() ? Auth::user()->username : 'Guest';
+        $ipAddress = $this->request->ip();
+
+        Log::info('Authenticating with WFM (Non-Interactive)', [
+            'tokenUrl' => $tokenUrl,
+            'hostname' => $this->hostname,
+            'app_user' => $appUsername,
+            'ip_address' => $ipAddress,
+            'org_id' => $orgId,
+        ]);
+
+        try {
+            $response = Http::asForm()->withHeaders([
+                'Accept' => '*/*',
+                'Connection' => 'keep-alive',
+            ])->post($tokenUrl, [
+                'grant_type' => $grantType,
+                'audience' => $audience,
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret,
+                'organization' => $orgId,
+            ]);
+
+            if ($response->successful()) {
+                $this->accessToken = $response->json('access_token');
+                session(['wfm_access_token' => $this->accessToken, 'hostname' => $this->hostname]);
+
+                Log::info('WFM Authentication successful (Non-Interactive)', [
+                    'app_user' => $appUsername,
+                    'ip_address' => $ipAddress,
+                ]);
+
+                return true;
+            }
+
+            Log::error('WFM Authentication failed (Non-Interactive)', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            return false;
+        } catch (Throwable $e) {
+            Log::error('WFM Authentication exception (Non-Interactive)', [
+                'message' => $e->getMessage(),
+                'app_user' => $appUsername,
+                'ip_address' => $ipAddress,
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
      * Clear the access token (used for logout)
      */
     public function clearAccessToken(): void
     {
         $this->accessToken = '';
+        session()->forget(['wfm_access_token', 'hostname']);
     }
 
     /**
@@ -562,7 +563,7 @@ class WfmService
      * @param  array  $requestData  Optional request parameters/filters
      * @return Response the response from the API
      *
-     * @throws ConnectionException|\JsonException
+     * @throws ConnectionException|JsonException
      */
     public function getLaborCategoryEntries(array $requestData = []): Response
     {
@@ -579,8 +580,8 @@ class WfmService
      * @param  array  $requestData  The data to be sent with the API request.
      * @return Response The response from the API.
      *
-     * @throws \Illuminate\Http\Client\ConnectionException
-     * @throws \JsonException
+     * @throws ConnectionException
+     * @throws JsonException
      */
     public function getLaborCategories(array $requestData = []): Response
     {
@@ -592,8 +593,8 @@ class WfmService
     }
 
     /**
-     * @throws \Illuminate\Http\Client\ConnectionException
-     * @throws \JsonException
+     * @throws ConnectionException
+     * @throws JsonException
      */
     public function getPercentAllocationRules(): Response
     {
@@ -612,8 +613,8 @@ class WfmService
      * @return PromiseInterface|Response A promise resolving to an HTTP
      *                                   response object.
      *
-     * @throws \Illuminate\Http\Client\ConnectionException
-     * @throws \JsonException
+     * @throws ConnectionException
+     * @throws JsonException
      */
     public function getDataElementsPaginated(array $requestData = [],
     ): PromiseInterface|Response {
@@ -625,9 +626,9 @@ class WfmService
     }
 
     /**
-     * @throws \JsonException
-     * @throws \Illuminate\Http\Client\ConnectionException If the connection fails
-     * @throws \JsonException If JSON encoding/decoding fails
+     * @throws JsonException
+     * @throws ConnectionException If the connection fails
+     * @throws JsonException If JSON encoding/decoding fails
      */
     public function getHyperfindQueries(array $requestData): array|Response
     {
