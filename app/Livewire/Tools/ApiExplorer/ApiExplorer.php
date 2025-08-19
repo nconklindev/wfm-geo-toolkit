@@ -6,12 +6,16 @@ use App\Services\WfmService;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Throwable;
 
 class ApiExplorer extends Component
 {
     // Credentials
+    // Flow configuration
+    public string $flowType = 'interactive';
+
     public string $clientId = '';
 
     public string $clientSecret = '';
@@ -35,6 +39,8 @@ class ApiExplorer extends Component
 
     public bool $isLoading = false;
 
+    public bool $open = false;
+
     public ?string $errorMessage = null;
 
     protected WfmService $wfmService;
@@ -44,62 +50,29 @@ class ApiExplorer extends Component
     public function boot(WfmService $wfmService): void
     {
         $this->wfmService = $wfmService;
-
-        // Load cached credentials from the session
-        $this->loadCredentialsFromSession();
-
-        // Check if we have a stored token and credentials
-        $this->checkExistingAuthentication();
-    }
-
-    private function loadCredentialsFromSession(): void
-    {
-        $credentials = session('wfm_credentials', []);
-
-        $this->clientId = $credentials['client_id'] ?? '';
-        // Don't load client_secret from session - force re-entry each time
-        $this->orgId = $credentials['org_id'] ?? '';
-        $this->username = $credentials['username'] ?? '';
-        $this->hostname = $credentials['hostname'] ?? '';
-        // Don't load password from session for security
-    }
-
-    private function checkExistingAuthentication(): void
-    {
-        // Check if we're marked as authenticated in session
-        if (session('wfm_authenticated') && session('wfm_access_token')) {
-            $this->isAuthenticated = true;
-
-            // Set the token on the service but don't store in component property
-            $this->wfmService->setAccessToken(session('wfm_access_token'));
-            if ($this->hostname) {
-                $this->wfmService->setHostname($this->hostname);
-            }
-        }
     }
 
     public function saveCredentials(): void
     {
-        $this->validate([
-            'clientId' => 'required|string',
-            'clientSecret' => 'required|string',
+        // Build validation rules dynamically based on flow type
+        $rules = [
+            'clientId' => 'required|string|min:1',
+            'clientSecret' => 'required|string|min:1',
             'orgId' => 'required|string',
-            'username' => 'required|string',
-            'password' => 'required|string',
             'hostname' => 'required|url',
-        ]);
+        ];
 
-        // Save to session (excluding sensitive credentials)
-        session([
-            'wfm_credentials' => [
-                'client_id' => $this->clientId,
-                // Deliberately exclude client_secret
-                'org_id' => $this->orgId,
-                'username' => $this->username,
-                'hostname' => $this->hostname,
-                // Deliberately exclude password
-            ],
-        ]);
+        // Only validate username/password for interactive flow
+        if ($this->flowType === 'interactive') {
+            $rules['username'] = 'required|string';
+            $rules['password'] = 'required|string';
+        }
+
+        // Clear any existing validation errors first
+        $this->resetValidation();
+
+        // Validate with the appropriate rules
+        $this->validate($rules);
 
         // Try to authenticate
         $this->authenticate();
@@ -115,37 +88,34 @@ class ApiExplorer extends Component
         try {
             $this->wfmService->setHostname($this->hostname);
 
-            // This calls the authenticate method from WfmService
-            $success = $this->wfmService->authenticate(
-                $this->clientId,
-                $this->clientSecret,
-                $this->orgId,
-                $this->username,
-                $this->password,
-            );
+            // Use different authentication methods based on flow type
+            if ($this->flowType === 'interactive') {
+                $success = $this->wfmService->authenticate(
+                    $this->clientId,
+                    $this->clientSecret,
+                    $this->orgId,
+                    $this->username,
+                    $this->password,
+                );
+
+                session(['hostname' => $this->hostname]);
+            } else {
+                // Non-interactive flow - use client credentials
+                $success = $this->wfmService->authenticateNonInteractive(
+                    $this->clientId,
+                    $this->clientSecret,
+                    $this->orgId,
+                );
+            }
 
             if ($success) {
                 $this->isAuthenticated = true;
-
-                // Store authentication state and token in session (server-side only)
-                session([
-                    'wfm_authenticated' => true,
-                    'wfm_access_token' => $this->wfmService->getAccessToken(),
-                ]);
             } else {
                 $this->isAuthenticated = false;
-
-                // Clear session authentication
-                session()->forget(['wfm_authenticated', 'wfm_access_token']);
-
                 $this->errorMessage = 'Authentication failed. Please check your credentials.';
             }
         } catch (Throwable $e) {
             $this->isAuthenticated = false;
-
-            // Clear session authentication
-            session()->forget(['wfm_authenticated', 'wfm_access_token']);
-
             $this->errorMessage = 'Authentication error: '.$e->getMessage();
         } finally {
             $this->isLoading = false;
@@ -161,9 +131,6 @@ class ApiExplorer extends Component
         $this->clientSecret = '';
         $this->password = '';
 
-        // Clear session authentication data
-        session()->forget(['wfm_authenticated', 'wfm_access_token']);
-
         // Clear the access token from the service
         $this->wfmService->clearAccessToken();
 
@@ -173,6 +140,7 @@ class ApiExplorer extends Component
 
         // Dispatch an event to notify other components
         $this->dispatch('wfm-logged-out');
+        $this->dispatch('flow-type-changed');
     }
 
     public function selectEndpoint(string $endpoint, string $label): void
@@ -187,14 +155,16 @@ class ApiExplorer extends Component
 
     public function mount(): void
     {
-        $this->loadCredentialsFromSession();
+        // Component initialization - no session loading
     }
 
     #[Layout('components.layouts.guest')]
     #[Title('API Explorer')]
     public function render(): View
     {
-        return view('livewire.tools.api-explorer.api-explorer');
+        return view('livewire.tools.api-explorer.api-explorer', [
+            'wfmService' => $this->wfmService,
+        ]);
     }
 
     public function updatedClientId(): void
@@ -222,15 +192,29 @@ class ApiExplorer extends Component
         $this->password = trim($this->password);
     }
 
-    protected function prepareForValidation($attributes): array
+    public function updatedFlowType(): void
     {
-        return [
-            'clientId' => trim($this->clientId),
-            'clientSecret' => trim($this->clientSecret),
-            'orgId' => trim($this->orgId),
-            'username' => trim($this->username),
-            'password' => trim($this->password),
-            'hostname' => trim($this->hostname),
-        ];
+        // When flow type changes, clear authentication and reset relevant fields
+        $wasAuthenticated = $this->isAuthenticated;
+
+        if ($this->isAuthenticated) {
+            $this->logout();
+        }
+
+        // Reset flow-specific fields
+        if ($this->flowType !== 'interactive') {
+            // Clear username/password for non-interactive flow
+            $this->username = '';
+            $this->password = '';
+        }
+
+        // Clear any error messages and validation errors
+        $this->errorMessage = null;
+        $this->resetValidation();
+
+        // Dispatch event if user was previously authenticated
+        if ($wasAuthenticated) {
+            $this->dispatch('flow-type-changed');
+        }
     }
 }

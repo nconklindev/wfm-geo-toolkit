@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class SearchRegistryService
@@ -16,14 +17,14 @@ class SearchRegistryService
     {
         $config = self::getModelConfig($modelType);
 
-        if (!$config) {
+        if (! $config) {
             throw new Exception("Model type '{$modelType}' is not registered as searchable");
         }
 
         return [
             'route_name' => $config['route_name'],
             'route_parameter' => $config['route_parameter'],
-            'has_parameter' => !is_null($config['route_parameter']),
+            'has_parameter' => ! is_null($config['route_parameter']),
         ];
     }
 
@@ -76,14 +77,14 @@ class SearchRegistryService
      * Search across all registered models using Scout/Algolia
      * Returns an Eloquent Collection to maintain type compatibility
      */
-    public static function searchAll(string $query, int $userId): EloquentCollection
+    public static function searchAll(string $query, int $userId): Collection
     {
-        $allResults = new EloquentCollection();
+        $allResults = new EloquentCollection;
 
         foreach (self::$searchableModels as $config) {
             $modelClass = $config['class'];
 
-            if (!class_exists($modelClass)) {
+            if (! class_exists($modelClass)) {
                 continue;
             }
 

@@ -17,34 +17,37 @@ trait HandlesAuthentication
 
     protected WfmService $wfmService;
 
-    protected function setupAuthenticationFromSession(): void
+    protected function setupAuthenticationFromToken(?string $accessToken = null): void
     {
-        if (session('wfm_authenticated') && session('wfm_access_token')) {
+        // If no token provided, try to get from session
+        if (! $accessToken) {
+            $accessToken = session('wfm_access_token');
+        }
+
+        // If no hostname set, try to get from session
+        if (empty($this->hostname)) {
+            $this->hostname = session('hostname', '');
+        }
+
+        if ($accessToken && ! empty($this->hostname)) {
             $this->isAuthenticated = true;
-            $this->wfmService->setAccessToken(session('wfm_access_token'));
-
-            // Always try to get hostname from session first, then fall back to the component property
-            $sessionHostname = session('wfm_credentials.hostname');
-
-            if (! empty($sessionHostname)) {
-                $this->wfmService->setHostname($sessionHostname);
-                $this->hostname = $sessionHostname;
-            } elseif (! empty($this->hostname)) {
-                $this->wfmService->setHostname($this->hostname);
-            }
+            $this->wfmService->setAccessToken($accessToken);
+            $this->wfmService->setHostname($this->hostname);
 
             Log::info('Authentication setup completed', [
                 'component' => get_class($this),
                 'hostname' => $this->hostname,
-                'session_hostname' => $sessionHostname,
                 'isAuthenticated' => $this->isAuthenticated,
+                'token_source' => $accessToken === session('wfm_access_token') ? 'session' : 'parameter',
             ]);
         } else {
             $this->isAuthenticated = false;
-            Log::info('Authentication setup failed - no session data', [
+            Log::info('Authentication setup failed - no token or hostname', [
                 'component' => get_class($this),
-                'wfm_authenticated' => session('wfm_authenticated'),
-                'has_access_token' => ! empty(session('wfm_access_token')),
+                'has_access_token' => ! empty($accessToken),
+                'has_hostname' => ! empty($this->hostname),
+                'session_token' => ! empty(session('wfm_access_token')),
+                'session_hostname' => ! empty(session('hostname')),
             ]);
         }
     }
@@ -59,13 +62,9 @@ trait HandlesAuthentication
             return null;
         }
 
-        // Double-check hostname is set before making the call
-        if (empty($this->hostname)) {
-            $sessionHostname = session('wfm_credentials.hostname');
-            if (! empty($sessionHostname)) {
-                $this->hostname = $sessionHostname;
-                $this->wfmService->setHostname($sessionHostname);
-            }
+        // Ensure hostname is set for the service
+        if (! empty($this->hostname)) {
+            $this->wfmService->setHostname($this->hostname);
         }
 
         if (empty($this->hostname)) {
@@ -115,8 +114,7 @@ trait HandlesAuthentication
 
     protected function handleAuthenticationFailure(): void
     {
-        session()->forget(['wfm_authenticated', 'wfm_access_token']);
         $this->isAuthenticated = false;
-        $this->errorMessage = 'Your authentication session has expired. Please re-enter your credentials to continue.';
+        $this->errorMessage = 'Your authentication has expired. Please re-authenticate to continue.';
     }
 }

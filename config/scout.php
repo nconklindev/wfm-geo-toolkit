@@ -1,10 +1,5 @@
 <?php
 
-use App\Models\BusinessStructureNode;
-use App\Models\BusinessStructureType;
-use App\Models\KnownIpAddress;
-use App\Models\KnownPlace;
-
 return [
 
     /*
@@ -121,21 +116,6 @@ return [
         'id' => env('ALGOLIA_APP_ID', ''),
         'secret' => env('ALGOLIA_SECRET', ''),
         'index-settings' => [
-            KnownPlace::class => [
-                'searchableAttributes' => ['name', 'description'],
-                'attributesForFaceting' => ['filterOnly(user_id)'],
-                'attributesToHighlight' => ['name', 'description'],
-            ],
-            BusinessStructureNode::class => [
-                'searchableAttributes' => ['name', 'path'],
-                'attributesForFaceting' => ['filterOnly(user_id)'],
-                'attributesToHighlight' => ['name', 'path'],
-            ],
-            KnownIpAddress::class => [
-                'searchableAttributes' => ['name', 'description', 'start', 'end'],
-                'attributesForFaceting' => ['filterOnly(user_id)'],
-                'attributesToHighlight' => ['name', 'description', 'start', 'end'],
-            ]
         ],
     ],
 

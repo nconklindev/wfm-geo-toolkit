@@ -27,12 +27,13 @@ class Search extends Component
     public function getModelDisplayName(string $modelType): string
     {
         $config = SearchRegistryService::getModelConfig($modelType);
+
         return $config['display_name'] ?? class_basename($modelType);
     }
 
     public function mount(): void
     {
-        $this->results = new Collection();
+        $this->results = new Collection;
     }
 
     /**
@@ -41,7 +42,7 @@ class Search extends Component
     public function openResult(string $modelType, int $id): void
     {
         try {
-            if (!SearchRegistryService::isRegistered($modelType)) {
+            if (! SearchRegistryService::isRegistered($modelType)) {
                 throw new Exception("Unsupported model type: $modelType");
             }
 
@@ -73,10 +74,10 @@ class Search extends Component
             }
 
         } catch (ModelNotFoundException) {
-            Log::warning("Attempted to open non-existent item.", [
+            Log::warning('Attempted to open non-existent item.', [
                 'modelType' => $modelType,
                 'id' => $id,
-                'user_id' => auth()->id()
+                'user_id' => auth()->id(),
             ]);
             $this->dispatch('notify', message: 'Error: The selected item could not be found.', type: 'error');
             $this->resetSearch();
@@ -85,7 +86,7 @@ class Search extends Component
                 'modelType' => $modelType,
                 'id' => $id,
                 'user_id' => auth()->id(),
-                'exception' => $e
+                'exception' => $e,
             ]);
             $this->dispatch('notify', message: 'Error: Unable to open the selected item.', type: 'error');
             $this->resetSearch();
@@ -95,7 +96,7 @@ class Search extends Component
     public function resetSearch(): void
     {
         $this->reset(['searchQuery', 'searchTime']);
-        $this->results = new Collection();
+        $this->results = new Collection;
     }
 
     public function render(): View
@@ -109,12 +110,14 @@ class Search extends Component
 
         if (empty(trim($this->searchQuery))) {
             $this->resetSearch();
+
             return;
         }
 
         // Minimum query length for better Algolia performance
         if (strlen(trim($this->searchQuery)) < 2) {
-            $this->results = new Collection();
+            $this->results = new Collection;
+
             return;
         }
 
@@ -129,9 +132,9 @@ class Search extends Component
             Log::error("Search failed: {$e->getMessage()}", [
                 'query' => $this->searchQuery,
                 'user_id' => auth()->id(),
-                'exception' => $e
+                'exception' => $e,
             ]);
-            $this->results = new Collection();
+            $this->results = new Collection;
         }
     }
 }

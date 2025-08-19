@@ -36,6 +36,8 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
 
     protected bool $isLoading = false;
 
+    public ?string $accessToken = null;
+
     public function boot(): void
     {
         $this->wfmService = app(WfmService::class);
@@ -126,7 +128,7 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
      */
     public function hydrate(): void
     {
-        $this->setupAuthenticationFromSession();
+        $this->setupAuthenticationFromToken($this->accessToken ?? null);
 
         // Reload cached data if we don't have any data loaded
         if (empty($this->data) && $this->isAuthenticated) {
@@ -153,9 +155,13 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
         return "livewire.tools.api-explorer.endpoints.$viewName";
     }
 
-    public function mount(): void
+    public function mount(?string $accessToken = null, ?string $hostname = null): void
     {
-        $this->setupAuthenticationFromSession();
+        $this->accessToken = $accessToken;
+        if ($hostname) {
+            $this->hostname = $hostname;
+        }
+        $this->setupAuthenticationFromToken($accessToken);
         $this->loadCachedDataIfAvailable();
     }
 
@@ -171,7 +177,7 @@ abstract class BaseApiComponent extends Component implements CacheableInterface,
 
     public function executeRequest(): void
     {
-        $this->setupAuthenticationFromSession();
+        $this->setupAuthenticationFromToken($this->accessToken ?? null);
         $this->loadData();
     }
 
