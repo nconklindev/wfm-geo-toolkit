@@ -130,20 +130,20 @@
             </div>
         </div>
 
-        <form class="space-y-4">
+        <form class="space-y-6">
             <!-- Condensed Grid Layout -->
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start">
+            <div class="grid grid-cols-1 gap-4">
                 <!-- Client Configuration -->
                 <div>
                     <flux:fieldset>
                         <flux:legend class="text-sm font-medium">Client Configuration</flux:legend>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <flux:input
                                 wire:model="clientId"
                                 label="Client ID"
                                 placeholder="Enter Client ID"
                                 value="{{ old('client_id', session('wfm_credentials.client_id')) }}"
-                                size="sm"
+                                size="md"
                                 autofocus
                                 tabindex="0"
                                 required
@@ -155,7 +155,7 @@
                                 value="{{ old('client_secret', session('wfm_credentials.client_secret')) }}"
                                 type="password"
                                 autocomplete="off"
-                                size="sm"
+                                size="md"
                                 required
                                 viewable
                             />
@@ -164,7 +164,7 @@
                                 :label="$flowType === 'interactive' ? 'Realm ID' : 'Organization ID'"
                                 :placeholder="$flowType === 'interactive' ? 'PGPKzgyQPH6kX7Z-custom' : 'org_PGPKzgyQPH6kX7Z'"
                                 value="{{ old('org_id', session('wfm_credentials.org_id')) }}"
-                                size="sm"
+                                size="md"
                                 required
                             />
                         </div>
@@ -175,7 +175,7 @@
                 <div>
                     <flux:fieldset>
                         <flux:legend class="text-sm font-medium">WFM Configuration</flux:legend>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <!-- Username and Password - Only for Interactive Flow -->
                             <div class="space-y-3"
                                  x-show="$wire.flowType === 'interactive'"
@@ -190,7 +190,7 @@
                                     label="Username"
                                     placeholder="APIUSER"
                                     value="{{ old('username', session('wfm_credentials.username')) }}"
-                                    size="sm"
+                                    size="md"
                                     autocomplete="off"
                                 />
                                 <flux:input
@@ -200,7 +200,7 @@
                                     value="{{ old('password') }}"
                                     type="password"
                                     autocomplete="off"
-                                    size="sm"
+                                    size="md"
                                     viewable
                                 />
                             </div>
@@ -212,7 +212,7 @@
                                 placeholder="https://host.prd.mykronos.com"
                                 value="{{ old('hostname', session('wfm_credentials.hostname')) }}"
                                 type="url"
-                                size="sm"
+                                size="md"
                                 required
                             />
                         </div>
@@ -222,7 +222,7 @@
 
             <!-- Save Credentials Button -->
             <div
-                class="space-y-4 border-t pt-3 dark:border-zinc-700 md:flex md:items-center md:justify-between md:space-y-0">
+                class="space-y-4 border-t pt-4 dark:border-zinc-700 md:flex md:items-center md:justify-between md:space-y-0">
                 <div class="space-y-2 md:flex md:items-center md:space-x-4 md:space-y-0">
                     <flux:text size="sm" variant="subtle">
                         <flux:icon.information-circle class="mr-1 inline h-4 w-4" />
@@ -342,13 +342,6 @@
                     @click.away="open = false"
                     class="absolute z-20 mt-2 w-full max-h-96 overflow-y-auto rounded-xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-800"
                 >
-                <!-- GPS Known Places Group -->
-                <x-api-endpoint-group title="GPS Known Places" name="map-pin">
-                    <x-api-endpoint-item value="places.create" label="Create Known Place" method="POST">
-                        Create Known Place
-                    </x-api-endpoint-item>
-                </x-api-endpoint-group>
-
                 <x-api-endpoint-group title="Common Resources I" name="check">
                     <x-api-endpoint-item value="retrieve-known-ip-addresses" label="Retrieve Known IP Addresses"
                                          method="GET">

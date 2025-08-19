@@ -43,7 +43,6 @@ class ApiExplorer extends Component
 
     public ?string $errorMessage = null;
 
-
     protected WfmService $wfmService;
 
     // TODO: Add before validation that lets us trim the properties to account for accidental spaces
@@ -52,8 +51,6 @@ class ApiExplorer extends Component
     {
         $this->wfmService = $wfmService;
     }
-
-
 
     public function saveCredentials(): void
     {
@@ -220,5 +217,4 @@ class ApiExplorer extends Component
             $this->dispatch('flow-type-changed');
         }
     }
-
 }
