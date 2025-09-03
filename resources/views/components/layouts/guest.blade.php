@@ -9,12 +9,13 @@
     {{-- Dynamic Title --}}
     <title>{{ $title . ' | WFM Toolkit' ?? config('app.name', 'WFM Toolkit') }}</title>
 
-    <!-- Styles / Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
     {{-- Adding livewireStyles and passing the nonce fixes any issues with CSP --}}
     @fluxAppearance(['nonce' => csp_nonce()])
     @livewireStyles(['nonce' => csp_nonce()])
+
+    <!-- Styles / Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
 
     {{-- Add custom styles to the stack --}}
     @stack('styles')
