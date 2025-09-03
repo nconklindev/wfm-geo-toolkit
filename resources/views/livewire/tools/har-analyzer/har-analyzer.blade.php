@@ -25,21 +25,81 @@
             class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xl dark:border-zinc-700 dark:bg-zinc-800"
         >
             <div class="p-8">
-                <form wire:submit.prevent="uploadFile">
+                <form 
+                    wire:submit.prevent="uploadFile"
+                    x-data="{ uploading: false, progress: 0 }"
+                    x-on:livewire-upload-start="uploading = true"
+                    x-on:livewire-upload-finish="uploading = false"
+                    x-on:livewire-upload-cancel="uploading = false"
+                    x-on:livewire-upload-error="uploading = false"
+                    x-on:livewire-upload-progress="progress = $event.detail.progress"
+                >
                     <!-- Drag & Drop Area -->
                     <div class="relative">
                         <input
                             type="file"
                             wire:model="harFile"
                             accept=".har"
-                            class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                            wire:loading.attr="disabled"
+                            wire:target="uploadFile"
+                            class="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                            :class="{ 'cursor-not-allowed': uploading }"
                             id="har-file-input"
                         />
 
                         <div
                             class="rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-12 text-center transition-colors duration-200 hover:border-blue-400 dark:border-zinc-600 dark:bg-zinc-900/50 dark:hover:border-blue-500"
+                            :class="{ 'opacity-50 cursor-not-allowed': uploading }"
+                            wire:loading.class="opacity-50 cursor-not-allowed"
+                            wire:target="uploadFile"
                         >
-                            <div class="space-y-4">
+                            <!-- File Upload Loading State -->
+                            <div x-show="uploading" x-cloak class="space-y-4">
+                                <!-- Loading Icon -->
+                                <div class="flex justify-center">
+                                    <div
+                                        class="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-purple-600"
+                                    >
+                                        <flux:icon.loading class="size-12 animate-spin text-white" />
+                                    </div>
+                                </div>
+
+                                <!-- Loading Text -->
+                                <div>
+                                    <flux:heading
+                                        level="3"
+                                        size="lg"
+                                        class="mb-2 font-semibold text-zinc-900 dark:text-white"
+                                    >
+                                        Uploading file...
+                                    </flux:heading>
+                                    <flux:text class="mb-4">Please wait while we process your file</flux:text>
+                                    <flux:text size="sm" variant="subtle">This may take a moment for larger files</flux:text>
+                                </div>
+
+                                <!-- Upload Progress Bar -->
+                                <div class="mt-6">
+                                    <div class="rounded-lg bg-zinc-100 p-4 dark:bg-zinc-800">
+                                        <div class="mb-2 flex items-center justify-between">
+                                            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                                                Processing file...
+                                            </span>
+                                            <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                                                <span x-text="Math.round(progress) + '%'"></span>
+                                            </span>
+                                        </div>
+                                        <div class="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                            <div
+                                                class="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300 ease-out"
+                                                :style="'width: ' + progress + '%'"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Default Upload State -->
+                            <div x-show="!uploading" class="space-y-4">
                                 <!-- Upload Icon -->
                                 <div class="flex justify-center">
                                     <div
@@ -59,7 +119,7 @@
                                         Drop your HAR file here
                                     </flux:heading>
                                     <flux:text class="mb-4">or click to browse from your computer</flux:text>
-                                    <flux:text size="sm" variant="subtle">Supports .har files up to 20MB</flux:text>
+                                    <flux:text size="sm" variant="subtle">Supports .har files up to {{ $uploadLimits['effective_limit_mb'] }}MB</flux:text>
                                 </div>
 
                                 <!-- Selected File Info -->
@@ -114,72 +174,17 @@
                             <div class="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900/50">
                                 <div class="mb-2 flex items-center justify-between">
                                     <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                                        Uploading file...
+                                        Processing file...
                                     </span>
-                                    <span
-                                        class="text-sm text-zinc-500 dark:text-zinc-400"
-                                        x-data="{ progress: 0 }"
-                                        x-init="
-                                            let interval
-                                            const startProgress = () => {
-                                                progress = 0
-                                                interval = setInterval(() => {
-                                                    if (progress < 95) {
-                                                        progress += Math.random() * 15
-                                                        if (progress > 95) progress = 95
-                                                    }
-                                                }, 200)
-                                            }
-
-                                            const completeProgress = () => {
-                                                clearInterval(interval)
-                                                progress = 100
-                                            }
-
-                                            // Start progress when loading begins
-                                            startProgress()
-
-                                            // Listen for Livewire events
-                                            window.addEventListener('livewire:navigated', completeProgress)
-                                            window.addEventListener('livewire:update', completeProgress)
-                                        "
-                                    >
-                                        <span x-text="Math.round(progress) + '%'"></span>
+                                    <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                                        Please wait...
                                     </span>
                                 </div>
                                 <div class="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
-                                    <div
-                                        class="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300 ease-out"
-                                        x-data="{ progress: 0 }"
-                                        x-init="
-                                            let interval
-                                            const startProgress = () => {
-                                                progress = 0
-                                                interval = setInterval(() => {
-                                                    if (progress < 95) {
-                                                        progress += Math.random() * 15
-                                                        if (progress > 95) progress = 95
-                                                    }
-                                                }, 200)
-                                            }
-
-                                            const completeProgress = () => {
-                                                clearInterval(interval)
-                                                progress = 100
-                                            }
-
-                                            // Start progress when loading begins
-                                            startProgress()
-
-                                            // Listen for Livewire events
-                                            window.addEventListener('livewire:navigated', completeProgress)
-                                            window.addEventListener('livewire:update', completeProgress)
-                                        "
-                                        :style="'width: ' + progress + '%'"
-                                    ></div>
+                                    <div class="h-full animate-pulse bg-gradient-to-r from-blue-500 to-purple-600"></div>
                                 </div>
                                 <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-                                    Please wait while we process your HAR file...
+                                    Processing your HAR file on the server...
                                 </p>
                             </div>
                         </div>
