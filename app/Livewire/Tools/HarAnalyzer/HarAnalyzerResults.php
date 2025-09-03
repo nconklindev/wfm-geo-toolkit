@@ -22,9 +22,7 @@ class HarAnalyzerResults extends Component
     {
         if (! session()->has('analysisData') || ! session()->has('uploadedFile')) {
             session()->flash('error', 'No analysis data found. Please upload a file first.');
-            $this->redirect(HarAnalyzer::class, navigate: true);
-
-            return;
+            $this->redirect(HarAnalyzer::class);
         }
 
         $this->analysisData = session('analysisData');
@@ -44,7 +42,7 @@ class HarAnalyzerResults extends Component
 
     public function analyzeFile(): void
     {
-        $this->redirect(HarAnalyzer::class, navigate: true);
+        $this->redirect(HarAnalyzer::class);
     }
 
     public function removeFile(): void
@@ -64,7 +62,7 @@ class HarAnalyzerResults extends Component
         session()->forget(['analysisData', 'uploadedFile']);
 
         // Redirect back to the uploader
-        $this->redirect(HarAnalyzer::class, navigate: true);
+        $this->redirect(HarAnalyzer::class);
     }
 
     #[Layout('components.layouts.guest')]
